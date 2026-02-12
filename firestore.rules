@@ -22,5 +22,35 @@ service cloud.firestore {
       // Prevent client-side writes to global scans (server/admin only)
       allow write: if false;
     }
+
+    // Activity logs - users can read their own
+    match /activityLogs/{logId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow write: if false; // Server-only writes via Admin SDK
+    }
+
+    // Manual tests - users can read their own
+    match /manualTests/{testId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow write: if false; // Server-only writes via Admin SDK
+    }
+
+    // Findings - users can read their own
+    match /findings/{findingId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow write: if false; // Server-only writes via Admin SDK
+    }
+
+    // Engagements - users can read their own
+    match /engagements/{engagementId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.createdBy;
+      allow write: if false; // Server-only writes via Admin SDK
+    }
+
+    // AI Pentest runs - users can read their own
+    match /aiPentestRuns/{runId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow write: if false; // Server-only writes via Admin SDK
+    }
   }
 }

@@ -16,6 +16,10 @@ import {
   faSignOutAlt,
   faCog,
   faChevronUp,
+  faClipboardList,
+  faUser,
+  faBug,
+  faRobot,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/lib/context/AuthContext";
 import signout from "@/lib/firebase/signout";
@@ -60,6 +64,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = [
     { href: "/app/dashboard", label: "Dashboard", icon: faHome },
+    { href: "/app/activity", label: "Activity Log", icon: faClipboardList },
+    { href: "/app/manual-tests", label: "Manual Tests", icon: faUser },
+    { href: "/app/ai-pentest", label: "AI Pentest", icon: faRobot },
+    { href: "/app/findings", label: "Findings", icon: faBug },
     { href: "/app/targets", label: "Targets", icon: faBullseye },
     { href: "/app/scans", label: "Scans", icon: faSatelliteDish },
   ];
