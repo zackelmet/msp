@@ -1,12 +1,13 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { loadStripe } from '@stripe/stripe-js';
 import toast from 'react-hot-toast';
+
+// Tell Next.js this page should be dynamically rendered
+export const runtime = 'edge'; // This prevents static generation
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
