@@ -30,15 +30,23 @@ export default function Navbar() {
 
         <div className="flex items-center gap-3">
           {!isLoadingAuth && !currentUser && (
-            <Link
-              href="/#pricing"
-              className="neon-outline-btn px-4 py-2 text-sm font-semibold"
-            >
-              Pricing
-            </Link>
+            <>
+              <Link
+                href="/pricing"
+                className="text-sm font-medium hover:text-blue-400 transition"
+              >
+                Pricing
+              </Link>
+              <Link
+                href="/login"
+                className="neon-outline-btn px-4 py-2 text-sm font-semibold"
+              >
+                Sign In
+              </Link>
+            </>
           )}
 
-          <UserAvatar compact />
+          {currentUser && <UserAvatar compact />}
         </div>
       </div>
     </header>

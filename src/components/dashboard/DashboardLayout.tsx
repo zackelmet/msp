@@ -20,6 +20,8 @@ import {
   faUser,
   faBug,
   faRobot,
+  faShieldAlt,
+  faChartLine,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/lib/context/AuthContext";
 import signout from "@/lib/firebase/signout";
@@ -64,6 +66,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = [
     { href: "/app/dashboard", label: "Dashboard", icon: faHome },
+    { href: "/app/my-results", label: "My Results", icon: faChartLine },
+    { href: "/app/request-pentest", label: "Request Pentest", icon: faShieldAlt },
     { href: "/app/activity", label: "Activity Log", icon: faClipboardList },
     { href: "/app/manual-tests", label: "Manual Tests", icon: faUser },
     { href: "/app/ai-pentest", label: "AI Pentest", icon: faRobot },
