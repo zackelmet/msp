@@ -16,7 +16,7 @@ export default function Navbar() {
           className="flex items-center gap-3 hover:opacity-90 transition"
         >
           <Image
-            src="/msp pentesting logo text-vertical-dark.png"
+            src="/msp pentesting logo (1) (3) (1).png"
             alt="MSP Pentesting Logo"
             width={150}
             height={40}

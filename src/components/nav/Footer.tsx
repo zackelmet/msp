@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <Image
-              src="/msp pentesting logo text-vertical-dark.png"
+              src="/msp pentesting logo (1) (3) (1).png"
               alt="MSP Pentesting Logo"
               width={150}
               height={40}
