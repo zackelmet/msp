@@ -3,13 +3,13 @@ import Link from "next/link";
 
 export default function HeroSection() {
   return (
-    <section className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-8 px-8 py-16 lg:py-24">
+    <section className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-8 px-8 py-16 lg:py-24 bg-gradient-to-b from-[#0a141f] to-[#0a141f]/90">
       <div className="flex flex-col gap-6 items-center justify-center text-center max-w-4xl">
         <h1 className="font-extrabold text-5xl lg:text-7xl tracking-tight flex flex-col gap-2 items-center">
-          <span className="text-base-content">MSP Pentesting</span>
+          <span className="text-white">MSP Pentesting</span>
         </h1>
         
-        <h2 className="text-2xl lg:text-3xl font-bold text-primary">
+        <h2 className="text-2xl lg:text-3xl font-bold text-[#4590e2]">
           Penetration Testing as a Service
         </h2>
 

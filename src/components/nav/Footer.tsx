@@ -7,18 +7,17 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[var(--bg)] border-t border-[var(--border)] text-[var(--text)]">
+    <footer className="bg-[#0a141f] border-t border-[#4590e2] text-white">
       <div className="max-w-7xl mx-auto px-5 pt-10 pb-12 flex flex-col gap-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="space-y-1">
-              <div className="text-2xl font-bold text-blue-400">
-                MSP Pentesting
-              </div>
-              <div className="text-sm neon-subtle">
-                Penetration Testing as a Service
-              </div>
-            </div>
+            <Image
+              src="/msp pentesting logo text-vertical-dark.png"
+              alt="MSP Pentesting Logo"
+              width={150}
+              height={40}
+              className="h-10 w-auto"
+            />
           </div>
 
           <div className="flex items-center gap-4 flex-wrap">

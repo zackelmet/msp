@@ -226,14 +226,14 @@ export default function PricingPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#0a141f] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-extrabold text-gray-900 mb-4">
+          <h1 className="text-5xl font-extrabold text-white mb-4">
             Pricing Plans
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Choose the right penetration testing solution for your needs.
             From AI-driven automated scans to comprehensive manual testing.
           </p>

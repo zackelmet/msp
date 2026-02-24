@@ -1,0 +1,26 @@
+
+> msp-pentesting@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.15
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+
+🌼   daisyUI 4.6.1
+├─ ✔︎ 1 theme added		https://daisyui.com/docs/themes
+╰─ ❤︎ Support daisyUI project:	https://opencollective.com/daisyui
+
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+Failed to compile.
+
+./src/components/dashboard/DashboardLayout.tsx
+109:15  Error: No duplicate props allowed  react/jsx-no-duplicate-props
+110:15  Error: No duplicate props allowed  react/jsx-no-duplicate-props
+111:15  Error: No duplicate props allowed  react/jsx-no-duplicate-props
+112:15  Error: No duplicate props allowed  react/jsx-no-duplicate-props
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
