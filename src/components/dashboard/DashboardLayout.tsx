@@ -100,8 +100,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Logo */}
         <div className="p-6 border-b border-gray-700">
           <Link href="/" className="flex items-center gap-3">
+            <span className="text-2xl font-bold text-blue-400">MSP Pentesting</span>
             <Image
               src="/HA-logo.png"
+              style={{ display: 'none' }}
               alt="Hacker Analytics"
               width={32}
               height={32}

@@ -11,22 +11,14 @@ export default function Navbar() {
   return (
     <header className="w-full border-b border-[var(--border)] bg-[#0a0a23] text-[var(--text)] relative z-40">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 px-5 py-4">
-        <a
-          href="https://hackeranalytics.com"
+        <Link
+          href="/"
           className="flex items-center gap-3 hover:opacity-90 transition"
         >
-          <Image
-            src="/HA-logo.png"
-            alt="HA logo"
-            width={42}
-            height={42}
-            className="h-10 w-auto"
-            priority
-          />
-          <span className="text-lg font-semibold tracking-tight">
-            Hacker Analytics
+          <span className="text-2xl font-bold tracking-tight text-blue-400">
+            MSP Pentesting
           </span>
-        </a>
+        </Link>
 
         <div className="flex items-center gap-3">
           {!isLoadingAuth && !currentUser && (

@@ -11,19 +11,12 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-5 pt-10 pb-12 flex flex-col gap-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <Image
-              src="/HA-logo.png"
-              alt="HA logo"
-              width={42}
-              height={42}
-              className="h-10 w-auto"
-            />
             <div className="space-y-1">
-              <div className="text-lg font-semibold tracking-tight">
-                Hacker Analytics
+              <div className="text-2xl font-bold text-blue-400">
+                MSP Pentesting
               </div>
               <div className="text-sm neon-subtle">
-                Hosted security scanners
+                Penetration Testing as a Service
               </div>
             </div>
           </div>

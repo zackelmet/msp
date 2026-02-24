@@ -5,18 +5,18 @@ export default function TrustSection() {
     <section className="w-full py-16 lg:py-24 bg-base-100">
       <div className="max-w-5xl mx-auto px-8 text-center">
         <h2 className="text-4xl lg:text-5xl font-bold mb-6">
-          Trusted by Security Professionals Worldwide
+          Trusted by Security Teams Worldwide
         </h2>
         <p className="text-2xl font-semibold text-primary mb-8">
-          Maximize Security Efficiency. Minimize IT Headaches.
+          Professional Pentesting. Powerful Results.
         </p>
 
         <div className="prose lg:prose-xl mx-auto mb-12">
           <p className="text-lg leading-relaxed">
-            Hundreds of Systems Administrators, Network Engineers, Security
-            Analysts, and IT Service Providers rely on HackerAnalytics.com daily
-            to proactively monitor and detect critical vulnerabilities using our
-            powerful suite of hosted scanners.
+            Security teams and MSPs rely on MSP Pentesting for comprehensive
+            penetration testing services. From AI-driven automated scans to
+            expert-led manual assessments, we deliver the insights you need
+            to secure your infrastructure.
           </p>
           <p className="text-lg leading-relaxed mt-6">
             We are confident you&apos;ll find the value. Get started entirely

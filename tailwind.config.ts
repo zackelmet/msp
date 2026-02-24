@@ -9,6 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
+        sans: ['Chakra Petch', 'sans-serif'],
+      },
+      fontFamily: {
         sans: [
           '"Share Tech Mono"',
           "Inter",

@@ -9,22 +9,22 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 config.autoAddCss = false;
 
 export const metadata: Metadata = {
-  title: "Hacker Analytics - Hosted Security Scanners",
+  title: "MSP Pentesting - Penetration Testing as a Service",
   description:
-    "Vulnerability Scanning: Zero Install. Maximum Impact. Hosted Nmap and OpenVAS services on fast, optimized servers.",
-  metadataBase: new URL("https://hackeranalytics.com"),
+    "AI-powered automated pentests and expert-led manual penetration testing. Get comprehensive security assessments from certified professionals.",
+  metadataBase: new URL("https://msppentesting.vercel.app"),
   openGraph: {
-    title: "Hacker Analytics - Hosted Security Scanners",
+    title: "MSP Pentesting - Penetration Testing as a Service",
     description:
-      "Vulnerability Scanning: Zero Install. Maximum Impact. Hosted Nmap and OpenVAS services on fast, optimized servers.",
-    url: "https://hackeranalytics.com",
-    siteName: "Hacker Analytics",
+      "AI-powered automated pentests and expert-led manual penetration testing.",
+    url: "https://msppentesting.vercel.app",
+    siteName: "MSP Pentesting",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hacker Analytics - Hosted Security Scanners",
+    title: "MSP Pentesting - Penetration Testing as a Service",
     description:
-      "Vulnerability Scanning: Zero Install. Maximum Impact. Hosted Nmap and OpenVAS services on fast, optimized servers.",
+      "AI-powered automated pentests and expert-led manual penetration testing.",
   },
   icons: {
     icon: [
