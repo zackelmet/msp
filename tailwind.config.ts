@@ -10,18 +10,6 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ['Chakra Petch', 'sans-serif'],
-      },
-      fontFamily: {
-        sans: [
-          '"Share Tech Mono"',
-          "Inter",
-          "ui-sans-serif",
-          "system-ui",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI",
-          "sans-serif",
-        ],
         serif: ['"Roboto Slab"', "ui-serif", "Georgia", "serif"],
       },
       backgroundImage: {
