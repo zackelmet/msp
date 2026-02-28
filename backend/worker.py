@@ -6,7 +6,7 @@ import os
 import json
 import requests
 import anthropic
-import signal
+import threading
 from datetime import datetime
 from pdf_generator import generate_pdf_report
 from google.cloud import storage
@@ -25,25 +25,40 @@ class TimeoutError(Exception):
     """Raised when pentest exceeds timeout"""
     pass
 
-def timeout_handler(signum, frame):
-    """Signal handler for timeout"""
-    raise TimeoutError("Pentest exceeded 2 hour time limit")
+# Global flag to track if timeout occurred
+timeout_occurred = threading.Event()
 
 def execute_pentest(pentest_id, user_id, pentest_type, target_url, user_roles, endpoints, additional_context, webhook_secret, webapp_api_url):
     """
     Main worker function - executes pentest and sends results back to webapp
     Max runtime: 2 hours (7200 seconds)
+    Note: This is called from a background thread, so we use threading instead of signal
     """
     print(f"🚀 Starting pentest {pentest_id} for {target_url}")
     print(f"⏱️  Timeout set to 2 hours (7200 seconds)")
     
-    # Set timeout alarm
-    signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(PENTEST_TIMEOUT)
+    start_time = datetime.now()
+    
+    # Create a timer to set timeout flag after 2 hours
+    def set_timeout():
+        timeout_occurred.set()
+        print(f"⏱️ Timeout flag set after 2 hours for pentest {pentest_id}")
+    
+    timeout_timer = threading.Timer(PENTEST_TIMEOUT, set_timeout)
+    timeout_timer.daemon = True
+    timeout_timer.start()
     
     try:
+        # Check if timeout occurred before starting
+        if timeout_occurred.is_set():
+            raise TimeoutError("Pentest exceeded 2 hour time limit")
+            
         # Build system prompt based on type
         system_prompt = build_system_prompt(pentest_type, target_url, user_roles, endpoints, additional_context)
+        
+        # Check timeout again
+        if timeout_occurred.is_set():
+            raise TimeoutError("Pentest exceeded 2 hour time limit")
         
         # Call Claude API
         print(f"🤖 Calling Claude Sonnet 4 for pentest analysis...")
@@ -54,8 +69,13 @@ def execute_pentest(pentest_id, user_id, pentest_type, target_url, user_roles, e
             messages=[{
                 "role": "user",
                 "content": f"Please perform a comprehensive penetration test on {target_url}. Provide your findings in JSON format."
-            }]
+            }],
+            timeout=PENTEST_TIMEOUT  # Set API timeout as well
         )
+        
+        # Check timeout
+        if timeout_occurred.is_set():
+            raise TimeoutError("Pentest exceeded 2 hour time limit")
         
         # Extract response
         response_text = response.content[0].text
@@ -63,6 +83,10 @@ def execute_pentest(pentest_id, user_id, pentest_type, target_url, user_roles, e
         
         # Parse JSON response
         pentest_results = parse_claude_response(response_text)
+        
+        # Check timeout
+        if timeout_occurred.is_set():
+            raise TimeoutError("Pentest exceeded 2 hour time limit")
         
         # Generate branded PDF report
         print(f"📄 Generating PDF report...")
@@ -97,9 +121,11 @@ def execute_pentest(pentest_id, user_id, pentest_type, target_url, user_roles, e
             webapp_api_url=webapp_api_url
         )
         
+        timeout_timer.cancel()  # Cancel timer if we completed successfully
         print(f"✅ Pentest {pentest_id} completed successfully!")
         
     except TimeoutError as e:
+        timeout_timer.cancel()
         print(f"⏱️  Pentest {pentest_id} timed out after 2 hours")
         # Send timeout error back to webapp
         send_results_to_webapp(
@@ -112,6 +138,7 @@ def execute_pentest(pentest_id, user_id, pentest_type, target_url, user_roles, e
             webapp_api_url=webapp_api_url
         )
     except Exception as e:
+        timeout_timer.cancel()
         print(f"❌ Error executing pentest {pentest_id}: {str(e)}")
         # Send error back to webapp
         send_results_to_webapp(
