@@ -151,8 +151,8 @@ def execute_pentest(pentest_id, user_id, pentest_type, target_url, user_roles, e
             webapp_api_url=webapp_api_url
         )
     finally:
-        # Cancel alarm
-        signal.alarm(0)
+        # Cleanup - timeout_timer is already cancelled in success/error blocks
+        pass
 
 def build_system_prompt(pentest_type, target_url, user_roles, endpoints, additional_context):
     """
