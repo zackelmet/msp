@@ -69,8 +69,7 @@ def execute_pentest(pentest_id, user_id, pentest_type, target_url, user_roles, e
             messages=[{
                 "role": "user",
                 "content": f"Please perform a comprehensive penetration test on {target_url}. Provide your findings in JSON format."
-            }],
-            timeout=PENTEST_TIMEOUT  # Set API timeout as well
+            }]
         )
         
         # Check timeout

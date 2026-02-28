@@ -1,0 +1,4 @@
+Building using Dockerfile and deploying container to Cloud Run service [[1mmsp-pentest-backend[m] in project [[1mmsp-ai-pentester[m] region [[1mus-east1[m]
+Building and deploying new service...
+Validating configuration.......done
+Uploading sources.............done
