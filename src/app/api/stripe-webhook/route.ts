@@ -72,7 +72,16 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
   // If this is a pentest credit purchase
   if (pentestType) {
-    const quantity = session.line_items?.data?.[0]?.quantity || 1;
+    // line_items are NOT included in webhook events by default - retrieve them
+    let quantity = 1;
+    try {
+      const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
+        expand: ['line_items'],
+      });
+      quantity = expandedSession.line_items?.data?.[0]?.quantity || 1;
+    } catch (e) {
+      console.warn('Could not retrieve line_items, defaulting to quantity 1:', e);
+    }
     
     try {
       const userRef = adminDb.collection('users').doc(userId);

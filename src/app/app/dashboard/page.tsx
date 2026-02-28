@@ -50,7 +50,7 @@ export default function DashboardPage() {
 
     try {
       const priceId = pentestType === 'web_app' 
-        ? process.env.NEXT_PUBLIC_STRIPE_PRICE_WEB_APP 
+        ? (process.env.NEXT_PUBLIC_STRIPE_PRICE_WEB_APP || process.env.NEXT_PUBLIC_STRIPE_PRICE_AI_SINGLE)
         : process.env.NEXT_PUBLIC_STRIPE_PRICE_AI_SINGLE;
 
       const response = await fetch('/api/checkout', {
