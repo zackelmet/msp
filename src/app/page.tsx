@@ -1,156 +1,290 @@
 "use client";
 
-import PricingCard from "@/components/pricing/PricingCard";
 import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useAuth } from "@/lib/context/AuthContext";
+import { loadStripe } from '@stripe/stripe-js';
+import toast from 'react-hot-toast';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faRobot,
+  faBolt,
+  faChartLine,
+  faLock,
+  faBullseye,
+  faShield,
+} from "@fortawesome/free-solid-svg-icons";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
+interface PricingTier {
+  id: string;
+  name: string;
+  price: number;
+  priceId: string;
+  description: string;
+  features: string[];
+  popular?: boolean;
+  type: 'one-time' | 'subscription';
+  cta: string;
+}
+
+const PRICING_TIERS: PricingTier[] = [
+  {
+    id: 'external_ip',
+    name: 'External IP Pentest',
+    price: 199,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AI_SINGLE || '',
+    description: 'Gateways, firewalls, and external infrastructure',
+    type: 'one-time',
+    cta: 'Purchase Credit',
+    features: [
+      '1 External IP pentest credit',
+      'Autonomous AI penetration testing',
+      'Powered by Anthropic Claude agents',
+      'Network vulnerability assessment',
+      'Firewall & gateway testing',
+      'Detailed findings report',
+      'Remediation guidance',
+      'Results within 24 hours',
+    ],
+  },
+  {
+    id: 'web_app',
+    name: 'Web Application Pentest',
+    price: 500,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AI_SINGLE || '', // TODO: Create separate Stripe product
+    description: 'Up to 3 user roles and 10 endpoints',
+    type: 'one-time',
+    cta: 'Purchase Credit',
+    popular: true,
+    features: [
+      '1 Web Application pentest credit',
+      'Autonomous AI penetration testing',
+      'Powered by Anthropic Claude agents',
+      'Up to 3 user roles tested',
+      'Up to 10 API endpoints',
+      'Authentication & authorization testing',
+      'Detailed findings report',
+      'Results within 48 hours',
+    ],
+  },
+];
 
 export default function Home() {
-  // Hardcode price IDs - they're public and safe to expose
-  const pricingPlans = [
-    {
-      name: "Starter Pack",
-      price: "$10",
-      priceId: "price_1Ss5HlP4RsXsKxGc6Oq727mP", // 10 credits (LIVE)
-      label: "Perfect for testing",
-      features: [
-        "10 scan credits",
-        "Each credit = 1 complete scan",
-        "Nmap, OpenVAS & OWASP ZAP included",
-        "Zero setup - instant deployment",
-        "30-day data retention",
-        "Email support",
-      ],
-    },
-    {
-      name: "Pro Pack",
-      price: "$50",
-      priceId: "price_1Ss5HqP4RsXsKxGcVC4GK8jQ", // 75 credits (LIVE)
-      label: "Best for teams",
-      features: [
-        "75 scan credits",
-        "Each credit = 1 complete scan",
-        "All 3 scanners per credit",
-        "CSV/JSON export capabilities",
-        "Priority email support",
-        "60-day data retention",
-      ],
-      popular: true,
-    },
-    {
-      name: "Enterprise Pack",
-      price: "$500",
-      priceId: "price_1Ss5HwP4RsXsKxGc0Hs42FUk", // 1000 credits (LIVE)
-      label: "For large organizations",
-      features: [
-        "1,000 scan credits",
-        "Each credit = 1 complete scan",
-        "Full scanner suite access",
-        "Unlimited data retention",
-        "Executive summary reports",
-        "24/7 priority support",
-      ],
-    },
-  ];
+  const { currentUser } = useAuth();
+  const [loadingCheckout, setLoadingCheckout] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
+
+  const handleStartPentest = () => {
+    if (!currentUser) {
+      window.location.href = `/login?returnUrl=${encodeURIComponent('/app/new-pentest')}`;
+      return;
+    }
+    window.location.href = '/app/new-pentest';
+  };
 
   return (
-    <main className="min-h-screen w-full bg-[rgba(10,10,35,0.92)] text-[--text] relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none opacity-70">
-        <div className="absolute inset-8 neon-grid" />
-      </div>
-
-      <div className="relative w-full max-w-6xl mx-auto px-6 lg:px-10 py-16 lg:py-20">
-        <div className="text-center mb-14 space-y-4">
-          <div className="flex items-center justify-center gap-3">
-            <span className="neon-chip">Pricing</span>
-            <span className="neon-badge-muted">
-              No subscriptions • Pay as you go
-            </span>
+    <main className="min-h-screen bg-[#0a141f] text-white">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#4590e2]/10 via-transparent to-transparent" />
+        <div className="max-w-7xl mx-auto px-6 py-20 lg:py-32 relative">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight">
+              <span className="block text-white">Penetration Testing</span>
+              <span className="block text-[#4590e2] mt-2">Made Simple</span>
+            </h1>
+            <p className="text-xl lg:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              AI-powered penetration testing driven by Anthropic Claude agentic systems. 
+              Choose between Web Application ($500) or External IP ($199) pentests.
+            </p>
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={handleStartPentest}
+                className="px-12 py-5 bg-[#4590e2] hover:bg-[#3a7bc8] text-white font-bold rounded-lg transition-colors text-xl"
+              >
+                Start Your Pentest
+              </button>
+            </div>
           </div>
-          <h1 className="text-4xl lg:text-5xl font-black tracking-tight neon-hero-title">
-            Buy Scan Credits
-          </h1>
-          <p className="text-lg lg:text-xl neon-subtle max-w-2xl mx-auto">
-            One credit = one complete security scan with all 3 tools. No monthly
-            fees, credits never expire.
-          </p>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {pricingPlans.map((plan) => (
-            <PricingCard key={plan.name} {...plan} />
-          ))}
-        </div>
-
-        <div className="mt-16 lg:mt-20">
-          <div className="text-center mb-8 space-y-2">
-            <span className="neon-chip">FAQs</span>
-            <h2 className="text-3xl font-bold">Questions Teams Often Ask</h2>
+      {/* Features Section */}
+      <section className="py-20 bg-[#0a141f]/50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4">
+              Why Choose <span className="text-[#4590e2]">MSP Pentesting</span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Professional security testing without the complexity
+            </p>
           </div>
 
-          <div className="neon-card divide-y divide-[var(--border)]">
-            {faqs.map((item, idx) => (
-              <FaqItem key={idx} {...item} defaultOpen={idx === 0} />
+          <div className="grid md:grid-cols-3 gap-8">
+            {features.map((feature, idx) => (
+              <div
+                key={idx}
+                className="bg-white/5 border border-[#4590e2]/20 rounded-lg p-8 hover:border-[#4590e2]/40 transition-colors"
+              >
+                <div className="text-[#4590e2] mb-4">
+                  <FontAwesomeIcon icon={feature.icon} className="text-4xl" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3 text-white">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-300 leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4">
+              Simple, Transparent <span className="text-[#4590e2]">Pricing</span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Purchase credits for the pentests you need
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {PRICING_TIERS.map((tier) => (
+              <PricingCard
+                key={tier.id}
+                tier={tier}
+                onSelect={() => handleStartPentest()}
+                loading={false}
+                currentUser={currentUser}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-[#4590e2]/20 to-[#4590e2]/5">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+            Ready to Secure Your Systems?
+          </h2>
+          <p className="text-xl text-gray-300 mb-8">
+            Get started with AI-powered penetration testing. Purchase credits and run your first test in minutes.
+          </p>
+          <button
+            onClick={handleStartPentest}
+            className="inline-block px-10 py-5 bg-[#4590e2] hover:bg-[#3a7bc8] text-white font-bold rounded-lg transition-colors text-xl"
+          >
+            {currentUser ? "Start Your Pentest" : "Get Started"}
+          </button>
+        </div>
+      </section>
     </main>
   );
 }
 
-type Faq = { question: string; answer: string };
-
-const faqs: Faq[] = [
+const features = [
   {
-    question: "How often are your vulnerability databases updated?",
-    answer:
-      "Our threat intelligence is updated continuously—multiple times per day—not weekly or monthly. This means you are always scanning against the absolute latest CVEs and zero-day threat intelligence, eliminating the risk of operating with an outdated vulnerability definition file.",
+    icon: faRobot,
+    title: "AI-Powered Pentests",
+    description:
+      "Advanced Anthropic Claude agentic systems autonomously conduct penetration tests, identifying vulnerabilities and security weaknesses across your infrastructure.",
   },
   {
-    question: "Will using a hosted scanner slow down or impact my targets?",
-    answer:
-      "Our scanners are engineered to be efficient and respectful of your network's capacity. You have granular control over scan intensity and scheduling, ensuring you can run comprehensive security checks without causing performance degradation to live production assets.",
+    icon: faBolt,
+    title: "Fast Results",
+    description:
+      "Complete comprehensive security assessments delivered within 24 hours of target submission.",
   },
   {
-    question: "Can I get my data out of the platform?",
-    answer:
-      "Yes. Every scan generates a machine-readable XML file and a presentation-ready PDF. You own your data and can export it to use in your own internal tools or spreadsheets.",
+    icon: faChartLine,
+    title: "Actionable Reports",
+    description:
+      "Get detailed findings with severity ratings, exploitation steps, and clear remediation guidance you can act on immediately.",
   },
   {
-    question: "How quickly can I get my first scan results?",
-    answer:
-      "Because our platform is hosted and requires zero local installation, you can configure your target and launch your first basic scan immediately after sign-up. Depending on the complexity of the target, you will typically see preliminary, actionable results within 5 to 30 minutes.",
+    icon: faLock,
+    title: "Compliance Ready",
+    description:
+      "Meet PCI-DSS, HIPAA, SOC 2, and other compliance requirements with our comprehensive testing methodology.",
   },
   {
-    question: "Where is my scanning data and report information stored?",
-    answer:
-      "All scan data is stored securely in encrypted cloud storage (using AES-256 encryption) within our certified cloud region. We provide signed URLs for report access and robust access controls to ensure only authorized users on your team can view the reports.",
+    icon: faBullseye,
+    title: "Per-Target Pricing",
+    description:
+      "Pay only $199 per IP, domain, or URL. No subscriptions, no hidden fees, no surprises.",
+  },
+  {
+    icon: faShield,
+    title: "Complete Coverage",
+    description:
+      "Comprehensive AI-powered penetration testing performed by advanced Anthropic Claude agentic systems that autonomously identify and exploit vulnerabilities.",
   },
 ];
 
-function FaqItem({
-  question,
-  answer,
-  defaultOpen = false,
-}: Faq & { defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
+interface PricingCardProps {
+  tier: PricingTier;
+  onSelect: () => void;
+  loading: boolean;
+  currentUser: any;
+}
 
+function PricingCard({ tier, onSelect, loading, currentUser }: PricingCardProps) {
   return (
-    <div className="px-5 lg:px-6 py-4">
-      <button
-        className="w-full flex items-start justify-between gap-4 text-left"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <div>
-          <div className="text-base font-semibold text-[var(--text)]">
-            {question}
-          </div>
-          {open && (
-            <p className="mt-2 text-sm neon-subtle leading-relaxed">{answer}</p>
+    <div
+      className={`relative bg-white/5 rounded-xl p-8 border-2 transition-all hover:scale-105 ${
+        tier.popular
+          ? "border-[#4590e2] shadow-lg shadow-[#4590e2]/20"
+          : "border-white/10"
+      }`}
+    >
+      {tier.popular && (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#4590e2] text-white px-4 py-1 rounded-full text-sm font-bold">
+          MOST POPULAR
+        </div>
+      )}
+
+      <div className="mb-6">
+        <h3 className="text-2xl font-bold mb-2">{tier.name}</h3>
+        <p className="text-gray-400 text-sm mb-4">{tier.description}</p>
+        <div className="flex items-baseline gap-2">
+          <span className="text-5xl font-extrabold text-white">
+            ${tier.price.toLocaleString()}
+          </span>
+          {tier.type === 'subscription' && (
+            <span className="text-gray-400">/month</span>
           )}
         </div>
-        <span className="text-[var(--primary)] text-lg">
-          {open ? "–" : "+"}
-        </span>
+      </div>
+
+      <ul className="space-y-3 mb-8">
+        {tier.features.map((feature, idx) => (
+          <li key={idx} className="flex items-start gap-3 text-gray-300">
+            <span className="text-[#4590e2] mt-1">✓</span>
+            <span>{feature}</span>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={() => onSelect()}
+        disabled={loading}
+        className={`w-full py-4 rounded-lg font-bold text-lg transition-colors ${
+          tier.popular
+            ? "bg-[#4590e2] hover:bg-[#3a7bc8] text-white"
+            : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+        } disabled:opacity-50 disabled:cursor-not-allowed`}
+      >
+        {loading ? "Processing..." : currentUser ? tier.cta : "Sign In to Purchase"}
       </button>
     </div>
   );

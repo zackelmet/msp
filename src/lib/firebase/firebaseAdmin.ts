@@ -63,3 +63,9 @@ export const initializeAdmin = () => {
   }
   return admin;
 };
+
+// Export initialized Firestore instance for convenience
+initializeAdmin();
+export const adminDb = admin.firestore();
+export const adminAuth = admin.auth();
+export const adminStorage = admin.storage();

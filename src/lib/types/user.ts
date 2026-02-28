@@ -37,6 +37,11 @@ export interface UserDocument {
     openvas: number;
     zap: number;
   };
+  // Credits for pentests
+  credits?: {
+    web_app: number;
+    external_ip: number;
+  };
   scansThisMonth: number; // legacy counter (kept for compatibility) that resets monthly
   totalScansAllTime: number; // Lifetime counter
   lastScanDate?: Timestamp;

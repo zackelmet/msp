@@ -1,6 +1,6 @@
-# Hacker Analytics — Hosted Security Scanners
+# MSP Pentesting — Penetration Testing as a Service
 
-SaaS platform for cloud-hosted vulnerability scanners (e.g., Nmap, OpenVAS) with a Next.js frontend and serverless backend.
+AI-powered autonomous penetration testing platform powered by Anthropic Claude agentic systems. Next.js frontend with serverless backend. $199 per target (IP, domain, or URL).
 
 ## Quick Start (local)
 
@@ -10,10 +10,13 @@ SaaS platform for cloud-hosted vulnerability scanners (e.g., Nmap, OpenVAS) with
 
 ## Deploying
 - Frontend: Vercel (Next.js 14)
-- Backend: Dedicated per-scanner services (Cloud Run / Cloud Functions) for Nmap and Nikto, each receiving scan jobs directly from the web app's backend and sending completion webhooks back to the app. (The legacy centralized `process-scan` forwarder is deprecated.)
-- Storage: GCS bucket for scan results
+- Backend: Cloud Run / Cloud Functions for AI pentest orchestration
+- Database: Firebase Firestore
+- Storage: Firebase Storage for pentest results
+- Payments: Stripe
+- AI: Anthropic Claude agentic systems
 
-## One More Thing
-This project is for authorized security testing only. Ensure you have permission before scanning any target.
+## Security Notice
+This platform is for authorized security testing only. Ensure you have permission before testing any target.
 
-Last updated: December 14, 2025
+Last updated: February 28, 2026

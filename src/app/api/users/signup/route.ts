@@ -53,6 +53,8 @@ export async function POST(req: NextRequest) {
         // Initialize per-scanner limits and counters - give 1 free credit to start
         scannerLimits: { nmap: 1, openvas: 1, zap: 1 },
         scannersUsedThisMonth: { nmap: 0, openvas: 0, zap: 0 },
+        // Initialize pentest credits at 0
+        credits: { web_app: 0, external_ip: 0 },
         scansThisMonth: 0,
         totalScansAllTime: 0,
         lastMonthlyReset: admin.firestore.FieldValue.serverTimestamp() as any,

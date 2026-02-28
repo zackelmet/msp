@@ -21,10 +21,9 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center gap-4 flex-wrap">
-            <span className="neon-badge-muted">Powered by open source</span>
             <div className="flex items-center gap-3 text-[var(--text-muted)]">
               <Link
-                href="https://x.com/vuln_scanners"
+                href="https://x.com/MspPentesting"
                 target="_blank"
                 rel="noreferrer"
                 className="hover:text-[var(--primary)] transition"
@@ -41,7 +40,7 @@ export default function Footer() {
                 </span>
               </Link>
               <Link
-                href="https://www.linkedin.com/company/hacker-analytics/"
+                href="https://www.linkedin.com/company/msp-pentesting/posts/?feedView=all"
                 target="_blank"
                 rel="noreferrer"
                 className="hover:text-[var(--primary)] transition"
@@ -68,7 +67,7 @@ export default function Footer() {
             </Link>
           </div>
           <div className="text-xs sm:text-sm">
-            © {year} HA. All rights reserved.
+            © 2026 MSP Pentesting. All rights reserved.
           </div>
         </div>
       </div>

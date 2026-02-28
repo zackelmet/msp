@@ -1,15 +1,15 @@
 import Image from "next/image";
 
 export const metadata = {
-  title: "Trust + Safety Center — Hacker Analytics",
-  description: "Trust & Safety information for Hacker Analytics — coming soon.",
-  metadataBase: new URL("https://hackeranalytics.com/trust-safety"),
+  title: "Trust + Safety Center — MSP Pentesting",
+  description: "Trust & Safety information for MSP Pentesting — coming soon.",
+  metadataBase: new URL("https://msppentesting.vercel.app/trust-safety"),
   openGraph: {
-    title: "Trust + Safety Center — Hacker Analytics",
+    title: "Trust + Safety Center — MSP Pentesting",
     description:
-      "Trust & Safety information for Hacker Analytics — coming soon.",
-    url: "https://hackeranalytics.com/trust-safety",
-    siteName: "Hacker Analytics",
+      "Trust & Safety information for MSP Pentesting — coming soon.",
+    url: "https://msppentesting.vercel.app/trust-safety",
+    siteName: "MSP Pentesting",
   },
 };
 

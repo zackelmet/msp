@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   try {
-    const { priceId, userId, email, productType } = await request.json();
+    const { priceId, userId, email, productType, mode, quantity, metadata } = await request.json();
 
     if (!priceId || !email) {
       return NextResponse.json(
@@ -22,16 +22,17 @@ export async function POST(request: NextRequest) {
       line_items: [
         {
           price: priceId,
-          quantity: 1,
+          quantity: quantity || 1,
         },
       ],
-      mode: productType === 'subscription' ? 'subscription' : 'payment',
+      mode: mode || (productType === 'subscription' ? 'subscription' : 'payment'),
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/app/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/pricing?canceled=true`,
       customer_email: email,
       metadata: {
         userId: userId || '',
         productType: productType || 'one-time',
+        ...(metadata || {}),
       },
       allow_promotion_codes: true,
     });

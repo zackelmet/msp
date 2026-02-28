@@ -66,14 +66,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = [
     { href: "/app/dashboard", label: "Dashboard", icon: faHome },
-    { href: "/app/my-results", label: "My Results", icon: faChartLine },
-    { href: "/app/request-pentest", label: "Request Pentest", icon: faShieldAlt },
-    { href: "/app/activity", label: "Activity Log", icon: faClipboardList },
-    { href: "/app/manual-tests", label: "Manual Tests", icon: faUser },
-    { href: "/app/ai-pentest", label: "AI Pentest", icon: faRobot },
-    { href: "/app/findings", label: "Findings", icon: faBug },
-    { href: "/app/targets", label: "Targets", icon: faBullseye },
-    { href: "/app/scans", label: "Scans", icon: faSatelliteDish },
+    { href: "/app/new-pentest", label: "Launch Pentest", icon: faRocket },
+    { href: "/app/manual-pentest", label: "Manual Pentests", icon: faUser },
   ];
 
   const bottomItems = [
@@ -82,7 +76,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex overflow-hidden">
+    <div className="min-h-screen bg-[#0a141f] flex overflow-hidden">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -120,8 +114,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive
-                    ? "bg-[#00FED9] bg-opacity-10 text-[#00FED9] font-semibold"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                    ? "bg-[#4590e2]/20 text-[#4590e2] font-semibold border border-[#4590e2]/30"
+                    : "text-gray-300 hover:bg-white/5 hover:text-white"
                 }`}
                 onClick={() => setSidebarOpen(false)}
               >
@@ -225,12 +219,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <Link href="/" className="flex items-center gap-2">
             <Image
               src="/HA-logo.png"
-              alt="Hacker Analytics"
-              width={24}
-              height={24}
-              className="w-6 h-6"
+              alt="MSP Pentesting"
+              width={32}
+              height={32}
+              className="w-8 h-8"
             />
-            <span className="font-bold text-[#0A1128]">Hacker Analytics</span>
+            <span className="font-bold text-[#0A1128]">MSP Pentesting</span>
           </Link>
           <div className="w-10" /> {/* Spacer for centering */}
         </header>

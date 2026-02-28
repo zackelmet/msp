@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 // Lazy-load react-hot-toast and Firebase auth at runtime to avoid DOM access during server prerender
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 enum FormMode {
   Login,
@@ -18,6 +18,8 @@ export default function AuthForm() {
   const [formMode, setFormMode] = useState<FormMode>(FormMode.Login);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl') || '/app/dashboard';
 
   const handleGoogleAuth = async () => {
     try {
@@ -37,7 +39,7 @@ export default function AuthForm() {
         },
       });
       if (user) {
-        router.push("/app/dashboard");
+        router.push(returnUrl);
       } else if (error) {
         const { toast } = await import("react-hot-toast");
         toast.error(error);
@@ -71,13 +73,13 @@ export default function AuthForm() {
         },
       });
       if (user) {
-        router.push("/app/dashboard");
+        router.push(returnUrl);
       } else if (error) {
         const { toast } = await import("react-hot-toast");
         toast.error(error);
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("Email/password sign-in error:", err);
       const { toast } = await import("react-hot-toast");
       toast.error("An unexpected error occurred during login");
     }
@@ -109,7 +111,7 @@ export default function AuthForm() {
         },
       );
       if (user) {
-        router.push("/app/dashboard");
+        router.push(returnUrl);
       } else if (error) {
         setError(error.message);
       }
@@ -154,16 +156,16 @@ export default function AuthForm() {
               Secure access
             </div>
             <h1 className="text-3xl lg:text-5xl font-black leading-tight">
-              Start Scanning in 5 Minutes.
+              Start Pentesting in 5 Minutes.
             </h1>
             <p className="text-base lg:text-lg neon-subtle max-w-xl">
-              Join the security teams that already trust Hacker Analytics to run
-              fast, zero-maintenance scans.
+              Join the security teams that already trust MSP Pentesting to run
+              fast, AI-powered autonomous pentests.
             </p>
             <div className="flex flex-wrap gap-3 justify-center lg:justify-start text-sm text-[var(--text-muted)]">
-              <span className="neon-chip">OpenVAS vulnerability scanner</span>
-              <span className="neon-chip">Nmap port scanner</span>
-              <span className="neon-chip">OWASP ZAP web scanner</span>
+              <span className="neon-chip">AI-Powered Pentesting</span>
+              <span className="neon-chip">Anthropic Claude Agents</span>
+              <span className="neon-chip">Autonomous Security Testing</span>
             </div>
           </div>
 

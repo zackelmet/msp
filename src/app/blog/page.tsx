@@ -5,15 +5,15 @@ import path from "path";
 import matter from "gray-matter";
 
 export const metadata = {
-  title: "Trust + Safety Center — Hacker Analytics",
-  description: "Trust & Safety information for Hacker Analytics — coming soon.",
-  metadataBase: new URL("https://hackeranalytics.com/blog"),
+  title: "Blog — MSP Pentesting",
+  description: "Security insights and pentesting best practices from MSP Pentesting.",
+  metadataBase: new URL("https://msppentesting.vercel.app/blog"),
   openGraph: {
-    title: "Trust + Safety Center — Hacker Analytics",
+    title: "Blog — MSP Pentesting",
     description:
-      "Trust & Safety information for Hacker Analytics — coming soon.",
-    url: "https://hackeranalytics.com/blog",
-    siteName: "Hacker Analytics",
+      "Security insights and pentesting best practices from MSP Pentesting.",
+    url: "https://msppentesting.vercel.app/blog",
+    siteName: "MSP Pentesting",
   },
   twitter: {
     card: "summary",

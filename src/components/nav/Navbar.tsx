@@ -29,7 +29,7 @@ export default function Navbar() {
           {!isLoadingAuth && !currentUser && (
             <>
               <Link
-                href="/pricing"
+                href="/#pricing"
                 className="text-sm font-medium hover:text-blue-400 transition"
               >
                 Pricing

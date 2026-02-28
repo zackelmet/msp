@@ -2,7 +2,7 @@ import { SubscriptionModalProvider } from "@/lib/context/SubscriptionModalContex
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Hacker Analytics - Hosted Security Scanners",
+  title: "MSP Pentesting - Dashboard",
   description:
     "Vulnerability Scanning: Zero Install. Maximum Impact. Hosted Nmap and OpenVAS services on fast, optimized servers.",
 };

@@ -110,7 +110,7 @@ sudo -u hackeranalytics0 pip3 install -r requirements.txt
 ### Webhook
 - Secret: Stored in `WEBHOOK_SECRET` constant in scan script
 - Header: `x-webhook-secret`
-- Endpoint: `https://app.hackeranalytics.com/api/scans/webhook`
+- Endpoint: `https://msppentesting.vercel.app/api/scans/webhook`
 
 ### Scan Configuration
 - Config ID: `daba56c8-73ec-11df-a475-002264764cea` (Full and fast)
@@ -127,7 +127,7 @@ curl -X POST http://136.115.155.198:8080/scan \
     "scanId": "test-scan-123",
     "userId": "user-abc",
     "target": "scanme.nmap.org",
-    "webhookUrl": "https://app.hackeranalytics.com/api/scans/webhook"
+    "webhookUrl": "https://msppentesting.vercel.app/api/scans/webhook"
   }'
 ```
 
