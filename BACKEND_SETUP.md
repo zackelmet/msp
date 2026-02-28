@@ -13,6 +13,20 @@
 
 **Authentication**: Both endpoints require `X-Webhook-Secret` header
 
+**Webhook Secret (CRITICAL):**
+```
+GCP_WEBHOOK_SECRET=9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3
+```
+⚠️ **Use this exact value in your backend environment variables to authenticate requests**
+
+**After Backend Deployment:**
+Update Vercel env var `BACKEND_WEBHOOK_URL` with your Cloud Run URL:
+```bash
+vercel env rm BACKEND_WEBHOOK_URL production
+vercel env add BACKEND_WEBHOOK_URL production
+# Value: https://your-actual-backend.run.app/execute-pentest
+```
+
 ---
 
 ## Overview
@@ -339,8 +353,8 @@ Response:
 # Anthropic API
 ANTHROPIC_API_KEY=sk-ant-...
 
-# Webhook Authentication
-GCP_WEBHOOK_SECRET=<shared secret with webapp>
+# Webhook Authentication (CRITICAL - must match webapp)
+GCP_WEBHOOK_SECRET=9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3
 
 # Webapp Callback URL
 WEBAPP_API_URL=https://msppentesting.vercel.app/api/pentests
@@ -349,19 +363,23 @@ WEBAPP_API_URL=https://msppentesting.vercel.app/api/pentests
 GCP_PROJECT_ID=msp-pentesting
 GCP_REGION=us-east1
 
-# Firestore (Optional - only needed if backend writes directly)
+# Firestore (Optional - only if backend writes directly to Firestore)
+# Note: Backend sends results via webhook to webapp instead
 FIREBASE_ADMIN_PROJECT_ID=msp-pentesting
 FIREBASE_ADMIN_CLIENT_EMAIL=...
 FIREBASE_ADMIN_PRIVATE_KEY=...
 ```
 
-### Webapp (.env.local)
+### Webapp (Already Configured in Vercel)
 ```bash
-# Backend webhook endpoint
+# Backend webhook endpoint (update after deploying backend)
 BACKEND_WEBHOOK_URL=https://your-backend.run.app/execute-pentest
 
-# Shared webhook secret
-GCP_WEBHOOK_SECRET=<shared secret with backend>
+# Shared webhook secret (already set)
+GCP_WEBHOOK_SECRET=9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3
+
+# Stripe webhook secret (already set)
+STRIPE_WEBHOOK_SECRET=whsec_eUo8mKBZqO31Rml5Oihq8mtLXb0EUMGB
 ```
 
 ---
@@ -497,14 +515,60 @@ def parse_claude_response(response) -> dict:
 
 ---
 
+## Deployment Checklist for Backend Engineer
+
+### Phase 1: Setup
+- [ ] Clone backend repo and review this spec
+- [ ] Get Anthropic API key (ask for budget/account access)
+- [ ] Set up local development environment
+- [ ] Configure environment variables:
+  - `GCP_WEBHOOK_SECRET=9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3`
+  - `WEBAPP_API_URL=https://msppentesting.vercel.app/api/pentests`
+  - `ANTHROPIC_API_KEY=sk-ant-...`
+
+### Phase 2: Implementation
+- [ ] Build `POST /execute-pentest` webhook receiver endpoint
+- [ ] Verify `X-Webhook-Secret` header matches `GCP_WEBHOOK_SECRET`
+- [ ] Implement Claude agent with system prompts (see templates above)
+- [ ] Add tool access: nmap, sqlmap, nuclei, testssl.sh
+- [ ] Parse Claude JSON output for vulnerabilities
+- [ ] Build callback to webapp: `PATCH https://msppentesting.vercel.app/api/pentests`
+
+### Phase 3: Testing
+- [ ] Test webhook receipt with curl:
+```bash
+curl -X POST https://your-backend.run.app/execute-pentest \
+  -H "Content-Type: application/json" \
+  -H "X-Webhook-Secret: 9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3" \
+  -d '{"pentestId":"test123","type":"web_app","targetUrl":"https://test.example.com"}'
+```
+- [ ] Test Claude integration with sandbox target
+- [ ] Verify results callback to webapp updates Firestore correctly
+- [ ] Test error handling (invalid targets, timeouts, tool failures)
+
+### Phase 4: Deployment
+- [ ] Deploy to Cloud Run (preferred) or Cloud Functions
+- [ ] Note your backend URL (e.g., `https://msp-pentest-backend-xyz.run.app`)
+- [ ] Update Vercel environment variable:
+```bash
+vercel env rm BACKEND_WEBHOOK_URL production
+vercel env add BACKEND_WEBHOOK_URL production
+# Value: https://your-actual-backend.run.app/execute-pentest
+```
+- [ ] Test end-to-end: Create pentest in webapp → View results
+- [ ] Set up monitoring and alerts
+- [ ] Configure rate limiting and timeouts
+
+---
+
 ## Next Steps for Backend Engineer
 
 1. **Review this spec** and confirm approach
 2. **Set up development environment** with Anthropic API access
-3. **Build queue processor** to poll pending pentests
+3. **Build webhook receiver** endpoint at `POST /execute-pentest`
 4. **Implement Claude integration** with tool access
 5. **Test with sandbox targets** (test.msppentesting.com)
-6. **Deploy to staging** environment
+6. **Deploy to Cloud Run** and share URL
 7. **Load test** with 10-20 concurrent pentests
 8. **Production deployment** with monitoring
 
@@ -516,7 +580,7 @@ def parse_claude_response(response) -> dict:
 2. Should we implement a dead letter queue for failed pentests?
 3. What monitoring tool do you prefer (Cloud Monitoring, Datadog, etc.)?
 4. Do you need access to a staging Firestore database?
-5. Should we implement webhooks to notify users when pentests complete?
+5. Should we implement email notifications when pentests complete (in addition to in-app)?
 
 ---
 
