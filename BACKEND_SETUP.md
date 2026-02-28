@@ -1,17 +1,64 @@
-# Backend Integration Specs: Anthropic Claude Pentest Agent
+# Backend Setup: Anthropic Claude Pentest Agent
+
+## Quick Start Summary
+
+**Webapp → Backend Communication:**
+- Webapp sends webhook to `POST /execute-pentest` when pentest is created
+- Backend confirms receipt (200 OK), processes asynchronously
+- Backend calls `PATCH /api/pentests` with results when complete
+
+**Key Endpoints:**
+1. **Backend receives job**: `POST /execute-pentest` (from webapp)
+2. **Backend returns results**: `PATCH https://msppentesting.vercel.app/api/pentests` (to webapp)
+
+**Authentication**: Both endpoints require `X-Webhook-Secret` header
+
+---
 
 ## Overview
 This document outlines the specifications for integrating Anthropic Claude agentic systems to perform autonomous penetration testing for MSP Pentesting platform.
 
-## Architecture
+## Architecture (Webhook-Based)
 
 ### Pentest Flow
-1. User submits pentest via `/api/pentests` (POST)
-2. Credit is deducted and pentest document created with `status: 'pending'`
-3. Backend worker picks up pending pentests and triggers Claude agent
-4. Claude agent performs autonomous pentesting
-5. Results are written back to Firestore pentest document
-6. User views results at `/app/pentests/[id]`
+1. **User submits pentest** via `/api/pentests` (POST)
+2. **Credit is deducted** and pentest document created with `status: 'pending'`
+3. **Webapp sends webhook** to backend with pentest job details
+4. **Backend receives webhook**, confirms receipt, updates status to `in_progress`
+5. **Claude agent performs** autonomous pentesting with tool access
+6. **Backend sends results** back to webapp via PATCH `/api/pentests` with completed report
+7. **User views results** at `/app/pentests/[id]` (auto-refreshes)
+
+### Communication Flow
+
+```
+┌─────────────┐                    ┌──────────────┐
+│   Webapp    │                    │   Backend    │
+│  (Next.js)  │                    │  (Cloud Run) │
+└─────────────┘                    └──────────────┘
+      │                                    │
+      │  POST /api/pentests                │
+      │  (Create pentest)                  │
+      │────────────────────────────────────▶
+      │                                    │
+      │  Webhook: POST /execute-pentest    │
+      │  {pentestId, type, targetUrl...}   │
+      │────────────────────────────────────▶
+      │                                    │
+      │  200 OK (Receipt confirmed)        │
+      │◀────────────────────────────────────
+      │                                    │
+      │                                    │  Claude Agent
+      │                                    │  runs pentest
+      │                                    │  with tools
+      │                                    │
+      │  PATCH /api/pentests               │
+      │  {results, vulnerabilities}        │
+      │◀────────────────────────────────────
+      │                                    │
+      │  200 OK                            │
+      │────────────────────────────────────▶
+```
 
 ---
 
@@ -58,27 +105,91 @@ interface PentestDocument {
 
 ---
 
-## Backend Worker Requirements
+## Backend Implementation
 
-### 1. Pentest Queue Processor
+### 1. Webhook Receiver Endpoint
 
-**Trigger**: Cloud Function or Cloud Run job that polls Firestore every 30-60 seconds
+**Endpoint**: `POST /execute-pentest`
 
-**Query**:
-```typescript
-const pendingPentests = await db
-  .collection('pentests')
-  .where('status', '==', 'pending')
-  .orderBy('createdAt', 'asc')
-  .limit(5)
-  .get();
+**Authentication**: Verify `X-Webhook-Secret` header matches `GCP_WEBHOOK_SECRET`
+
+**Request Body**:
+```json
+{
+  "pentestId": "abc123",
+  "userId": "user_xyz",
+  "type": "web_app" | "external_ip",
+  "targetUrl": "https://example.com",
+  "userRoles": "admin\\nuser\\nguest",  // optional for web_app
+  "endpoints": "/api/users\\n/api/auth\\n...",  // optional for web_app
+  "additionalContext": "..."  // optional
+}
+```
+
+**Response** (Immediate):
+```json
+{
+  "success": true,
+  "message": "Pentest job received",
+  "pentestId": "abc123"
+}
 ```
 
 **Processing Steps**:
-1. Update status to `in_progress`
-2. Call Claude agent with pentest parameters
-3. Update status to `completed` or `failed`
-4. Write results and vulnerabilities array
+1. Verify webhook secret
+2. Validate pentest parameters
+3. Update Firestore pentest status to `in_progress` (optional - can do this via webapp API)
+4. Queue Claude agent job (async)
+5. Return 200 OK immediately
+
+### 2. Claude Agent Execution (Async)
+
+**Job Queue**: Use Cloud Tasks, Pub/Sub, or background workers
+
+**Processing Steps**:
+1. Call Claude agent with pentest parameters
+2. Stream results as they come in
+3. Parse vulnerabilities from Claude's JSON output
+4. On completion, call webapp PATCH endpoint
+
+### 3. Results Callback to Webapp
+
+**Endpoint**: `PATCH https://msppentesting.vercel.app/api/pentests`
+
+**Authentication**: Include `X-Webhook-Secret` header
+
+**Request Body**:
+```json
+{
+  "pentestId": "abc123",
+  "status": "completed" | "failed",
+  "results": {
+    "report": "# Full markdown report...",
+    "executiveSummary": "...",
+    "findings": 5
+  },
+  "vulnerabilities": [
+    {
+      "title": "SQL Injection in /api/users",
+      "severity": "critical",
+      "description": "...",
+      "cve": "CVE-2024-1234",
+      "cvss": 9.8,
+      "remediation": "...",
+      "affectedEndpoint": "/api/users?id=1"
+    }
+  ],
+  "error": "Error message if failed"  // optional
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Pentest results updated successfully"
+}
+```
 
 ---
 
@@ -223,18 +334,34 @@ Response:
 
 ## Environment Variables Required
 
+### Backend (Cloud Run / Cloud Functions)
 ```bash
 # Anthropic API
 ANTHROPIC_API_KEY=sk-ant-...
+
+# Webhook Authentication
+GCP_WEBHOOK_SECRET=<shared secret with webapp>
+
+# Webapp Callback URL
+WEBAPP_API_URL=https://msppentesting.vercel.app/api/pentests
 
 # GCP (if using Cloud Functions/Run)
 GCP_PROJECT_ID=msp-pentesting
 GCP_REGION=us-east1
 
-# Firestore
+# Firestore (Optional - only needed if backend writes directly)
 FIREBASE_ADMIN_PROJECT_ID=msp-pentesting
 FIREBASE_ADMIN_CLIENT_EMAIL=...
 FIREBASE_ADMIN_PRIVATE_KEY=...
+```
+
+### Webapp (.env.local)
+```bash
+# Backend webhook endpoint
+BACKEND_WEBHOOK_URL=https://your-backend.run.app/execute-pentest
+
+# Shared webhook secret
+GCP_WEBHOOK_SECRET=<shared secret with backend>
 ```
 
 ---

@@ -83,6 +83,14 @@ service cloud.firestore {
       allow update: if isAdmin(); // Only admins can update request status
       allow delete: if isAdmin();
     }
+
+    // Pentests collection (AI-powered pentests)
+    match /pentests/{pentestId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAuthenticated();
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
   }
 }
 
