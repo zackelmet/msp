@@ -6,6 +6,7 @@ import os
 import json
 import requests
 import anthropic
+import signal
 from datetime import datetime
 from pdf_generator import generate_pdf_report
 from google.cloud import storage
@@ -17,11 +18,28 @@ client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 # GCS setup
 GCS_BUCKET_NAME = os.environ.get('GCS_BUCKET_NAME', 'msp-pentest-reports')
 
+# Timeout settings (2 hours = 7200 seconds)
+PENTEST_TIMEOUT = 7200
+
+class TimeoutError(Exception):
+    """Raised when pentest exceeds timeout"""
+    pass
+
+def timeout_handler(signum, frame):
+    """Signal handler for timeout"""
+    raise TimeoutError("Pentest exceeded 2 hour time limit")
+
 def execute_pentest(pentest_id, user_id, pentest_type, target_url, user_roles, endpoints, additional_context, webhook_secret, webapp_api_url):
     """
     Main worker function - executes pentest and sends results back to webapp
+    Max runtime: 2 hours (7200 seconds)
     """
     print(f"🚀 Starting pentest {pentest_id} for {target_url}")
+    print(f"⏱️  Timeout set to 2 hours (7200 seconds)")
+    
+    # Set timeout alarm
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(PENTEST_TIMEOUT)
     
     try:
         # Build system prompt based on type
@@ -81,6 +99,18 @@ def execute_pentest(pentest_id, user_id, pentest_type, target_url, user_roles, e
         
         print(f"✅ Pentest {pentest_id} completed successfully!")
         
+    except TimeoutError as e:
+        print(f"⏱️  Pentest {pentest_id} timed out after 2 hours")
+        # Send timeout error back to webapp
+        send_results_to_webapp(
+            pentest_id=pentest_id,
+            status='failed',
+            results=None,
+            vulnerabilities=[],
+            error="Pentest exceeded 2 hour time limit. Results may be incomplete.",
+            webhook_secret=webhook_secret,
+            webapp_api_url=webapp_api_url
+        )
     except Exception as e:
         print(f"❌ Error executing pentest {pentest_id}: {str(e)}")
         # Send error back to webapp
@@ -93,15 +123,38 @@ def execute_pentest(pentest_id, user_id, pentest_type, target_url, user_roles, e
             webhook_secret=webhook_secret,
             webapp_api_url=webapp_api_url
         )
+    finally:
+        # Cancel alarm
+        signal.alarm(0)
 
 def build_system_prompt(pentest_type, target_url, user_roles, endpoints, additional_context):
     """
     Build Claude system prompt based on pentest type
+    Includes available Kali Linux tools
     """
-    base_prompt = f"""You are an expert penetration tester conducting an autonomous security assessment.
+    base_prompt = f"""You are an expert penetration tester with access to a full Kali Linux suite of tools.
 
 TARGET: {target_url}
 TYPE: {pentest_type}
+TIMEOUT: 2 hours maximum
+
+AVAILABLE TOOLS (Kali Linux):
+- nmap: Network scanning and service detection
+- sqlmap: SQL injection testing
+- nikto: Web server vulnerability scanning
+- gobuster/dirb: Directory and file brute-forcing
+- hydra: Password cracking
+- nuclei: Template-based vulnerability scanning
+- ffuf: Web fuzzing
+- wpscan: WordPress security scanner
+- burpsuite: Web application testing
+- zaproxy: OWASP ZAP proxy
+- metasploit: Exploitation framework
+- netcat: Network connections
+- tcpdump/wireshark: Network analysis
+- john/hashcat: Password cracking
+
+You can execute these tools directly. Be thorough but efficient given the 2-hour time limit.
 """
     
     if pentest_type == 'web_app':
