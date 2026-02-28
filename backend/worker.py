@@ -280,8 +280,10 @@ def upload_to_gcs(file_path, pentest_id):
         
         blob.upload_from_filename(file_path)
         
-        # Generate signed URL (valid for 7 days)
-        url = blob.generate_signed_url(expiration=604800)  # 7 days in seconds
+        # Make blob publicly readable and return public URL
+        blob.make_public()
+        url = blob.public_url
+        print(f"✅ PDF uploaded to GCS: {url}")
         
         return url
     except Exception as e:
