@@ -1,11 +1,8 @@
-# Use Kali Linux as base for full red team toolkit
-FROM kalilinux/kali-rolling
+# Use Python 3.11 as base
+FROM python:3.11-slim
 
-# Install Python 3.11 and essential tools
+# Install essential pentesting tools and dependencies
 RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-dev \
     build-essential \
     # WeasyPrint dependencies
     libcairo2 \
@@ -14,29 +11,20 @@ RUN apt-get update && apt-get install -y \
     libgdk-pixbuf2.0-0 \
     libffi-dev \
     shared-mime-info \
-    # Kali red team tools
-    kali-linux-default \
+    # Essential pentesting tools
     nmap \
-    sqlmap \
     nikto \
-    gobuster \
-    dirb \
-    hydra \
-    john \
-    hashcat \
-    metasploit-framework \
-    burpsuite \
-    zaproxy \
-    nuclei \
-    ffuf \
-    sublist3r \
-    wpscan \
-    exploitdb \
+    git \
+    curl \
+    wget \
     netcat-traditional \
-    tcpdump \
-    wireshark \
-    aircrack-ng \
     && rm -rf /var/lib/apt/lists/*
+
+# Install additional pentesting tools via pip/git
+RUN pip3 install --no-cache-dir \
+    sqlmap-dev \
+    wapiti3 \
+    && git clone https://github.com/projectdiscovery/nuclei-templates.git /opt/nuclei-templates
 
 # Set working directory
 WORKDIR /app
