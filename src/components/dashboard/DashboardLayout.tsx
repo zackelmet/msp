@@ -200,7 +200,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Buy Credits button */}
           <Link
             href="/app/dashboard?purchase=web_app"
-            className="buy-credits-btn block w-full px-4 py-3 bg-[#4590e2] text-white font-semibold rounded-lg text-center hover:bg-[#3a7bc8] transition-colors"
+            className="block w-full px-4 py-3 bg-[#4590e2] text-white font-semibold rounded-lg text-center hover:bg-[#3a7bc8] transition-colors"
           >
             Buy Credits
             <FontAwesomeIcon icon={faPlus} className="ml-2" />
