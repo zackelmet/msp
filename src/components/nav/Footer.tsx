@@ -60,29 +60,17 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm text-[var(--text-muted)]">
-          <div className="flex gap-4">
-            <Link
-              href="/blog"
-              className="hover:text-[var(--primary)] transition"
-            >
+          <div className="flex items-center gap-0 divide-x divide-gray-600">
+            <Link href="/blog" className="hover:text-[var(--primary)] transition px-4">
               Blog
             </Link>
-            <Link
-              href="/#pricing"
-              className="hover:text-[var(--primary)] transition"
-            >
+            <Link href="/#pricing" className="hover:text-[var(--primary)] transition px-4">
               Pricing
             </Link>
-            <Link
-              href="/trust-safety"
-              className="hover:text-[var(--primary)] transition"
-            >
+            <Link href="/trust-safety" className="hover:text-[var(--primary)] transition px-4">
               Trust + Safety
             </Link>
-            <Link
-              href="/support"
-              className="hover:text-[var(--primary)] transition"
-            >
+            <Link href="/support" className="hover:text-[var(--primary)] transition px-4">
               Support
             </Link>
           </div>
