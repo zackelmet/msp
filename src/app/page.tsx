@@ -75,7 +75,6 @@ const PRICING_TIERS: PricingTier[] = [
 export default function Home() {
   const { currentUser } = useAuth();
   const [loadingCheckout, setLoadingCheckout] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
 
   const handleStartPentest = () => {
     if (!currentUser) {
@@ -83,6 +82,43 @@ export default function Home() {
       return;
     }
     window.location.href = '/app/new-pentest';
+  };
+
+  const handleCheckout = async (tier: PricingTier) => {
+    if (!currentUser) {
+      window.location.href = `/login?returnUrl=${encodeURIComponent('/#pricing')}`;
+      return;
+    }
+
+    setLoadingCheckout(tier.id);
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: tier.priceId,
+          mode: 'payment',
+          quantity: 1,
+          userId: currentUser.uid,
+          email: currentUser.email,
+          metadata: { pentestType: tier.id }, // 'web_app' or 'external_ip'
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to create checkout session');
+
+      // Redirect directly to Stripe-hosted checkout URL
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error: any) {
+      console.error('Checkout error:', error);
+      const { default: toast } = await import('react-hot-toast');
+      toast.error(error.message || 'Failed to start checkout');
+    } finally {
+      setLoadingCheckout(null);
+    }
   };
 
   return (
@@ -162,8 +198,8 @@ export default function Home() {
               <PricingCard
                 key={tier.id}
                 tier={tier}
-                onSelect={() => handleStartPentest()}
-                loading={false}
+                onSelect={() => handleCheckout(tier)}
+                loading={loadingCheckout === tier.id}
                 currentUser={currentUser}
               />
             ))}
