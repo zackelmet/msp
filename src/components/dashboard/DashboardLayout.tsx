@@ -6,22 +6,17 @@ import { usePathname, useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHome,
-  faBullseye,
-  faSatelliteDish,
   faLifeRing,
   faQuestionCircle,
   faBars,
-  faTimes,
   faRocket,
   faSignOutAlt,
   faCog,
   faChevronUp,
-  faClipboardList,
   faUser,
-  faBug,
-  faRobot,
-  faShieldAlt,
-  faChartLine,
+  faShieldHalved,
+  faPlus,
+  faList,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/lib/context/AuthContext";
 import signout from "@/lib/firebase/signout";
@@ -66,6 +61,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = [
     { href: "/app/dashboard", label: "Dashboard", icon: faHome },
+    { href: "/app/pentests", label: "Pentests", icon: faList },
     { href: "/app/new-pentest", label: "Launch Pentest", icon: faRocket },
     { href: "/app/manual-pentest", label: "Manual Pentests", icon: faUser },
   ];
@@ -206,7 +202,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             href="/app/dashboard"
             className="block w-full px-4 py-3 bg-[#4590e2] text-white font-semibold rounded-lg text-center hover:bg-[#3a7bc8] transition-colors"
           >
-            <FontAwesomeIcon icon={faRocket} className="mr-2" />
+            <FontAwesomeIcon icon={faPlus} className="mr-2" />
             Buy Credits
           </Link>
         </div>
