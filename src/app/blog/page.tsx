@@ -3,18 +3,18 @@ import Image from "next/image";
 import { getAllPosts } from "@/lib/blog/mdx";
 
 export const metadata = {
-  title: "Blog — MSP Pentesting",
+  title: "Blog - AI Pentesting",
   description: "Security insights, pentesting tips, and vulnerability research from MSP Pentesting.",
   metadataBase: new URL("https://msppentesting.vercel.app"),
   openGraph: {
-    title: "Blog — MSP Pentesting",
+    title: "Blog - AI Pentesting",
     description: "Security insights, pentesting tips, and vulnerability research from MSP Pentesting.",
     url: "https://msppentesting.vercel.app/blog",
     siteName: "MSP Pentesting",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blog — MSP Pentesting",
+    title: "Blog - AI Pentesting",
     description: "Security insights, pentesting tips, and vulnerability research from MSP Pentesting.",
   },
 };
