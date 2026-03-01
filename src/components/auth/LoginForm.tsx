@@ -34,6 +34,7 @@ export default function AuthForm() {
           // When a new user signs up, call the signup endpoint
           await fetch("/api/users/signup", {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               uid: userCredential.user.uid,
               email: userCredential.user.email,
@@ -68,6 +69,7 @@ export default function AuthForm() {
           // When a new user signs up, call the signup endpoint
           await fetch("/api/users/signup", {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               uid: userCredential.user.uid,
               email: userCredential.user.email,

@@ -82,20 +82,19 @@ export async function signIn(
           options.credentials.email,
           options.credentials.password
         );
+
+        // Always call signupCallback — the endpoint is idempotent (no-op if doc exists)
+        if (options?.signupCallback) {
+          await options.signupCallback(userCredential);
+        }
         break;
 
       case SignInMethod.Google:
         const googleProvider = new GoogleAuthProvider();
         userCredential = await signInWithPopup(auth, googleProvider);
 
-        const creationTime = new Date(
-          userCredential.user.metadata.creationTime || 0
-        );
-        const now = new Date();
-        const timeDifference = now.getTime() - creationTime.getTime();
-        const isNewUser = timeDifference < 10000;
-
-        if (isNewUser && options?.signupCallback) {
+        // Always call signupCallback — the endpoint is idempotent (no-op if doc exists)
+        if (options?.signupCallback) {
           await options.signupCallback(userCredential);
         }
         break;
