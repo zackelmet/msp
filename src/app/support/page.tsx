@@ -70,7 +70,7 @@ export default function SupportPage() {
             Support
           </h1>
           <p className="text-gray-400 text-lg max-w-xl mx-auto">
-            Have a question or issue? Send us a message and we'll get back to you within one business day.
+            Have a question or issue? Send us a message and we&apos;ll get back to you within one business day.
           </p>
         </div>
       </div>
@@ -129,7 +129,7 @@ export default function SupportPage() {
               />
               <h3 className="text-2xl font-bold text-white mb-2">Message Sent</h3>
               <p className="text-gray-400 mb-6">
-                Thanks for reaching out. We'll get back to you within one business day.
+                Thanks for reaching out. We&apos;ll get back to you within one business day.
               </p>
               <button
                 onClick={() => setStatus("idle")}
