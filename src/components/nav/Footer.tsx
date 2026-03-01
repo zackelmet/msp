@@ -11,13 +11,21 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-5 pt-10 pb-12 flex flex-col gap-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <Image
-              src="/msp pentesting logo (1) (3) (1).png"
-              alt="MSP Pentesting Logo"
-              width={150}
-              height={40}
-              className="h-10 w-auto"
-            />
+            <Link href="https://msppentesting.com" className="flex items-center gap-3 hover:opacity-90 transition">
+              <Image
+                src="/msp pentesting logo (1) (3) (1).png"
+                alt="MSP Pentesting Logo"
+                width={40}
+                height={40}
+                className="h-10 w-auto"
+              />
+              <span
+                className="text-white font-semibold text-lg tracking-wide"
+                style={{ fontFamily: "var(--font-chakra-petch)" }}
+              >
+                MSP Pentesting
+              </span>
+            </Link>
           </div>
 
           <div className="flex items-center gap-4 flex-wrap">

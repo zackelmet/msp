@@ -93,14 +93,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         {/* Logo */}
         <div className="p-6 border-b border-[#4590e2]">
-          <Link href="/" className="flex items-center justify-center">
+          <Link href="https://msppentesting.com" className="flex items-center gap-3">
             <Image
               src="/msp pentesting logo (1) (3) (1).png"
               alt="MSP Pentesting"
-              width={180}
-              height={60}
-              className="w-auto h-14"
+              width={44}
+              height={44}
+              className="w-11 h-11 flex-shrink-0"
             />
+            <span
+              className="text-white font-semibold text-base tracking-wide leading-tight"
+              style={{ fontFamily: "var(--font-chakra-petch)" }}
+            >
+              MSP Pentesting
+            </span>
           </Link>
         </div>
 
@@ -209,22 +215,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         {/* Mobile header with hamburger */}
-        <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <header className="lg:hidden bg-[#0a141f] border-b border-[#4590e2] px-4 py-3 flex items-center justify-between sticky top-0 z-30">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 text-gray-600 hover:text-gray-900"
+            className="p-2 text-gray-400 hover:text-white"
           >
             <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
           </button>
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="https://msppentesting.com" className="flex items-center gap-2">
             <Image
-              src="/HA-logo.png"
+              src="/msp pentesting logo (1) (3) (1).png"
               alt="MSP Pentesting"
               width={32}
               height={32}
               className="w-8 h-8"
             />
-            <span className="font-bold text-[#0A1128]">MSP Pentesting</span>
+            <span
+              className="font-semibold text-white text-sm"
+              style={{ fontFamily: "var(--font-chakra-petch)" }}
+            >
+              MSP Pentesting
+            </span>
           </Link>
           <div className="w-10" /> {/* Spacer for centering */}
         </header>
