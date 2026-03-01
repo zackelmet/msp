@@ -71,8 +71,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   ];
 
   const bottomItems = [
-    { href: "#", label: "Support", icon: faLifeRing },
-    { href: "#", label: "Help Center", icon: faQuestionCircle },
+    { href: "/support", label: "Support", icon: faLifeRing },
+    { href: "/trust-safety", label: "Trust + Safety", icon: faQuestionCircle },
   ];
 
   return (

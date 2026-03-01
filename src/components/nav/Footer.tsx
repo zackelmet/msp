@@ -71,7 +71,13 @@ export default function Footer() {
               href="/trust-safety"
               className="hover:text-[var(--primary)] transition"
             >
-              Trust + Safety Center
+              Trust + Safety
+            </Link>
+            <Link
+              href="/support"
+              className="hover:text-[var(--primary)] transition"
+            >
+              Support
             </Link>
           </div>
           <div className="text-xs sm:text-sm">
