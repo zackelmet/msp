@@ -6,8 +6,6 @@ import { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faShieldHalved,
-  faRocket,
-  faSatelliteDish,
   faGlobe,
   faServer,
   faPlus,
@@ -157,7 +155,7 @@ export default function DashboardPage() {
             className="bg-gradient-to-br from-[#4590e2] to-[#3a7bc8] border border-[#4590e2] rounded-xl p-6 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex flex-col items-center justify-center text-center group"
           >
             <div className="p-4 rounded-full bg-white/10 mb-3 group-hover:bg-white/20 transition-colors">
-              <FontAwesomeIcon icon={faRocket} className="text-4xl text-white" />
+              <FontAwesomeIcon icon={faShieldHalved} className="text-4xl text-white" />
             </div>
             <p className="text-white font-bold text-xl mb-1">Start New Pentest</p>
             <p className="text-white/80 text-sm">Configure and launch</p>
@@ -204,7 +202,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">Recent Pentests</h2>
               <Link
-                href="/app/scans"
+                href="/app/pentests"
                 className="text-[#4590e2] hover:text-[#3a7bc8] text-sm font-semibold transition-colors"
               >
                 View All →
@@ -231,7 +229,9 @@ export default function DashboardPage() {
                           ? "✓ Completed"
                           : scan.status === "in_progress"
                             ? "⏳ Running..."
-                            : "⏸ Queued"}
+                            : scan.status === "failed"
+                              ? "✗ Failed"
+                              : "⏸ Queued"}
                       </p>
                     </div>
                     <Link
