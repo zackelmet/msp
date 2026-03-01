@@ -115,10 +115,11 @@ export default function DashboardPage() {
               </div>
               <button
                 onClick={() => openPurchaseModal('web_app')}
-                className="p-2 rounded-lg bg-[#4590e2]/10 hover:bg-[#4590e2]/20 border border-[#4590e2]/30 hover:border-[#4590e2]/50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#4590e2]/10 hover:bg-[#4590e2]/20 border border-[#4590e2]/30 hover:border-[#4590e2]/50 transition-colors"
                 title="Purchase Web App credits"
               >
-                <FontAwesomeIcon icon={faPlus} className="text-[#4590e2]" />
+                <span className="text-sm font-semibold text-[#4590e2]">Buy Credits</span>
+                <FontAwesomeIcon icon={faPlus} className="text-[#4590e2] text-xs" />
               </button>
             </div>
             <div>
@@ -136,10 +137,11 @@ export default function DashboardPage() {
               </div>
               <button
                 onClick={() => openPurchaseModal('external_ip')}
-                className="p-2 rounded-lg bg-[#4590e2]/10 hover:bg-[#4590e2]/20 border border-[#4590e2]/30 hover:border-[#4590e2]/50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#4590e2]/10 hover:bg-[#4590e2]/20 border border-[#4590e2]/30 hover:border-[#4590e2]/50 transition-colors"
                 title="Purchase External IP credits"
               >
-                <FontAwesomeIcon icon={faPlus} className="text-[#4590e2]" />
+                <span className="text-sm font-semibold text-[#4590e2]">Buy Credits</span>
+                <FontAwesomeIcon icon={faPlus} className="text-[#4590e2] text-xs" />
               </button>
             </div>
             <div>
