@@ -101,7 +101,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               className="text-white font-semibold text-base tracking-wide leading-tight"
               style={{ fontFamily: "var(--font-chakra-petch)" }}
             >
-              MSP Pentesting
+              AI Pentesting
             </span>
           </Link>
         </div>
@@ -230,7 +230,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               className="font-semibold text-white text-sm"
               style={{ fontFamily: "var(--font-chakra-petch)" }}
             >
-              MSP Pentesting
+              AI Pentesting
             </span>
           </Link>
           <div className="w-10" /> {/* Spacer for centering */}

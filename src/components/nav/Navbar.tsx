@@ -26,7 +26,7 @@ export default function Navbar() {
             className="text-white font-semibold text-lg tracking-wide leading-tight hidden sm:block"
             style={{ fontFamily: "var(--font-chakra-petch)" }}
           >
-            MSP Pentesting
+            AI Pentesting
           </span>
         </Link>
 
