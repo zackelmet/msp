@@ -30,6 +30,14 @@ service cloud.firestore {
       allow update, delete: if isOwner(resource.data.userId) || isAdmin();
     }
 
+    // Pentests collection (AI-powered pentests)
+    match /pentests/{pentestId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAuthenticated();
+      allow update: if isAdmin(); // Only backend (admin SDK) updates pentests
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
     // Targets collection
     match /targets/{targetId} {
       allow read: if isOwner(resource.data.userId) || isAdmin();

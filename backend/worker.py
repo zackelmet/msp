@@ -278,11 +278,11 @@ def upload_to_gcs(file_path, pentest_id):
         blob_name = f"reports/{pentest_id}.pdf"
         blob = bucket.blob(blob_name)
         
-        blob.upload_from_filename(file_path)
+        blob.upload_from_filename(file_path, content_type='application/pdf')
         
-        # Make blob publicly readable and return public URL
-        blob.make_public()
-        url = blob.public_url
+        # Bucket has uniform bucket-level access with allUsers:objectViewer
+        # So just construct the public URL directly
+        url = f"https://storage.googleapis.com/{GCS_BUCKET_NAME}/{blob_name}"
         print(f"✅ PDF uploaded to GCS: {url}")
         
         return url

@@ -136,6 +136,13 @@ export default function PricingPage() {
     setLoading(tier.id);
 
     try {
+      // Map tier IDs to pentest credit types for the webhook
+      const pentestTypeMap: Record<string, string> = {
+        'ai_single': 'external_ip',
+        'ai_monthly': 'subscription',
+      };
+      const pentestType = pentestTypeMap[tier.id] || null;
+
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -144,6 +151,7 @@ export default function PricingPage() {
           userId: user.uid,
           email: user.email,
           productType: tier.type,
+          metadata: pentestType ? { pentestType } : {},
         }),
       });
 

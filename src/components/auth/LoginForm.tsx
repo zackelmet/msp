@@ -15,6 +15,10 @@ export default function AuthForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const clearErrorOnChange = () => {
+    if (error) setError(null);
+  };
   const [formMode, setFormMode] = useState<FormMode>(FormMode.Login);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -212,7 +216,7 @@ export default function AuthForm() {
                     placeholder="you@company.com"
                     className="neon-input w-full py-3"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); clearErrorOnChange(); }}
                   />
                 </div>
 
@@ -225,7 +229,7 @@ export default function AuthForm() {
                     placeholder="Enter password"
                     className="neon-input w-full py-3"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => { setPassword(e.target.value); clearErrorOnChange(); }}
                   />
                 </div>
 
@@ -259,7 +263,7 @@ export default function AuthForm() {
               <div className="space-y-3">
                 {formMode === FormMode.Login ? (
                   <button
-                    disabled={!email || !password || error !== null}
+                    disabled={!email || !password}
                     onClick={handleLogin}
                     className="neon-primary-btn w-full py-3 font-semibold disabled:opacity-60"
                   >
