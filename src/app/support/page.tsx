@@ -36,7 +36,7 @@ export default function SupportPage() {
     setStatus("idle");
 
     try {
-      const res = await fetch("/api/support", {
+      const res = await fetch("https://formspree.io/f/mlgwkaal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, topic, message }),
