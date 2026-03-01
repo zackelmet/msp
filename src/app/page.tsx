@@ -14,6 +14,7 @@ import {
   faLock,
   faBullseye,
   faShield,
+  faCircleCheck,
 } from "@fortawesome/free-solid-svg-icons";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -392,7 +393,7 @@ function PricingCard({ tier, onSelect, loading, currentUser }: PricingCardProps)
       <ul className="space-y-3 mb-8">
         {tier.features.map((feature, idx) => (
           <li key={idx} className="flex items-start gap-3 text-gray-300">
-            <span className="text-[#4590e2] mt-1">✓</span>
+            <FontAwesomeIcon icon={faCircleCheck} className="text-[#4590e2] mt-1 flex-shrink-0" />
             <span>{feature}</span>
           </li>
         ))}
