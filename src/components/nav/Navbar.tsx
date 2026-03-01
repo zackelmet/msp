@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import UserAvatar from "./UserAvatar";
 import { useAuth } from "@/lib/context/AuthContext";
 
 export default function Navbar() {
@@ -30,20 +29,27 @@ export default function Navbar() {
             <>
               <Link
                 href="/#pricing"
-                className="text-sm font-medium hover:text-blue-400 transition"
+                className="text-sm font-medium hover:text-[#4590e2] transition"
               >
                 Pricing
               </Link>
               <Link
                 href="/login"
-                className="neon-outline-btn px-4 py-2 text-sm font-semibold"
+                className="px-4 py-2 text-sm font-semibold bg-[#4590e2] hover:bg-[#3a7bc8] text-white rounded-lg transition"
               >
                 Sign In
               </Link>
             </>
           )}
 
-          {currentUser && <UserAvatar compact />}
+          {!isLoadingAuth && currentUser && (
+            <Link
+              href="/app/dashboard"
+              className="px-4 py-2 text-sm font-semibold bg-[#4590e2] hover:bg-[#3a7bc8] text-white rounded-lg transition"
+            >
+              Dashboard
+            </Link>
+          )}
         </div>
       </div>
     </header>

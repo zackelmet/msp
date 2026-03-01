@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       ],
       mode: mode || (productType === 'subscription' ? 'subscription' : 'payment'),
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/app/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/pricing?canceled=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/app/dashboard?canceled=true`,
       customer_email: email,
       metadata: {
         userId: userId || '',
