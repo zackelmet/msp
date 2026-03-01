@@ -289,8 +289,7 @@ export default function AuthForm() {
               </div>
 
               <div className="text-xs neon-subtle text-center">
-                SSO coming soon. By continuing you agree to our Terms and
-                Privacy.
+                By continuing you agree to our Terms and Privacy.
               </div>
             </div>
           </div>

@@ -54,7 +54,7 @@ const PRICING_TIERS: PricingTier[] = [
     id: 'web_app',
     name: 'Web Application Pentest',
     price: 500,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AI_SINGLE || '', // TODO: Create separate Stripe product
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_WEB_APP || '',
     description: 'Up to 3 user roles and 10 endpoints',
     type: 'one-time',
     cta: 'Purchase Credit',
@@ -219,9 +219,9 @@ const features = [
   },
   {
     icon: faBullseye,
-    title: "Per-Target Pricing",
+    title: "Transparent Pricing",
     description:
-      "Pay only $199 per IP, domain, or URL. No subscriptions, no hidden fees, no surprises.",
+      "$199 per External IP pentest or $500 per Web Application pentest. No subscriptions, no hidden fees, no surprises.",
   },
   {
     icon: faShield,
