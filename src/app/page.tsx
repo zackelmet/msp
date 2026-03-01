@@ -224,6 +224,93 @@ export default function Home() {
           </button>
         </div>
       </section>
+
+      {/* MSP Pentesting.com Plug Section */}
+      <section className="py-24 bg-[#060e16] border-t border-[#4590e2]/20">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <p className="text-[#4590e2] text-sm font-semibold uppercase tracking-widest mb-3">Powered by</p>
+            <a
+              href="https://msppentesting.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 hover:opacity-80 transition mb-6"
+            >
+              <Image
+                src="/msp pentesting logo (1) (3) (1).png"
+                alt="MSP Pentesting"
+                width={52}
+                height={52}
+                className="h-13 w-auto"
+              />
+              <span
+                className="text-white font-bold text-3xl tracking-wide"
+                style={{ fontFamily: "var(--font-chakra-petch)" }}
+              >
+                MSP Pentesting
+              </span>
+            </a>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              The #1 Pentesting Vendor for MSPs — manual, white-labeled, OSCP-certified penetration testing for the channel.
+            </p>
+          </div>
+
+          {/* 4 pillars */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
+            {[
+              { label: "Manual White Labeled Pentesting", desc: "Rebrand our reports as your own. Fully white-labeled for MSPs and vCISOs." },
+              { label: "Attested 3rd Party Pentesting", desc: "Use MSP Pentesting as an independent, credentialed third-party assessor." },
+              { label: "Automated & AI Pentesting", desc: "Fast, cost-effective AI-driven assessments for ongoing security coverage." },
+              { label: "Risk Assessments", desc: "Compliance-ready reports for SOC 2, HIPAA, PCI DSS, ISO 27001, and NIST." },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="bg-white/5 border border-white/10 hover:border-[#4590e2]/40 rounded-xl p-6 transition-colors"
+              >
+                <h3 className="text-white font-bold text-base mb-2">{item.label}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Why MSPs use MSP Pentesting */}
+          <div className="grid sm:grid-cols-3 gap-5 mb-14">
+            {[
+              { num: "01", title: "White Labeled Reports", desc: "Partners can rebrand our pentests as their own, or use us as an attested 3rd party provider." },
+              { num: "02", title: "Reseller Pricing", desc: "The most affordable pentests on the market, priced for the channel — not for maximum profit." },
+              { num: "03", title: "Fast Turnaround", desc: "Pentests scheduled and performed within days. No long lead times, no hidden fees." },
+            ].map((item) => (
+              <div key={item.num} className="flex gap-4">
+                <span className="text-[#4590e2] font-bold text-2xl leading-none mt-1">{item.num}</span>
+                <div>
+                  <h3 className="text-white font-bold mb-1">{item.title}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href="https://msppentesting.com/get-a-pentest-quote"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-4 bg-[#4590e2] hover:bg-[#3a7bc8] text-white font-bold rounded-lg transition-colors"
+            >
+              Get a Pentest Quote
+            </a>
+            <a
+              href="https://msppentesting.com/become-a-msp-partner"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-lg border border-white/20 transition-colors"
+            >
+              Become an MSP Partner
+            </a>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
