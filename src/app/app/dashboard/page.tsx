@@ -2,7 +2,8 @@
 
 export const runtime = 'edge';
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faShieldHalved,
@@ -85,6 +86,19 @@ export default function DashboardPage() {
     setPurchaseQuantity(1);
     setShowPurchaseModal(true);
   };
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const purchase = searchParams.get('purchase');
+    if (purchase === 'web_app' || purchase === 'external_ip') {
+      openPurchaseModal(purchase);
+      // Clean up the URL without triggering a navigation
+      router.replace('/app/dashboard', { scroll: false });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   if (loading) {
     return (

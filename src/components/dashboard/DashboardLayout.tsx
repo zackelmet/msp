@@ -199,11 +199,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Buy Credits button */}
           <Link
-            href="/app/dashboard"
-            className="block w-full px-4 py-3 bg-[#4590e2] text-white font-semibold rounded-lg text-center hover:bg-[#3a7bc8] transition-colors"
+            href="/app/dashboard?purchase=web_app"
+            className="buy-credits-btn block w-full px-4 py-3 bg-[#4590e2] text-white font-semibold rounded-lg text-center hover:bg-[#3a7bc8] transition-colors"
           >
-            <FontAwesomeIcon icon={faPlus} className="mr-2" />
             Buy Credits
+            <FontAwesomeIcon icon={faPlus} className="ml-2" />
           </Link>
         </div>
       </aside>
@@ -218,7 +218,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
           </button>
-          <Link href="https://msppentesting.com" className="flex items-center gap-2">
+          <Link href="https://msppentesting.vercel.app/" className="flex items-center gap-2">
             <Image
               src="/msp pentesting logo (1) (3) (1).png"
               alt="MSP Pentesting"
