@@ -6,7 +6,7 @@ export type SubscriptionStatus =
   | "past_due"
   | "trialing"
   | "none";
-export type PlanTier = "free" | "essential" | "pro" | "scale";
+export type PlanTier = "free" | "paid";
 
 export interface UserDocument {
   // Basic Info
@@ -96,7 +96,7 @@ export interface ScanMetadata {
 export const PLAN_LIMITS = {
   free: {
     tier: "free" as PlanTier,
-    monthlyScans: 0, // Free users can't scan
+    monthlyScans: 0,
     scanners: { nmap: 0, openvas: 0, zap: 0 },
     features: {
       nmapEnabled: false,
@@ -106,34 +106,10 @@ export const PLAN_LIMITS = {
       prioritySupport: false,
     },
   },
-  essential: {
-    tier: "essential" as PlanTier,
-    monthlyScans: 15, // 5 per scanner * 3 scanners
-    scanners: { nmap: 5, openvas: 5, zap: 5 },
-    features: {
-      nmapEnabled: true,
-      openvasEnabled: true,
-      apiAccess: false,
-      customReports: false,
-      prioritySupport: false,
-    },
-  },
-  pro: {
-    tier: "pro" as PlanTier,
-    monthlyScans: 75, // 25 per scanner * 3 scanners
-    scanners: { nmap: 25, openvas: 25, zap: 25 },
-    features: {
-      nmapEnabled: true,
-      openvasEnabled: true,
-      apiAccess: true,
-      customReports: true,
-      prioritySupport: false,
-    },
-  },
-  scale: {
-    tier: "scale" as PlanTier,
-    monthlyScans: 300, // 100 per scanner * 3 scanners
-    scanners: { nmap: 100, openvas: 100, zap: 100 },
+  paid: {
+    tier: "paid" as PlanTier,
+    monthlyScans: 999,
+    scanners: { nmap: 999, openvas: 999, zap: 999 },
     features: {
       nmapEnabled: true,
       openvasEnabled: true,

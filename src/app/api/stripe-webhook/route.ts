@@ -86,9 +86,10 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     try {
       const userRef = adminDb.collection('users').doc(userId);
       
-      // Add credits to user account
+      // Add credits to user account and mark as paid
       await userRef.update({
         [`credits.${pentestType}`]: FieldValue.increment(quantity),
+        currentPlan: 'paid',
         updatedAt: FieldValue.serverTimestamp(),
       });
 
@@ -123,6 +124,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         stripeCustomerId: session.customer as string,
         stripeSubscriptionId: subscription.id,
         subscriptionStatus: subscription.status,
+        currentPlan: 'paid',
         currentPeriodStart: FieldValue.serverTimestamp(),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
         updatedAt: FieldValue.serverTimestamp(),
