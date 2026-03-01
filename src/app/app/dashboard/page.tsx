@@ -17,11 +17,8 @@ import Link from "next/link";
 import { useUserData } from "@/lib/hooks/useUserData";
 import { useUserScans } from "@/lib/hooks/useUserScans";
 import { useAuth } from "@/lib/context/AuthContext";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { loadStripe } from '@stripe/stripe-js';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import toast from 'react-hot-toast';
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function DashboardPage() {
   const { userData, loading } = useUserData();
@@ -74,17 +71,8 @@ export default function DashboardPage() {
         throw new Error(data.error || 'Failed to create checkout session');
       }
 
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error('Stripe failed to load');
-      }
-
-      const { error } = await stripe.redirectToCheckout({
-        sessionId: data.sessionId,
-      });
-
-      if (error) {
-        throw error;
+      if (data.url) {
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error('Checkout error:', error);
