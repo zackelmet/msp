@@ -61,9 +61,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = [
     { href: "/app/dashboard", label: "Dashboard", icon: faHome },
-    { href: "/app/pentests", label: "Pentests", icon: faList },
-    { href: "/app/new-pentest", label: "Launch Pentest", icon: faRocket },
-    { href: "/app/manual-pentest", label: "Manual Pentests", icon: faUser },
+    { href: "/app/pentests", label: "Recent Tests", icon: faList },
+    { href: "/app/new-pentest", label: "Launch A Pentest", icon: faRocket },
+    { href: "/app/manual-pentest", label: "Request a Manual Pentest", icon: faUser },
   ];
 
   const bottomItems = [
