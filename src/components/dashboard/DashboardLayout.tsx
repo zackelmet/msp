@@ -89,7 +89,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         {/* Logo */}
         <div className="p-6 border-b border-[#4590e2]">
-          <Link href="https://msppentesting.com" className="flex items-center gap-3">
+          <Link href="https://msppentesting.vercel.app/" className="flex items-center gap-3">
             <Image
               src="/msp pentesting logo (1) (3) (1).png"
               alt="MSP Pentesting"

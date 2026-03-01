@@ -208,3 +208,18 @@ body[data-theme="cupcake"] {
 	-webkit-background-clip: text;
 	color: transparent;
 }
+
+@keyframes buy-credits-float {
+	0%, 100% {
+		transform: translateY(0px);
+		box-shadow: 0 0 8px rgba(69, 144, 226, 0.5), 0 0 20px rgba(69, 144, 226, 0.3);
+	}
+	50% {
+		transform: translateY(-4px);
+		box-shadow: 0 0 14px rgba(69, 144, 226, 0.8), 0 0 32px rgba(69, 144, 226, 0.5), 0 0 60px rgba(69, 144, 226, 0.2);
+	}
+}
+
+.buy-credits-btn {
+	animation: buy-credits-float 2.2s ease-in-out infinite;
+}
