@@ -62,6 +62,12 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm text-[var(--text-muted)]">
           <div className="flex gap-4">
             <Link
+              href="/blog"
+              className="hover:text-[var(--primary)] transition"
+            >
+              Blog
+            </Link>
+            <Link
               href="/#pricing"
               className="hover:text-[var(--primary)] transition"
             >
