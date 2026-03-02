@@ -1,8 +1,8 @@
 "use client";
 
-export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -87,6 +87,27 @@ export default function DashboardPage() {
     setShowPurchaseModal(true);
   };
 
+  return (
+    <Suspense fallback={null}>
+      <DashboardInner
+        openPurchaseModal={openPurchaseModal}
+        showPurchaseModal={showPurchaseModal}
+        setShowPurchaseModal={setShowPurchaseModal}
+        selectedPentestType={selectedPentestType}
+        purchaseQuantity={purchaseQuantity}
+        setPurchaseQuantity={setPurchaseQuantity}
+        loadingCheckout={loadingCheckout}
+        handlePurchaseCredits={handlePurchaseCredits}
+        credits={credits}
+        recentScans={recentScans}
+        loading={loading}
+        scansLoading={scansLoading}
+      />
+    </Suspense>
+  );
+}
+
+function PurchaseParamHandler({ openPurchaseModal }: { openPurchaseModal: (type: 'web_app' | 'external_ip') => void }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -94,11 +115,41 @@ export default function DashboardPage() {
     const purchase = searchParams.get('purchase');
     if (purchase === 'web_app' || purchase === 'external_ip') {
       openPurchaseModal(purchase);
-      // Clean up the URL without triggering a navigation
       router.replace('/app/dashboard', { scroll: false });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  return null;
+}
+
+function DashboardInner({
+  openPurchaseModal,
+  showPurchaseModal,
+  setShowPurchaseModal,
+  selectedPentestType,
+  purchaseQuantity,
+  setPurchaseQuantity,
+  loadingCheckout,
+  handlePurchaseCredits,
+  credits,
+  recentScans,
+  loading,
+  scansLoading,
+}: {
+  openPurchaseModal: (type: 'web_app' | 'external_ip') => void;
+  showPurchaseModal: boolean;
+  setShowPurchaseModal: (v: boolean) => void;
+  selectedPentestType: 'web_app' | 'external_ip' | null;
+  purchaseQuantity: number;
+  setPurchaseQuantity: (v: number) => void;
+  loadingCheckout: boolean;
+  handlePurchaseCredits: (type: 'web_app' | 'external_ip', qty: number) => void;
+  credits: { web_app: number; external_ip: number };
+  recentScans: any[];
+  loading: boolean;
+  scansLoading: boolean;
+}) {
 
   if (loading) {
     return (
@@ -112,6 +163,9 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
+      <Suspense fallback={null}>
+        <PurchaseParamHandler openPurchaseModal={openPurchaseModal} />
+      </Suspense>
       <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
         {/* Page Header */}
         <div>
