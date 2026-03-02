@@ -92,7 +92,7 @@ describe("signIn function", () => {
     });
   });
 
-  it("should not call signupCallback for existing Google users", async () => {
+  it("should call signupCallback for Google users (idempotent endpoint)", async () => {
     const mockUserCredential = {
       user: {
         uid: "123",
@@ -108,6 +108,6 @@ describe("signIn function", () => {
       signupCallback: mockSignupCallback,
     });
 
-    expect(mockSignupCallback).not.toHaveBeenCalled();
+    expect(mockSignupCallback).toHaveBeenCalledWith(mockUserCredential);
   });
 });
