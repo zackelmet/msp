@@ -305,7 +305,7 @@ function DashboardInner({
                       </p>
                     </div>
                     <Link
-                      href={`/app/pentests/${scan.scanId}`}
+                      href={`/app/pentests#${scan.scanId}`}
                       className="px-4 py-2 bg-[#4590e2]/20 hover:bg-[#4590e2]/30 text-[#4590e2] font-semibold rounded-lg border border-[#4590e2]/30 transition-colors text-sm"
                     >
                       View
