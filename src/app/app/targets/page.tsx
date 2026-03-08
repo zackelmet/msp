@@ -27,7 +27,8 @@ const EMPTY_FORM = {
 };
 
 export default function TargetsPage() {
-  const { userData, loading } = useUserData();
+  const { userData: _userData, loading } = useUserData();
+  const userData = _userData as any;
   const { currentUser } = useAuth();
   const [formState, setFormState] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -36,7 +37,7 @@ export default function TargetsPage() {
     message: string;
   } | null>(null);
 
-  const savedTargets = useMemo(() => userData?.savedTargets ?? [], [userData]);
+  const savedTargets: any[] = useMemo(() => userData?.savedTargets ?? [], [userData]);
   const [editingTarget, setEditingTarget] = useState<SavedTarget | null>(null);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
@@ -370,7 +371,7 @@ export default function TargetsPage() {
                         {target.addresses.length} addresses
                       </p>
                       <div className="max-h-20 overflow-y-auto font-mono text-xs space-y-0.5">
-                        {target.addresses.map((addr, idx) => (
+                        {(target.addresses as string[]).map((addr, idx) => (
                           <div key={idx} className="text-gray-500">
                             {addr}
                           </div>
@@ -382,7 +383,7 @@ export default function TargetsPage() {
                     {target.type}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {(target.tags ?? []).map((tag) => (
+                    {((target.tags ?? []) as string[]).map((tag) => (
                       <span
                         key={tag}
                         className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md"

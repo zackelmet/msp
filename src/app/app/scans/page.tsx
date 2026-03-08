@@ -32,12 +32,13 @@ export default function ScansPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
 
-  const { userData, loading } = useUserData();
+  const { userData: _userData, loading } = useUserData();
+  const userData = _userData as any;
   const { currentUser } = useAuth();
   const { scans: userScans = [], loading: scansLoading } = useUserScans(
     currentUser?.uid ?? null,
   );
-  const savedTargets = useMemo(() => userData?.savedTargets ?? [], [userData]);
+  const savedTargets: any[] = useMemo(() => userData?.savedTargets ?? [], [userData]);
   const [selectedTargetId, setSelectedTargetId] = useState(CUSTOM_TARGET_ID);
   const selectedTarget = useMemo(
     () => savedTargets.find((target) => target.id === selectedTargetId) ?? null,

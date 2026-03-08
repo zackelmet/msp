@@ -12,7 +12,8 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 export default function SettingsPage() {
   const { currentUser } = useAuth();
-  const { userData, loading } = useUserData();
+  const { userData: _userData, loading } = useUserData();
+  const userData = _userData as any;
 
   return (
     <DashboardLayout>

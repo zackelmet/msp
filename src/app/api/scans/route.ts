@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const userData = userDoc.data() as UserDocument;
+    const userData = userDoc.data() as any; // legacy scanner route
 
     // Require active subscription to run scans
     if (userData.subscriptionStatus !== "active") {
