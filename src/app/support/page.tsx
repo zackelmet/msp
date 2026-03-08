@@ -5,12 +5,10 @@ import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHeadset,
-  faEnvelope,
   faCircleCheck,
   faTriangleExclamation,
   faArrowLeft,
   faShieldHalved,
-  faBook,
 } from "@fortawesome/free-solid-svg-icons";
 
 const TOPICS = [
@@ -94,21 +92,6 @@ export default function SupportPage() {
                 Trust + Safety
               </p>
               <p className="text-xs text-gray-500">Policies &amp; legal</p>
-            </div>
-          </Link>
-
-          <Link
-            href="mailto:support@msppentesting.com"
-            className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#4590e2]/40 rounded-xl transition-all group"
-          >
-            <div className="p-2 rounded-lg bg-[#4590e2]/15 border border-[#4590e2]/30">
-              <FontAwesomeIcon icon={faEnvelope} className="text-[#4590e2]" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white group-hover:text-[#4590e2] transition-colors">
-                Email Us
-              </p>
-              <p className="text-xs text-gray-500">support@msppentesting.com</p>
             </div>
           </Link>
 
