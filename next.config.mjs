@@ -11,10 +11,18 @@ const withMDX = createMDX({
 
 const nextConfig = {
   images: {
-    remotePatterns: [{ hostname: "images.ctfassets.net" }],
+    remotePatterns: [
+      { hostname: "images.ctfassets.net" },
+      { hostname: "cdn.prod.website-files.com" },
+    ],
   },
   pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
   skipTrailingSlashRedirect: true,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "20mb",
+    },
+  },
 };
 
 export default withMDX(nextConfig);

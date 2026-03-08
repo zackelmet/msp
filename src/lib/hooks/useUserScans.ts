@@ -42,6 +42,8 @@ export function useUserScans(uid?: string | null) {
             endTime: data.completedAt || null,
             results: data.results || null,
             vulnerabilities: data.vulnerabilities || [],
+            reportUrl: data.reportUrl || null,
+            reportUploadedAt: data.reportUploadedAt || null,
           };
         });
         setScans(items);

@@ -6,13 +6,16 @@ import Footer from "./Footer";
 
 export default function ConditionalNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isDashboard = pathname?.startsWith("/app/");
+  const isDashboard =
+    !pathname ||
+    pathname.startsWith("/app") ||
+    pathname.startsWith("/admin");
 
   return (
     <>
       {!isDashboard && <Navbar />}
       {children}
-      <Footer />
+      {!isDashboard && <Footer />}
     </>
   );
 }

@@ -1,5 +1,5 @@
 import AdminDashboard from "@/components/admin/AdminDashboard";
-import Page from "@/components/shared/Page";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -18,8 +18,8 @@ export default async function AdminDashboardPage() {
   }
 
   return (
-    <Page>
+    <DashboardLayout>
       <AdminDashboard />
-    </Page>
+    </DashboardLayout>
   );
 }
