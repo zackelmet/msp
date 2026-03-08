@@ -89,7 +89,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         {/* Logo */}
         <div className="p-6 border-b border-[#4590e2]">
-          <Link href="https://msppentesting.vercel.app/" className="flex items-center gap-3">
+          <Link href="https://msppentesting.com" className="flex items-center gap-3">
             <Image
               src="/msp pentesting logo (1) (3) (1).png"
               alt="MSP Pentesting"
@@ -101,7 +101,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               className="text-white font-semibold text-base tracking-wide leading-tight"
               style={{ fontFamily: "var(--font-chakra-petch)" }}
             >
-              AI Pentesting
+              MSP Pentesting
             </span>
           </Link>
         </div>
@@ -218,7 +218,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
           </button>
-          <Link href="https://msppentesting.vercel.app/" className="flex items-center gap-2">
+          <Link href="https://msppentesting.com" className="flex items-center gap-2">
             <Image
               src="/msp pentesting logo (1) (3) (1).png"
               alt="MSP Pentesting"
@@ -230,7 +230,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               className="font-semibold text-white text-sm"
               style={{ fontFamily: "var(--font-chakra-petch)" }}
             >
-              AI Pentesting
+              MSP Pentesting
             </span>
           </Link>
           <div className="w-10" /> {/* Spacer for centering */}
