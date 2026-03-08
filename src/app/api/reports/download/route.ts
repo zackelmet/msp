@@ -37,7 +37,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "No report available" }, { status: 404 });
     }
 
-    // Derive extension for content-disposition filename
     const ext = storagePath.endsWith(".docx") ? "docx" : "pdf";
 
     const cleanBucket = (process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "")
