@@ -63,8 +63,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
     if (!currentUser && pathname.startsWith("/app")) {
       router.push("/login");
+    } else if (currentUser && !currentUser.emailVerified && currentUser.providerData[0]?.providerId === "password" && pathname.startsWith("/app")) {
+      // Email/password users must verify before accessing the app
+      router.push("/verify-email");
     } else if (currentUser && pathname.startsWith("/login")) {
       router.push("/app/dashboard");
+    } else if (currentUser && !currentUser.emailVerified && currentUser.providerData[0]?.providerId === "password" && pathname === "/verify-email") {
+      // Stay on verify-email — do nothing
     }
   }, [currentUser, pathname, router, isLoadingAuth]);
 

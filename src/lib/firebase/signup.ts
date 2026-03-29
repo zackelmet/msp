@@ -1,5 +1,6 @@
 import {
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   getAuth,
   UserCredential,
 } from "firebase/auth";
@@ -66,6 +67,9 @@ export default async function signUp(
       email,
       password
     );
+
+    // Send verification email immediately after account creation
+    await sendEmailVerification(userCredential.user);
 
     if (signupCallback) {
       await signupCallback(userCredential);

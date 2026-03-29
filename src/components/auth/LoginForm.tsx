@@ -117,7 +117,7 @@ export default function AuthForm() {
         },
       );
       if (user) {
-        router.push(returnUrl);
+        router.push("/verify-email");
       } else if (error) {
         setError(error.message);
       }
