@@ -15,6 +15,9 @@ import {
   faChevronRight,
   faPlus,
   faClock,
+  faBullseye,
+  faFileLines,
+  faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -152,26 +155,69 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[
-            { href: "/app/targets",  icon: faLayerGroup,    color: "text-[#4590e2]",  bg: "bg-[#4590e2]/10 border-[#4590e2]/20",   title: "Manage Target Groups", sub: "Define client environments and assets" },
-            { href: "/app/schedule", icon: faCalendarCheck, color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20",  title: "Schedule a Pentest",    sub: "Pick a target group and set a date"    },
-          ].map((a) => (
-            <Link
-              key={a.href}
-              href={a.href}
-              className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-5 hover:border-[#4590e2]/35 transition-colors group flex items-center gap-4"
-            >
-              <div className={`w-10 h-10 rounded-lg border flex items-center justify-center ${a.bg}`}>
-                <FontAwesomeIcon icon={a.icon} className={`w-4 h-4 ${a.color}`} />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-white group-hover:text-[#4590e2] transition-colors">{a.title}</p>
-                <p className="text-xs text-[#7a9bb5] mt-0.5">{a.sub}</p>
-              </div>
-              <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3 text-[#7a9bb5] ml-auto group-hover:text-[#4590e2] transition-colors" />
-            </Link>
-          ))}
+        {/* How it works / getting started */}
+        <div className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-sm font-semibold text-white">Getting Started</h2>
+              <p className="text-xs text-[#7a9bb5] mt-0.5">Three steps to your first pentest</p>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-4">
+            {[
+              {
+                step: "01",
+                href: "/app/targets/new",
+                icon: faBullseye,
+                color: "text-[#4590e2]",
+                bg: "bg-[#4590e2]/10 border-[#4590e2]/20",
+                done: stats.targetGroups > 0,
+                title: "Create a Target Group",
+                sub: "Define the client environment, assets, and scope you want tested.",
+              },
+              {
+                step: "02",
+                href: "/app/schedule",
+                icon: faCalendarCheck,
+                color: "text-purple-400",
+                bg: "bg-purple-500/10 border-purple-500/20",
+                done: stats.scheduledTests > 0,
+                title: "Schedule a Test",
+                sub: "Pick a target group, test type, and date. Automated or manual.",
+              },
+              {
+                step: "03",
+                href: "/app/manual-pentest",
+                icon: faFileLines,
+                color: "text-green-400",
+                bg: "bg-green-500/10 border-green-500/20",
+                done: false,
+                title: "Request a Manual Pentest",
+                sub: "Need a deeper assessment? Submit a scoping form and get a custom quote.",
+              },
+            ].map((s) => (
+              <Link
+                key={s.step}
+                href={s.href}
+                className="relative bg-[#0a141f] border border-[#4590e2]/10 hover:border-[#4590e2]/30 rounded-xl p-5 transition-colors group flex flex-col gap-3"
+              >
+                {s.done && (
+                  <span className="absolute top-3 right-3 text-xs text-green-400 bg-green-400/10 border border-green-400/20 px-2 py-0.5 rounded-full">
+                    Done
+                  </span>
+                )}
+                <div className={`w-9 h-9 rounded-lg border flex items-center justify-center ${s.bg}`}>
+                  <FontAwesomeIcon icon={s.icon} className={`w-3.5 h-3.5 ${s.color}`} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-[#7a9bb5] mb-1">STEP {s.step}</p>
+                  <p className="text-sm font-semibold text-white group-hover:text-[#4590e2] transition-colors leading-snug">{s.title}</p>
+                  <p className="text-xs text-[#7a9bb5] mt-1.5 leading-relaxed">{s.sub}</p>
+                </div>
+                <FontAwesomeIcon icon={faArrowRight} className={`w-3 h-3 mt-auto ${s.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </DashboardLayout>

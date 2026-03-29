@@ -79,16 +79,35 @@ export default function TargetsPage() {
             ))}
           </div>
         ) : groups.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <FontAwesomeIcon icon={faLayerGroup} className="w-10 h-10 text-[#4590e2]/20 mb-4" />
-            <p className="text-white font-semibold">No target groups yet</p>
-            <p className="text-[#7a9bb5] text-sm mt-1">Create your first group to start scheduling pentests.</p>
-            <Link
-              href="/app/targets/new"
-              className="mt-4 px-4 py-2 bg-[#4590e2] hover:bg-[#3a7bc8] text-white text-sm font-semibold rounded-lg transition-colors"
-            >
-              Create Target Group
-            </Link>
+          <div className="space-y-6">
+            <div className="flex flex-col items-center justify-center py-10 text-center bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl px-8">
+              <div className="w-14 h-14 rounded-xl bg-[#4590e2]/10 border border-[#4590e2]/20 flex items-center justify-center mb-4">
+                <FontAwesomeIcon icon={faLayerGroup} className="w-6 h-6 text-[#4590e2]" />
+              </div>
+              <p className="text-white font-semibold text-base">No target groups yet</p>
+              <p className="text-[#7a9bb5] text-sm mt-2 max-w-sm">
+                Target groups let you organise the environments and assets you want tested — one group per client or project.
+              </p>
+              <Link
+                href="/app/targets/new"
+                className="mt-5 px-5 py-2.5 bg-[#4590e2] hover:bg-[#3a7bc8] text-white text-sm font-semibold rounded-lg transition-colors"
+              >
+                Create your first group
+              </Link>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-4">
+              {[
+                { title: "Group by client or project", body: "Keep each client's assets separate so you can schedule tests independently." },
+                { title: "Track asset inventory",      body: "Add URLs, IPs, CIDR ranges, and domains — all stored alongside the group." },
+                { title: "Schedule in one click",      body: "Once a group exists, scheduling a pentest takes seconds from this page." },
+              ].map((tip) => (
+                <div key={tip.title} className="bg-[#0d1e30] border border-[#4590e2]/10 rounded-xl p-4">
+                  <p className="text-sm font-semibold text-white mb-1">{tip.title}</p>
+                  <p className="text-xs text-[#7a9bb5] leading-relaxed">{tip.body}</p>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

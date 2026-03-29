@@ -201,9 +201,29 @@ function SchedulePageInner() {
                 {[...Array(3)].map((_, i) => <div key={i} className="h-12 bg-[#0a141f] rounded animate-pulse" />)}
               </div>
             ) : tests.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center px-5">
-                <FontAwesomeIcon icon={faCalendarAlt} className="w-8 h-8 text-[#4590e2]/20 mb-3" />
-                <p className="text-[#7a9bb5] text-sm">No tests scheduled yet.</p>
+              <div className="p-5 space-y-4">
+                <div className="flex flex-col items-center text-center py-6">
+                  <FontAwesomeIcon icon={faCalendarAlt} className="w-8 h-8 text-[#4590e2]/25 mb-3" />
+                  <p className="text-white text-sm font-semibold">No tests scheduled yet</p>
+                  <p className="text-xs text-[#7a9bb5] mt-1 max-w-xs">
+                    Use the form on the left to schedule your first test. You can set a one-time date or a recurring cadence.
+                  </p>
+                </div>
+                <div className="border-t border-[#4590e2]/10 pt-4 space-y-3">
+                  {[
+                    { label: "Automated", body: "Runs a comprehensive scan against your target group — results appear in Test History." },
+                    { label: "Manual",    body: "Flags the engagement for your team to kick off a hands-on pentest." },
+                    { label: "Recurring", body: "Set weekly, monthly, or quarterly cadences to stay continuously assessed." },
+                  ].map((t) => (
+                    <div key={t.label} className="flex gap-3">
+                      <span className="shrink-0 w-2 h-2 rounded-full bg-[#4590e2]/40 mt-1.5" />
+                      <div>
+                        <p className="text-xs font-semibold text-white">{t.label}</p>
+                        <p className="text-xs text-[#7a9bb5] leading-relaxed">{t.body}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="divide-y divide-[#4590e2]/10">
