@@ -80,7 +80,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { href: "/app/targets", label: "Target Groups", icon: faBullseye },
     { href: "/app/schedule", label: "Schedule Tests", icon: faCalendarAlt },
     { href: "/app/pentests", label: "Test History", icon: faList },
-    { href: "/app/new-pentest", label: "Request a Pentest", icon: faRocket },
+    { href: "/app/manual-pentest", label: "Request a Pentest", icon: faRocket },
   ];
 
   const adminNavItems = [
