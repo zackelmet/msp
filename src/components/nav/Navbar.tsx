@@ -32,20 +32,12 @@ export default function Navbar() {
 
         <div className="flex items-center gap-3">
           {!isLoadingAuth && !currentUser && (
-            <>
-              <Link
-                href="/#pricing"
-                className="text-sm font-medium hover:text-[#4590e2] transition"
-              >
-                Pricing
-              </Link>
-              <Link
-                href="/login"
-                className="px-4 py-2 text-sm font-semibold bg-[#4590e2] hover:bg-[#3a7bc8] text-white rounded-lg transition"
-              >
-                Sign In
-              </Link>
-            </>
+            <Link
+              href="/login"
+              className="px-4 py-2 text-sm font-semibold bg-[#4590e2] hover:bg-[#3a7bc8] text-white rounded-lg transition"
+            >
+              Sign In
+            </Link>
           )}
 
           {!isLoadingAuth && currentUser && (

@@ -149,101 +149,130 @@ export default function AuthForm() {
     }
   };
 
-  return (
-    <div className="relative min-h-screen bg-[var(--bg)] text-[--text] overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none opacity-60">
-        <div className="absolute inset-6 neon-grid" />
-      </div>
+  // Hex grid SVG background — matches landing page
+  const HEX_SVG_URI = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='104' viewBox='0 0 120 104'%3E%3Cpolygon points='60,2 112,29 112,75 60,102 8,75 8,29' fill='none' stroke='%234590e2' stroke-width='0.8' opacity='0.22'/%3E%3C/svg%3E")`;
 
-      <div className="relative w-full max-w-6xl mx-auto px-6 lg:px-12 py-12 lg:py-16">
-        <div className="flex flex-col lg:flex-row gap-10 items-center">
-          <div className="flex-1 space-y-4 text-center lg:text-left">
-            <div className="inline-flex items-center gap-3 neon-badge-muted px-3 py-2 rounded-xl">
-              Secure access
+  return (
+    <div
+      className="relative min-h-screen bg-[#0a141f] text-white overflow-hidden flex items-center justify-center px-6 py-16"
+    >
+      {/* Hex grid tile background */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ backgroundImage: HEX_SVG_URI, backgroundSize: "120px 104px" }}
+      />
+      {/* Radial fade over hex grid */}
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,#0a141f00_0%,#0a141f_70%)]" />
+      {/* Blue glow top-left */}
+      <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-[#4590e2]/10 blur-[120px] pointer-events-none" />
+      {/* Blue glow bottom-right */}
+      <div className="absolute -bottom-32 -right-32 w-[400px] h-[400px] rounded-full bg-[#4590e2]/08 blur-[100px] pointer-events-none" />
+
+      <div className="relative w-full max-w-6xl mx-auto">
+        <div className="flex flex-col lg:flex-row gap-12 items-center">
+
+          {/* Left: copy */}
+          <div className="flex-1 space-y-5 text-center lg:text-left">
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#4590e2]/10 border border-[#4590e2]/30 text-[#4590e2] text-sm font-semibold"
+              style={{ fontFamily: "var(--font-chakra-petch)" }}
+            >
+              MSP PENTESTING CLIENT PORTAL
             </div>
-            <h1 className="text-3xl lg:text-5xl font-black leading-tight">
-              Start Pentesting in 5 Minutes.
+            <h1
+              className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight"
+              style={{ fontFamily: "var(--font-chakra-petch)" }}
+            >
+              {formMode === FormMode.Login ? "Welcome back." : "Get started today."}
             </h1>
-            <p className="text-base lg:text-lg neon-subtle max-w-xl">
-              Join the security teams that already trust MSP Pentesting to run
-              fast, AI-powered autonomous pentests.
+            <p className="text-gray-300 text-base lg:text-lg max-w-md">
+              {formMode === FormMode.Login
+                ? "Sign in to view your pentest requests, monitor progress, and download reports."
+                : "Create your account and submit your first pentest request in minutes."}
             </p>
-            <div className="flex flex-wrap gap-3 justify-center lg:justify-start text-sm text-[var(--text-muted)]">
-              <span className="neon-chip">AI-Powered Pentesting</span>
-              <span className="neon-chip">Anthropic Claude Agents</span>
-              <span className="neon-chip">Autonomous Security Testing</span>
+            <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+              {["White-Labeled Reports", "OSCP-Certified Testers", "AI-Powered Testing"].map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#4590e2]/10 border border-[#4590e2]/25 text-[#7ab8f5] text-xs font-medium"
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                  {tag}
+                </span>
+              ))}
             </div>
           </div>
 
-          <div className="flex-1 w-full max-w-xl">
-            <div className="neon-card p-6 lg:p-7 space-y-6">
+          {/* Right: form card */}
+          <div className="flex-1 w-full max-w-md">
+            <div
+              className="rounded-2xl bg-[#0d1e30] border border-[#4590e2]/25 shadow-[0_30px_80px_rgba(0,0,0,0.55)] p-7 space-y-6"
+            >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--text-muted)] mb-1">
-                    {formMode === FormMode.Login
-                      ? "Welcome back"
-                      : "Create account"}
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#4590e2]/70 mb-1"
+                    style={{ fontFamily: "var(--font-chakra-petch)" }}
+                  >
+                    {formMode === FormMode.Login ? "Welcome back" : "Create account"}
                   </p>
-                  <h2 className="text-2xl font-bold">
+                  <h2 className="text-2xl font-bold text-white"
+                    style={{ fontFamily: "var(--font-chakra-petch)" }}
+                  >
                     {formMode === FormMode.Login ? "Sign in" : "Sign up"}
                   </h2>
                 </div>
                 <button
-                  className="text-sm neon-outline-btn px-3 py-2"
+                  className="text-sm px-3 py-1.5 border border-[#4590e2]/40 hover:border-[#4590e2] text-[#4590e2] hover:bg-[#4590e2]/10 rounded-lg transition-colors"
                   onClick={() =>
                     setFormMode(
-                      formMode === FormMode.Login
-                        ? FormMode.Register
-                        : FormMode.Login,
+                      formMode === FormMode.Login ? FormMode.Register : FormMode.Login,
                     )
                   }
                 >
-                  {formMode === FormMode.Login
-                    ? "New here?"
-                    : "Have an account?"}
+                  {formMode === FormMode.Login ? "New here?" : "Have an account?"}
                 </button>
               </div>
 
               {error && (
-                <div className="text-[var(--danger)] text-sm">{error}</div>
+                <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{error}</div>
               )}
 
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[var(--text)]">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-gray-300">
                     Email
                   </label>
                   <input
                     type="email"
                     placeholder="you@company.com"
-                    className="neon-input w-full py-3"
+                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-[#4590e2]/20 text-white placeholder-gray-500 focus:outline-none focus:border-[#4590e2] transition-colors text-sm"
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); clearErrorOnChange(); }}
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[var(--text)]">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-gray-300">
                     Password
                   </label>
                   <input
                     type="password"
                     placeholder="Enter password"
-                    className="neon-input w-full py-3"
+                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-[#4590e2]/20 text-white placeholder-gray-500 focus:outline-none focus:border-[#4590e2] transition-colors text-sm"
                     value={password}
                     onChange={(e) => { setPassword(e.target.value); clearErrorOnChange(); }}
                   />
                 </div>
 
                 {formMode === FormMode.Register && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-[var(--text)]">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-gray-300">
                       Confirm Password
                     </label>
                     <input
                       type="password"
                       placeholder="Repeat password"
-                      className="neon-input w-full py-3"
+                      className="w-full px-4 py-3 rounded-lg bg-white/5 border border-[#4590e2]/20 text-white placeholder-gray-500 focus:outline-none focus:border-[#4590e2] transition-colors text-sm"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                     />
@@ -253,7 +282,7 @@ export default function AuthForm() {
                 {formMode === FormMode.Login && (
                   <div className="flex justify-end">
                     <button
-                      className="text-sm text-[var(--text-muted)] hover:text-[var(--text)] underline"
+                      className="text-sm text-gray-400 hover:text-white underline transition-colors"
                       onClick={handleForgotPassword}
                     >
                       Forgot password?
@@ -267,34 +296,47 @@ export default function AuthForm() {
                   <button
                     disabled={!email || !password}
                     onClick={handleLogin}
-                    className="neon-primary-btn w-full py-3 font-semibold disabled:opacity-60"
+                    className="relative w-full py-3 text-white font-bold overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ fontFamily: "var(--font-chakra-petch)" }}
                   >
-                    Sign in
+                    <span className="absolute inset-0 border border-[#4590e2]/60 group-hover:border-[#4590e2] transition-colors rounded" />
+                    <span className="absolute inset-0 bg-[#4590e2]/15 group-hover:bg-[#4590e2]/25 transition-colors rounded" />
+                    <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-[#0a141f] rotate-45 translate-x-1.5 -translate-y-1.5" />
+                    <span className="absolute bottom-0 left-0 w-2.5 h-2.5 bg-[#0a141f] rotate-45 -translate-x-1.5 translate-y-1.5" />
+                    <span className="relative z-10">Sign in</span>
                   </button>
                 ) : (
                   <button
                     disabled={!email || !password || !confirmPassword}
                     onClick={handleRegister}
-                    className="neon-primary-btn w-full py-3 font-semibold disabled:opacity-60"
+                    className="relative w-full py-3 text-white font-bold overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ fontFamily: "var(--font-chakra-petch)" }}
                   >
-                    Create account
+                    <span className="absolute inset-0 border border-[#4590e2]/60 group-hover:border-[#4590e2] transition-colors rounded" />
+                    <span className="absolute inset-0 bg-[#4590e2]/15 group-hover:bg-[#4590e2]/25 transition-colors rounded" />
+                    <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-[#0a141f] rotate-45 translate-x-1.5 -translate-y-1.5" />
+                    <span className="absolute bottom-0 left-0 w-2.5 h-2.5 bg-[#0a141f] rotate-45 -translate-x-1.5 translate-y-1.5" />
+                    <span className="relative z-10">Create account</span>
                   </button>
                 )}
 
                 <button
-                  className="neon-outline-btn w-full py-3 font-semibold flex items-center justify-center gap-2"
+                  className="w-full py-3 font-semibold flex items-center justify-center gap-2 border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white rounded transition-colors text-sm"
                   onClick={handleGoogleAuth}
                 >
-                  <FontAwesomeIcon icon={faGoogle} className="text-lg" />{" "}
+                  <FontAwesomeIcon icon={faGoogle} className="text-base" />{" "}
                   Continue with Google
                 </button>
               </div>
 
-              <div className="text-xs neon-subtle text-center">
+              <div className="h-px bg-gradient-to-r from-transparent via-[#4590e2]/30 to-transparent" />
+
+              <p className="text-xs text-gray-500 text-center">
                 By continuing you agree to our Terms and Privacy.
-              </div>
+              </p>
             </div>
           </div>
+
         </div>
       </div>
     </div>

@@ -286,7 +286,7 @@ export default function Home() {
           <div className="flex items-center gap-4 pt-4">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[#4590e2]/40" />
             <span className="text-[#4590e2]/60 text-xs uppercase tracking-widest font-semibold">
-              OSCP Certified Pentesters
+              White-Labeled Pentesting
             </span>
             <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[#4590e2]/40" />
           </div>
