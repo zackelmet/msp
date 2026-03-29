@@ -1,453 +1,179 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-import { useMemo, useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faLayerGroup,
+  faCalendarCheck,
+  faCircleCheck,
   faShieldHalved,
-  faGlobe,
-  faServer,
+  faChevronRight,
   faPlus,
-  faXmark,
+  faClock,
 } from "@fortawesome/free-solid-svg-icons";
-import Link from "next/link";
-import { useUserData } from "@/lib/hooks/useUserData";
-import { useUserScans } from "@/lib/hooks/useUserScans";
-import { useAuth } from "@/lib/context/AuthContext";
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import toast from 'react-hot-toast';
+
+const STATUS_COLORS: Record<string, string> = {
+  pending:   "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
+  approved:  "text-blue-400 bg-blue-400/10 border-blue-400/30",
+  running:   "text-purple-400 bg-purple-400/10 border-purple-400/30",
+  completed: "text-green-400 bg-green-400/10 border-green-400/30",
+  cancelled: "text-red-400 bg-red-400/10 border-red-400/30",
+};
 
 export default function DashboardPage() {
-  const { userData, loading } = useUserData();
-  const { currentUser } = useAuth();
-  const { scans: userScans = [], loading: scansLoading } = useUserScans(
-    currentUser?.uid ?? null,
-  );
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  const [selectedPentestType, setSelectedPentestType] = useState<'web_app' | 'external_ip' | null>(null);
-  const [purchaseQuantity, setPurchaseQuantity] = useState(1);
-  const [loadingCheckout, setLoadingCheckout] = useState(false);
-
-  const credits = useMemo(() => {
-    return {
-      web_app: userData?.credits?.web_app || 0,
-      external_ip: userData?.credits?.external_ip || 0,
-    };
-  }, [userData]);
-
-  const recentScans = useMemo(() => {
-    return userScans.slice(0, 5);
-  }, [userScans]);
-
-  const handlePurchaseCredits = async (pentestType: 'web_app' | 'external_ip', quantity: number) => {
-    setLoadingCheckout(true);
-
-    try {
-      const priceId = pentestType === 'web_app' 
-        ? (process.env.NEXT_PUBLIC_STRIPE_PRICE_WEB_APP || process.env.NEXT_PUBLIC_STRIPE_PRICE_AI_SINGLE)
-        : process.env.NEXT_PUBLIC_STRIPE_PRICE_AI_SINGLE;
-
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          priceId: priceId,
-          mode: 'payment',
-          quantity: quantity,
-          userId: currentUser?.uid,
-          email: currentUser?.email,
-          metadata: {
-            pentestType: pentestType,
-          }
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
-      }
-
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error: any) {
-      console.error('Checkout error:', error);
-      toast.error(error.message || 'Failed to start checkout');
-    } finally {
-      setLoadingCheckout(false);
-    }
-  };
-
-  const openPurchaseModal = (type: 'web_app' | 'external_ip') => {
-    setSelectedPentestType(type);
-    setPurchaseQuantity(1);
-    setShowPurchaseModal(true);
-  };
-
-  return (
-    <Suspense fallback={null}>
-      <DashboardInner
-        openPurchaseModal={openPurchaseModal}
-        showPurchaseModal={showPurchaseModal}
-        setShowPurchaseModal={setShowPurchaseModal}
-        selectedPentestType={selectedPentestType}
-        purchaseQuantity={purchaseQuantity}
-        setPurchaseQuantity={setPurchaseQuantity}
-        loadingCheckout={loadingCheckout}
-        handlePurchaseCredits={handlePurchaseCredits}
-        credits={credits}
-        recentScans={recentScans}
-        loading={loading}
-        scansLoading={scansLoading}
-      />
-    </Suspense>
-  );
-}
-
-function PurchaseParamHandler({ openPurchaseModal }: { openPurchaseModal: (type: 'web_app' | 'external_ip') => void }) {
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const [userName, setUserName] = useState("");
+  const [stats, setStats] = useState({ targetGroups: 0, scheduledTests: 0, completedTests: 0, totalPentests: 0 });
+  const [recent, setRecent] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const purchase = searchParams.get('purchase');
-    if (purchase === 'web_app' || purchase === 'external_ip') {
-      openPurchaseModal(purchase);
-      router.replace('/app/dashboard', { scroll: false });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+    (async () => {
+      const { getAuth, onAuthStateChanged } = await import("firebase/auth");
+      const firebase_app = (await import("@/lib/firebase/firebaseClient")).default;
+      const auth = getAuth(firebase_app);
 
-  return null;
-}
+      const unsub = onAuthStateChanged(auth, async (user) => {
+        if (!user) { router.replace("/login"); return; }
+        setUserName(user.email?.split("@")[0] || "there");
+        const token = await user.getIdToken();
+        const h = { Authorization: `Bearer ${token}` };
 
-function DashboardInner({
-  openPurchaseModal,
-  showPurchaseModal,
-  setShowPurchaseModal,
-  selectedPentestType,
-  purchaseQuantity,
-  setPurchaseQuantity,
-  loadingCheckout,
-  handlePurchaseCredits,
-  credits,
-  recentScans,
-  loading,
-  scansLoading,
-}: {
-  openPurchaseModal: (type: 'web_app' | 'external_ip') => void;
-  showPurchaseModal: boolean;
-  setShowPurchaseModal: (v: boolean) => void;
-  selectedPentestType: 'web_app' | 'external_ip' | null;
-  purchaseQuantity: number;
-  setPurchaseQuantity: (v: number) => void;
-  loadingCheckout: boolean;
-  handlePurchaseCredits: (type: 'web_app' | 'external_ip', qty: number) => void;
-  credits: { web_app: number; external_ip: number };
-  recentScans: any[];
-  loading: boolean;
-  scansLoading: boolean;
-}) {
+        const [tgRes, stRes] = await Promise.all([
+          fetch("/api/target-groups", { headers: h }),
+          fetch("/api/scheduled-tests", { headers: h }),
+        ]);
+        const [tgData, stData] = await Promise.all([tgRes.json(), stRes.json()]);
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-gray-500">Loading...</div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+        const allTests: any[] = stData.tests || [];
+        setStats({
+          targetGroups: (tgData.groups || []).length,
+          scheduledTests: allTests.length,
+          completedTests: allTests.filter((t) => t.status === "completed").length,
+          totalPentests: allTests.filter((t) => ["running", "completed"].includes(t.status)).length,
+        });
+        setRecent(allTests.slice(0, 5));
+        setLoading(false);
+      });
+
+      return unsub;
+    })();
+  }, [router]);
+
+  const statCards = [
+    { label: "Target Groups",   value: stats.targetGroups,   icon: faLayerGroup,    href: "/app/targets",  color: "text-[#4590e2]",  border: "border-[#4590e2]/20" },
+    { label: "Scheduled Tests", value: stats.scheduledTests, icon: faCalendarCheck, href: "/app/schedule", color: "text-purple-400", border: "border-purple-500/20" },
+    { label: "Completed Tests", value: stats.completedTests, icon: faCircleCheck,   href: "/app/schedule", color: "text-green-400",  border: "border-green-500/20"  },
+    { label: "Active Pentests", value: stats.totalPentests,  icon: faShieldHalved,  href: "/app/pentests", color: "text-yellow-400", border: "border-yellow-500/20" },
+  ];
 
   return (
     <DashboardLayout>
-      <Suspense fallback={null}>
-        <PurchaseParamHandler openPurchaseModal={openPurchaseModal} />
-      </Suspense>
-      <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-          <p className="text-gray-400">Manage your pentests and credits</p>
-        </div>
-
-        {/* Credits Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Web App Credits Card */}
-          <div className="bg-gradient-to-br from-[#0a141f] to-[#0a141f]/80 border border-[#4590e2]/30 rounded-xl p-6 shadow-lg">
-            <div className="flex items-start justify-between mb-4">
-              <div className="p-3 rounded-lg bg-[#4590e2]/20 border border-[#4590e2]/40">
-                <FontAwesomeIcon icon={faGlobe} className="text-2xl text-[#4590e2]" />
-              </div>
-              <button
-                onClick={() => openPurchaseModal('web_app')}
-                className="buy-credits-btn flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#4590e2]/10 hover:bg-[#4590e2]/25 border border-[#4590e2]/50 hover:border-[#4590e2] transition-colors cursor-pointer"
-                title="Purchase Web App credits"
-              >
-                <span className="text-sm font-semibold text-[#4590e2]">Buy Credits</span>
-                <FontAwesomeIcon icon={faPlus} className="text-[#4590e2] text-xs" />
-              </button>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm mb-1">Web App Credits</p>
-              <p className="text-5xl font-bold text-white mb-2">{credits.web_app}</p>
-              <p className="text-xs text-gray-500">$500 per credit</p>
-            </div>
+      <div className="p-6 lg:p-8 space-y-8 max-w-5xl mx-auto">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">
+              Welcome back, <span className="text-[#4590e2]">{userName}</span>
+            </h1>
+            <p className="text-[#7a9bb5] mt-1 text-sm">Here&apos;s an overview of your pentest activity.</p>
           </div>
-
-          {/* External IP Credits Card */}
-          <div className="bg-gradient-to-br from-[#0a141f] to-[#0a141f]/80 border border-[#4590e2]/30 rounded-xl p-6 shadow-lg">
-            <div className="flex items-start justify-between mb-4">
-              <div className="p-3 rounded-lg bg-[#4590e2]/20 border border-[#4590e2]/40">
-                <FontAwesomeIcon icon={faServer} className="text-2xl text-[#4590e2]" />
-              </div>
-              <button
-                onClick={() => openPurchaseModal('external_ip')}
-                className="buy-credits-btn flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#4590e2]/10 hover:bg-[#4590e2]/25 border border-[#4590e2]/50 hover:border-[#4590e2] transition-colors cursor-pointer"
-                title="Purchase External IP credits"
-              >
-                <span className="text-sm font-semibold text-[#4590e2]">Buy Credits</span>
-                <FontAwesomeIcon icon={faPlus} className="text-[#4590e2] text-xs" />
-              </button>
-            </div>
-            <div>
-              <p className="text-gray-400 text-sm mb-1">External IP Credits</p>
-              <p className="text-5xl font-bold text-white mb-2">{credits.external_ip}</p>
-              <p className="text-xs text-gray-500">$199 per credit</p>
-            </div>
-          </div>
-
-          {/* Start Pentest CTA Card */}
-          <Link 
-            href="/app/new-pentest"
-            className="bg-gradient-to-br from-[#4590e2] to-[#3a7bc8] border border-[#4590e2] rounded-xl p-6 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex flex-col items-center justify-center text-center group"
+          <Link
+            href="/app/schedule"
+            className="flex items-center gap-2 px-4 py-2 bg-[#4590e2] hover:bg-[#3a7bc8] text-white text-sm font-semibold rounded-lg transition-colors"
           >
-            <div className="p-4 rounded-full bg-white/10 mb-3 group-hover:bg-white/20 transition-colors">
-              <FontAwesomeIcon icon={faShieldHalved} className="text-4xl text-white" />
-            </div>
-            <p className="text-white font-bold text-xl mb-1">Start New Pentest</p>
-            <p className="text-white/80 text-sm">Configure and launch</p>
+            <FontAwesomeIcon icon={faPlus} className="w-3 h-3" />
+            Schedule Test
           </Link>
         </div>
 
-        {/* No credits banner */}
-        {credits.web_app === 0 && credits.external_ip === 0 && (
-          <div className="bg-gradient-to-r from-[#4590e2]/10 to-[#4590e2]/5 border border-[#4590e2]/30 rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-lg bg-[#4590e2]/20 border border-[#4590e2]/40">
-                <FontAwesomeIcon icon={faShieldHalved} className="text-2xl text-[#4590e2]" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-xl text-white mb-2">
-                  Purchase Credits to Get Started
-                </h3>
-                <p className="text-gray-300 mb-4">
-                  Choose between Web Application pentests ($500) or External IP pentests ($199). 
-                  Our Anthropic Claude agentic systems conduct comprehensive security assessments delivered within 24-48 hours.
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => openPurchaseModal('web_app')}
-                    className="px-6 py-3 bg-[#4590e2] hover:bg-[#3a7bc8] text-white font-semibold rounded-lg transition-colors"
-                  >
-                    Buy Web App Credits
-                  </button>
-                  <button
-                    onClick={() => openPurchaseModal('external_ip')}
-                    className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-colors"
-                  >
-                    Buy External IP Credits
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Recent Pentests */}
-        {recentScans.length > 0 && (
-          <div className="bg-gradient-to-br from-[#0a141f] to-[#0a141f]/80 border border-white/10 rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Recent Pentests</h2>
-              <Link
-                href="/app/pentests"
-                className="text-[#4590e2] hover:text-[#3a7bc8] text-sm font-semibold transition-colors"
-              >
-                View All →
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {recentScans.map((scan: any) => (
-                <div
-                  key={scan.scanId}
-                  className="p-4 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 hover:border-[#4590e2]/30 transition-all"
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {loading
+            ? [...Array(4)].map((_, i) => (
+                <div key={i} className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-5 animate-pulse h-24" />
+              ))
+            : statCards.map((s) => (
+                <Link
+                  key={s.label}
+                  href={s.href}
+                  className={`bg-[#0d1e30] border ${s.border} rounded-xl p-5 hover:opacity-90 transition-opacity group`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="px-3 py-1 bg-[#4590e2] text-white text-xs font-semibold rounded-full uppercase">
-                          {scan.type}
-                        </span>
-                        <span className="font-semibold text-white">
-                          {scan.target}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-400">
-                        {scan.status === "completed"
-                          ? "✓ Completed"
-                          : scan.status === "in_progress"
-                            ? "⏳ Running..."
-                            : scan.status === "failed"
-                              ? "✗ Failed"
-                              : "⏸ Queued"}
-                      </p>
+                  <div className="flex items-center justify-between mb-3">
+                    <FontAwesomeIcon icon={s.icon} className={`w-4 h-4 ${s.color}`} />
+                    <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3 text-[#7a9bb5] group-hover:text-white transition-colors" />
+                  </div>
+                  <div className="text-2xl font-bold text-white">{s.value}</div>
+                  <div className="text-xs text-[#7a9bb5] mt-1">{s.label}</div>
+                </Link>
+              ))}
+        </div>
+
+        <div className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#4590e2]/15">
+            <h2 className="text-sm font-semibold text-white">Upcoming &amp; Recent Tests</h2>
+            <Link href="/app/schedule" className="text-xs text-[#4590e2] hover:underline">View all</Link>
+          </div>
+          {loading ? (
+            <div className="p-6 space-y-3">
+              {[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-[#0a141f] rounded animate-pulse" />)}
+            </div>
+          ) : recent.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+              <FontAwesomeIcon icon={faCalendarCheck} className="w-8 h-8 text-[#4590e2]/20 mb-3" />
+              <p className="text-[#7a9bb5] text-sm">No tests scheduled yet.</p>
+              <Link href="/app/schedule" className="mt-3 text-xs text-[#4590e2] hover:underline">Schedule your first test &rarr;</Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-[#4590e2]/10">
+              {recent.map((t) => (
+                <div key={t.id} className="flex items-center justify-between px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <FontAwesomeIcon icon={faClock} className="w-3.5 h-3.5 text-[#7a9bb5]" />
+                    <div>
+                      <p className="text-sm font-medium text-white">{t.targetGroupName || "Unnamed Group"}</p>
+                      <p className="text-xs text-[#7a9bb5]">{t.clientName || "—"} · {t.testType}</p>
                     </div>
-                    <Link
-                      href={`/app/pentests#${scan.scanId}`}
-                      className="px-4 py-2 bg-[#4590e2]/20 hover:bg-[#4590e2]/30 text-[#4590e2] font-semibold rounded-lg border border-[#4590e2]/30 transition-colors text-sm"
-                    >
-                      View
-                    </Link>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-[#7a9bb5] hidden sm:block">
+                      {t.scheduledDate ? new Date(t.scheduledDate).toLocaleDateString() : "—"}
+                    </span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full border capitalize ${STATUS_COLORS[t.status] || STATUS_COLORS.pending}`}>
+                      {t.status}
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {recentScans.length === 0 && (
-          <div className="bg-gradient-to-br from-[#0a141f] to-[#0a141f]/80 border border-white/10 rounded-xl p-12 text-center">
-            <div className="max-w-md mx-auto">
-              <div className="p-4 rounded-full bg-white/5 inline-flex mb-4">
-                <FontAwesomeIcon icon={faShieldHalved} className="text-5xl text-gray-500" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">No Pentests Yet</h3>
-              <p className="text-gray-400 mb-6">
-                Start your first AI-powered penetration test to identify vulnerabilities in your infrastructure.
-              </p>
-              <Link
-                href="/app/new-pentest"
-                className="inline-block px-8 py-3 bg-[#4590e2] hover:bg-[#3a7bc8] text-white font-semibold rounded-lg transition-colors"
-              >
-                Launch First Pentest
-              </Link>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Purchase Modal */}
-      {showPurchaseModal && selectedPentestType && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0a141f] border border-[#4590e2]/30 rounded-xl p-8 max-w-lg w-full shadow-2xl">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-3xl font-bold text-white mb-2">Purchase Credits</h2>
-                <p className="text-gray-400">
-                  {selectedPentestType === 'web_app' ? 'Web Application Pentest' : 'External IP Pentest'}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowPurchaseModal(false)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <FontAwesomeIcon icon={faXmark} className="text-gray-400 hover:text-white text-xl" />
-              </button>
-            </div>
-
-            {/* Pentest Type Info */}
-            <div className="bg-white/5 border border-[#4590e2]/20 rounded-lg p-6 mb-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 rounded-lg bg-[#4590e2]/20 border border-[#4590e2]/40">
-                  <FontAwesomeIcon 
-                    icon={selectedPentestType === 'web_app' ? faGlobe : faServer} 
-                    className="text-2xl text-[#4590e2]" 
-                  />
-                </div>
-                <div>
-                  <p className="text-white font-bold text-xl">
-                    ${selectedPentestType === 'web_app' ? '500' : '199'} per credit
-                  </p>
-                  <p className="text-gray-400 text-sm">
-                    {selectedPentestType === 'web_app' 
-                      ? 'Up to 3 roles, 10 endpoints' 
-                      : 'Gateways & firewalls'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Features */}
-              <div className="space-y-2">
-                <p className="text-xs text-gray-400 font-semibold uppercase mb-2">Includes:</p>
-                <ul className="space-y-2 text-sm text-gray-300">
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#4590e2] mt-0.5">✓</span>
-                    <span>Autonomous AI penetration testing</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#4590e2] mt-0.5">✓</span>
-                    <span>Powered by Anthropic Claude</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#4590e2] mt-0.5">✓</span>
-                    <span>Results within 24-48 hours</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#4590e2] mt-0.5">✓</span>
-                    <span>Detailed vulnerability report</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Quantity Selector */}
-            <div className="bg-white/5 border border-[#4590e2]/20 rounded-lg p-6 mb-6">
-              <label className="block text-center mb-4">
-                <span className="text-lg font-semibold text-white">Number of Credits</span>
-              </label>
-              <div className="flex items-center justify-center gap-4">
-                <button
-                  onClick={() => setPurchaseQuantity(Math.max(1, purchaseQuantity - 1))}
-                  className="px-5 py-3 bg-white/10 hover:bg-white/20 rounded-lg font-bold text-2xl transition-colors text-white border border-white/20"
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  min="1"
-                  max="50"
-                  value={purchaseQuantity}
-                  onChange={(e) => setPurchaseQuantity(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-                  className="w-28 px-4 py-3 bg-white/10 border border-[#4590e2]/40 rounded-lg text-center text-3xl font-bold focus:outline-none focus:border-[#4590e2] text-white"
-                />
-                <button
-                  onClick={() => setPurchaseQuantity(Math.min(50, purchaseQuantity + 1))}
-                  className="px-5 py-3 bg-white/10 hover:bg-white/20 rounded-lg font-bold text-2xl transition-colors text-white border border-white/20"
-                >
-                  +
-                </button>
-              </div>
-              <p className="text-center mt-6 text-xl text-gray-300">
-                Total: <span className="text-[#4590e2] font-bold text-4xl">
-                  ${((selectedPentestType === 'web_app' ? 500 : 199) * purchaseQuantity).toLocaleString()}
-                </span>
-              </p>
-            </div>
-
-            {/* Checkout Button */}
-            <button
-              onClick={() => handlePurchaseCredits(selectedPentestType, purchaseQuantity)}
-              disabled={loadingCheckout}
-              className="w-full py-4 bg-[#4590e2] hover:bg-[#3a7bc8] text-white font-bold rounded-lg text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-            >
-              {loadingCheckout ? 'Processing...' : `Proceed to Checkout`}
-            </button>
-          </div>
+          )}
         </div>
-      )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[
+            { href: "/app/targets",  icon: faLayerGroup,    color: "text-[#4590e2]",  bg: "bg-[#4590e2]/10 border-[#4590e2]/20",   title: "Manage Target Groups", sub: "Define client environments and assets" },
+            { href: "/app/schedule", icon: faCalendarCheck, color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20",  title: "Schedule a Pentest",    sub: "Pick a target group and set a date"    },
+          ].map((a) => (
+            <Link
+              key={a.href}
+              href={a.href}
+              className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-5 hover:border-[#4590e2]/35 transition-colors group flex items-center gap-4"
+            >
+              <div className={`w-10 h-10 rounded-lg border flex items-center justify-center ${a.bg}`}>
+                <FontAwesomeIcon icon={a.icon} className={`w-4 h-4 ${a.color}`} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white group-hover:text-[#4590e2] transition-colors">{a.title}</p>
+                <p className="text-xs text-[#7a9bb5] mt-0.5">{a.sub}</p>
+              </div>
+              <FontAwesomeIcon icon={faChevronRight} className="w-3 h-3 text-[#7a9bb5] ml-auto group-hover:text-[#4590e2] transition-colors" />
+            </Link>
+          ))}
+        </div>
+      </div>
     </DashboardLayout>
   );
 }

@@ -13,10 +13,11 @@ import {
   faSignOutAlt,
   faCog,
   faChevronUp,
-  faUser,
-  faShieldHalved,
   faPlus,
   faList,
+  faBullseye,
+  faCalendarAlt,
+  faUserShield,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/lib/context/AuthContext";
 import signout from "@/lib/firebase/signout";
@@ -29,6 +30,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -44,6 +46,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       router.push("/login");
     });
   };
+
+  // Check admin status
+  useEffect(() => {
+    if (!currentUser) return;
+    (async () => {
+      try {
+        const resp = await fetch(`/api/auth/isAdmin?uid=${currentUser.uid}`);
+        const data = await resp.json();
+        setIsAdmin(data.isAdmin === true);
+      } catch {
+        setIsAdmin(false);
+      }
+    })();
+  }, [currentUser]);
 
   // Close account menu on outside click
   useEffect(() => {
@@ -61,9 +77,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = [
     { href: "/app/dashboard", label: "Dashboard", icon: faHome },
-    { href: "/app/pentests", label: "Recent Tests", icon: faList },
+    { href: "/app/targets", label: "Target Groups", icon: faBullseye },
+    { href: "/app/schedule", label: "Schedule Tests", icon: faCalendarAlt },
+    { href: "/app/pentests", label: "Test History", icon: faList },
     { href: "/app/new-pentest", label: "Request a Pentest", icon: faRocket },
-    { href: "/app/manual-pentest", label: "Request a Manual Pentest", icon: faUser },
+  ];
+
+  const adminNavItems = [
+    { href: "/admin", label: "Admin Overview", icon: faUserShield },
+    { href: "/admin/users", label: "Manage Users", icon: faUserShield },
+    { href: "/admin/pentests", label: "All Pentests", icon: faList },
+    { href: "/admin/requests", label: "Pentest Requests", icon: faRocket },
   ];
 
   const bottomItems = [
@@ -107,7 +131,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-1">
+        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -126,6 +150,33 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </Link>
             );
           })}
+
+          {/* Admin section */}
+          {isAdmin && (
+            <div className="pt-4">
+              <div className="px-4 pb-2 text-xs font-semibold uppercase tracking-widest text-[#4590e2]/60">
+                Admin
+              </div>
+              {adminNavItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive
+                        ? "bg-[#4590e2]/20 text-[#4590e2] font-semibold border border-[#4590e2]/30"
+                        : "text-gray-300 hover:bg-white/5 hover:text-white"
+                    }`}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </nav>
 
         {/* Bottom section */}

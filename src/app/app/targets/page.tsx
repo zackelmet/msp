@@ -1,503 +1,146 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+export const dynamic = "force-dynamic";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faPlus,
-  faBullseye,
-  faLink,
-  faTag,
-  faEdit,
-  faTrash,
+  faLayerGroup, faPlus, faTrash, faPencil, faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
-import { doc, updateDoc } from "firebase/firestore";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { useAuth } from "@/lib/context/AuthContext";
-import { useUserData } from "@/lib/hooks/useUserData";
-import { db } from "@/lib/firebase/firebaseClient";
-import { SavedTarget } from "@/lib/types/user";
 
-const TARGET_TYPES: SavedTarget["type"][] = ["ip", "domain", "url", "group"];
-
-const EMPTY_FORM = {
-  name: "",
-  addresses: "", // Will be split on newlines
-  type: "ip" as SavedTarget["type"],
-  tags: "",
+const ENV_META: Record<string, { label: string; color: string }> = {
+  web:     { label: "Web App",  color: "text-blue-400 bg-blue-400/10 border-blue-400/25"      },
+  network: { label: "Network",  color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/25" },
+  cloud:   { label: "Cloud",    color: "text-purple-400 bg-purple-400/10 border-purple-400/25" },
+  mobile:  { label: "Mobile",   color: "text-green-400 bg-green-400/10 border-green-400/25"   },
+  mixed:   { label: "Mixed",    color: "text-orange-400 bg-orange-400/10 border-orange-400/25" },
 };
 
 export default function TargetsPage() {
-  const { userData: _userData, loading } = useUserData();
-  const userData = _userData as any;
-  const { currentUser } = useAuth();
-  const [formState, setFormState] = useState(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
+  const router = useRouter();
+  const [groups, setGroups] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [token, setToken] = useState("");
 
-  const savedTargets: any[] = useMemo(() => userData?.savedTargets ?? [], [userData]);
-  const [editingTarget, setEditingTarget] = useState<SavedTarget | null>(null);
-  const [editLoading, setEditLoading] = useState(false);
-  const [editError, setEditError] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({
-    name: "",
-    addresses: "", // String representation for textarea
-    type: "ip" as SavedTarget["type"],
-    tags: "",
-  });
+  useEffect(() => {
+    (async () => {
+      const { getAuth, onAuthStateChanged } = await import("firebase/auth");
+      const firebase_app = (await import("@/lib/firebase/firebaseClient")).default;
+      const auth = getAuth(firebase_app);
 
-  const handleInputChange = (field: keyof typeof EMPTY_FORM, value: string) => {
-    setFormState((prev) => ({ ...prev, [field]: value }));
-    if (feedback) {
-      setFeedback(null);
-    }
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!currentUser) {
-      setFeedback({
-        type: "error",
-        message: "You must be signed in to save targets.",
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) { router.replace("/login"); return; }
+        const t = await user.getIdToken();
+        setToken(t);
+        const res = await fetch("/api/target-groups", { headers: { Authorization: `Bearer ${t}` } });
+        const data = await res.json();
+        setGroups(data.groups || []);
+        setLoading(false);
       });
-      return;
-    }
+    })();
+  }, [router]);
 
-    const addressLines = formState.addresses
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-
-    if (addressLines.length === 0) {
-      setFeedback({
-        type: "error",
-        message: "Please provide at least one IP, URL, or domain.",
-      });
-      return;
-    }
-
-    setSaving(true);
-
-    const parsedTags = formState.tags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-
-    // Determine type based on count and user selection
-    const targetType = addressLines.length > 1 ? "group" : formState.type;
-    const displayName =
-      formState.name.trim() ||
-      (addressLines.length === 1
-        ? addressLines[0]
-        : `${addressLines.length} targets`);
-
-    const newTarget: SavedTarget = {
-      id: crypto.randomUUID
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random()}`,
-      name: displayName,
-      addresses: addressLines,
-      type: targetType,
-      tags: parsedTags,
-    };
-
-    try {
-      const userRef = doc(db, "users", currentUser.uid);
-      const updatedTargets = [...savedTargets, newTarget];
-      await updateDoc(userRef, {
-        savedTargets: updatedTargets,
-      });
-      setFormState(EMPTY_FORM);
-      setFeedback({
-        type: "success",
-        message: `Target${addressLines.length > 1 ? " group" : ""} saved to your profile.`,
-      });
-    } catch (error) {
-      console.error("Failed to save target", error);
-      setFeedback({
-        type: "error",
-        message: "We couldn’t save that target. Please try again.",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const startEditing = (target: SavedTarget) => {
-    if (feedback) {
-      setFeedback(null);
-    }
-    setEditingTarget(target);
-    setEditForm({
-      name: target.name,
-      addresses: target.addresses.join("\n"),
-      type: target.type,
-      tags: (target.tags ?? []).join(", "),
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this target group?")) return;
+    setDeleting(id);
+    await fetch(`/api/target-groups/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
     });
-    setEditError(null);
+    setGroups((prev) => prev.filter((g) => g.id !== id));
+    setDeleting(null);
   };
-
-  const cancelEditing = () => {
-    setEditingTarget(null);
-    setEditError(null);
-  };
-
-  const handleEditSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!editingTarget || !currentUser) return;
-
-    const addressLines = editForm.addresses
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-
-    if (addressLines.length === 0) {
-      setEditError("At least one address is required.");
-      return;
-    }
-
-    setEditLoading(true);
-    setEditError(null);
-
-    const parsedTags = editForm.tags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-
-    const targetType = addressLines.length > 1 ? "group" : editForm.type;
-    const displayName =
-      editForm.name.trim() ||
-      (addressLines.length === 1
-        ? addressLines[0]
-        : `${addressLines.length} targets`);
-
-    const updatedTargets = savedTargets.map((target) =>
-      target.id === editingTarget.id
-        ? {
-            ...target,
-            name: displayName,
-            addresses: addressLines,
-            type: targetType,
-            tags: parsedTags,
-          }
-        : target,
-    );
-
-    try {
-      const userRef = doc(db, "users", currentUser.uid);
-      await updateDoc(userRef, { savedTargets: updatedTargets });
-      setEditingTarget(null);
-      setFeedback({ type: "success", message: "Target updated." });
-    } catch (error) {
-      console.error("Failed to update target", error);
-      setEditError("We couldn’t save those changes. Try again.");
-    } finally {
-      setEditLoading(false);
-    }
-  };
-
-  const handleDelete = async (targetId: string) => {
-    if (!currentUser) return;
-    const confirm = window.confirm("Delete this target from your profile?");
-    if (!confirm) return;
-    try {
-      const userRef = doc(db, "users", currentUser.uid);
-      const remaining = savedTargets.filter((target) => target.id !== targetId);
-      await updateDoc(userRef, { savedTargets: remaining });
-      if (editingTarget?.id === targetId) {
-        setEditingTarget(null);
-      }
-      setFeedback({ type: "success", message: "Target deleted." });
-    } catch (error) {
-      console.error("Failed to delete target", error);
-      setFeedback({ type: "error", message: "Could not delete that target." });
-    }
-  };
-
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 lg:p-8 max-w-full">
-          <p className="text-gray-500">Loading your saved targets…</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 space-y-6 max-w-full">
-        <div className="flex flex-col gap-3">
+      <div className="p-6 lg:p-8 space-y-6 max-w-5xl mx-auto">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-[#0A1128]">Targets</h1>
-            <p className="text-gray-600 mt-1">
-              Save IPs, URLs, and domains so you can replay them whenever you
-              scan.
-            </p>
+            <h1 className="text-2xl font-bold text-white">Target Groups</h1>
+            <p className="text-[#7a9bb5] text-sm mt-1">Define client environments and the assets within them.</p>
           </div>
-          <form
-            className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4"
-            onSubmit={handleSubmit}
+          <Link
+            href="/app/targets/new"
+            className="flex items-center gap-2 px-4 py-2 bg-[#4590e2] hover:bg-[#3a7bc8] text-white text-sm font-semibold rounded-lg transition-colors"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label className="flex flex-col">
-                <span className="text-sm font-semibold text-gray-700">
-                  Target name
-                </span>
-                <input
-                  type="text"
-                  value={formState.name}
-                  onChange={(event) =>
-                    handleInputChange("name", event.target.value)
-                  }
-                  placeholder="Example: Internal API Gateway"
-                  className="mt-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0A1128]"
-                />
-              </label>
-              <label className="flex flex-col md:col-span-2">
-                <span className="text-sm font-semibold text-gray-700">
-                  Addresses (one per line)
-                </span>
-                <textarea
-                  value={formState.addresses}
-                  onChange={(event) =>
-                    handleInputChange("addresses", event.target.value)
-                  }
-                  required
-                  placeholder="192.168.1.1&#10;example.com&#10;https://test.com"
-                  rows={4}
-                  className="mt-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0A1128] font-mono text-sm"
-                />
-                <span className="text-xs text-gray-500 mt-1">
-                  Enter one address per line. Multiple addresses will create a
-                  target group.
-                </span>
-              </label>
-            </div>
-            <div>
-              <label className="flex flex-col">
-                <span className="text-sm font-semibold text-gray-700">
-                  Tags (comma separated)
-                </span>
-                <input
-                  type="text"
-                  value={formState.tags}
-                  onChange={(event) =>
-                    handleInputChange("tags", event.target.value)
-                  }
-                  placeholder="production, api"
-                  className="mt-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0A1128]"
-                />
-              </label>
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <button
-                type="submit"
-                disabled={saving || !currentUser || !formState.addresses.trim()}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#00FED9] text-[#0A1128] font-semibold rounded-lg hover:bg-[#00D4B8] transition-colors disabled:bg-gray-300 disabled:text-gray-500"
-              >
-                <FontAwesomeIcon icon={faPlus} />
-                {saving ? "Saving target…" : "Save target"}
-              </button>
-              <span className="text-xs text-gray-500">
-                Targets are saved securely under your user profile.
-              </span>
-            </div>
-            {feedback && (
-              <p
-                className={`text-sm ${feedback.type === "error" ? "text-red-600" : "text-green-600"}`}
-              >
-                {feedback.message}
-              </p>
-            )}
-          </form>
+            <FontAwesomeIcon icon={faPlus} className="w-3 h-3" />
+            New Group
+          </Link>
         </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-xl font-semibold text-[#0A1128]">
-                Saved targets
-              </h2>
-              <p className="text-gray-600 text-sm">
-                Keep favorite infrastructure handy for any scan.
-              </p>
-            </div>
+        {loading ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-5 animate-pulse h-36" />
+            ))}
           </div>
-          {savedTargets.length === 0 ? (
-            <p className="text-gray-500">
-              No saved targets yet. Add one to get started.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {savedTargets.map((target) => (
+        ) : groups.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <FontAwesomeIcon icon={faLayerGroup} className="w-10 h-10 text-[#4590e2]/20 mb-4" />
+            <p className="text-white font-semibold">No target groups yet</p>
+            <p className="text-[#7a9bb5] text-sm mt-1">Create your first group to start scheduling pentests.</p>
+            <Link
+              href="/app/targets/new"
+              className="mt-4 px-4 py-2 bg-[#4590e2] hover:bg-[#3a7bc8] text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              Create Target Group
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {groups.map((g) => {
+              const env = ENV_META[g.envType] || ENV_META.mixed;
+              return (
                 <div
-                  key={target.id}
-                  className="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                  key={g.id}
+                  className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-5 hover:border-[#4590e2]/35 transition-colors flex flex-col gap-4"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-2 rounded-lg bg-blue-50 border border-blue-200 text-[#0A1128]">
-                      <FontAwesomeIcon icon={faBullseye} />
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-white font-semibold text-sm">{g.name}</p>
+                      <p className="text-[#7a9bb5] text-xs mt-0.5">{g.clientName || "No client"}</p>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        className="p-2 text-gray-400 hover:text-[#0A1128] transition-colors"
-                        onClick={() => startEditing(target)}
-                        aria-label={`Edit ${target.name}`}
-                      >
-                        <FontAwesomeIcon icon={faEdit} />
-                      </button>
-                      <button
-                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                        onClick={() => handleDelete(target.id)}
-                        aria-label={`Delete ${target.name}`}
-                      >
-                        <FontAwesomeIcon icon={faTrash} />
-                      </button>
-                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full border ${env.color}`}>
+                      {env.label}
+                    </span>
                   </div>
-                  <h3 className="font-semibold text-lg text-[#0A1128] mb-1">
-                    {target.name}
-                  </h3>
-                  {target.addresses.length === 1 ? (
-                    <p className="text-gray-600 text-sm font-mono mb-2">
-                      {target.addresses[0]}
-                    </p>
-                  ) : (
-                    <div className="text-gray-600 text-sm mb-2">
-                      <p className="font-semibold text-[#0A1128] mb-1">
-                        {target.addresses.length} addresses
-                      </p>
-                      <div className="max-h-20 overflow-y-auto font-mono text-xs space-y-0.5">
-                        {(target.addresses as string[]).map((addr, idx) => (
-                          <div key={idx} className="text-gray-500">
-                            {addr}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <p className="text-xs uppercase tracking-[0.2em] text-[#0A1128] font-semibold mb-3">
-                    {target.type}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {((target.tags ?? []) as string[]).map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                  <div className="text-xs text-[#7a9bb5]">
+                    <span className="text-white font-medium">{g.assetCount ?? 0}</span>{" "}
+                    asset{(g.assetCount ?? 0) !== 1 ? "s" : ""}
+                    {g.notes && <p className="mt-1 truncate opacity-70">{g.notes}</p>}
+                  </div>
+                  <div className="flex items-center gap-3 mt-auto pt-2 border-t border-[#4590e2]/10">
+                    <Link
+                      href={`/app/targets/${g.id}`}
+                      className="flex items-center gap-1 text-xs text-[#4590e2] hover:underline"
+                    >
+                      <FontAwesomeIcon icon={faPencil} className="w-2.5 h-2.5" />
+                      Edit
+                    </Link>
+                    <Link
+                      href={`/app/schedule?targetGroupId=${g.id}`}
+                      className="flex items-center gap-1 text-xs text-purple-400 hover:underline"
+                    >
+                      Schedule
+                      <FontAwesomeIcon icon={faChevronRight} className="w-2.5 h-2.5" />
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(g.id)}
+                      disabled={deleting === g.id}
+                      className="ml-auto text-xs text-red-400/50 hover:text-red-400 transition-colors disabled:opacity-40"
+                    >
+                      <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-          {editingTarget && (
-            <form
-              className="mt-6 bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4"
-              onSubmit={handleEditSubmit}
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#0A1128]">
-                  Edit target
-                </h3>
-                <button
-                  type="button"
-                  onClick={cancelEditing}
-                  className="text-sm text-gray-500 hover:text-gray-700"
-                >
-                  Cancel
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className="flex flex-col">
-                  <span className="text-sm font-semibold text-gray-700">
-                    Target name
-                  </span>
-                  <input
-                    type="text"
-                    value={editForm.name}
-                    onChange={(event) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        name: event.target.value,
-                      }))
-                    }
-                    placeholder="Friendly name"
-                    className="mt-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0A1128]"
-                  />
-                </label>
-                <label className="flex flex-col md:col-span-2">
-                  <span className="text-sm font-semibold text-gray-700">
-                    Addresses (one per line)
-                  </span>
-                  <textarea
-                    value={editForm.addresses}
-                    onChange={(event) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        addresses: event.target.value,
-                      }))
-                    }
-                    required
-                    rows={4}
-                    className="mt-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0A1128] font-mono text-sm"
-                  />
-                </label>
-              </div>
-              <div>
-                <label className="flex flex-col">
-                  <span className="text-sm font-semibold text-gray-700">
-                    Tags (comma separated)
-                  </span>
-                  <input
-                    type="text"
-                    value={editForm.tags}
-                    onChange={(event) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        tags: event.target.value,
-                      }))
-                    }
-                    placeholder="production, api"
-                    className="mt-2 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0A1128]"
-                  />
-                </label>
-              </div>
-              {editError && <p className="text-sm text-red-600">{editError}</p>}
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="submit"
-                  disabled={editLoading}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#00FED9] text-[#0A1128] font-semibold rounded-lg hover:bg-[#00D4B8] transition-colors disabled:opacity-50"
-                >
-                  {editLoading ? "Saving…" : "Save changes"}
-                </button>
-                <button
-                  type="button"
-                  onClick={cancelEditing}
-                  className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm hover:border-[#0A1128]"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-          <h3 className="font-semibold text-[#0A1128] mb-2">
-            💡 About saved targets
-          </h3>
-          <p className="text-gray-600 text-sm">
-            Saved targets are persisted directly on your user record so you can
-            reference them across scans and devices.
-          </p>
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

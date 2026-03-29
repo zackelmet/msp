@@ -76,3 +76,19 @@ initializeAdmin();
 export const adminDb = admin.firestore();
 export const adminAuth = admin.auth();
 export const adminStorage = admin.storage();
+
+/**
+ * Verifies the Bearer token in the Authorization header and returns the UID,
+ * or null if invalid / missing.
+ */
+export async function verifyAuthToken(req: Request): Promise<string | null> {
+  try {
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) return null;
+    const token = authHeader.split("Bearer ")[1];
+    const decoded = await adminAuth.verifyIdToken(token);
+    return decoded.uid;
+  } catch {
+    return null;
+  }
+}
