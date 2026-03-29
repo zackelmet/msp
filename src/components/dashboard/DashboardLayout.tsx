@@ -104,6 +104,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               MSP Pentesting
             </span>
           </a>
+        </div>
+
+        {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
