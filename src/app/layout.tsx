@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Chakra_Petch } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 // ClientProviders and Navbar were temporarily disabled during prerender
 // diagnostics; restore them now.
@@ -52,6 +53,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={chakraPetch.variable}>
+      <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-P3XCP2XNNX"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-P3XCP2XNNX');
+          `}
+        </Script>
+      </head>
       {/* Change your theme HERE */}
       <body data-theme="cupcake">
         <ClientProviders>
