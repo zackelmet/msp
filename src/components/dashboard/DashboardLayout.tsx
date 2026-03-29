@@ -89,7 +89,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         {/* Logo */}
         <div className="p-6 border-b border-[#4590e2]">
-          <Link href="https://msppentesting.com" className="flex items-center gap-3">
+          <a href="https://dashboard.msppentesting.com" className="flex items-center gap-3">
             <Image
               src="/msp pentesting logo (1) (3) (1).png"
               alt="MSP Pentesting"
@@ -103,10 +103,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               MSP Pentesting
             </span>
-          </Link>
-        </div>
-
-        {/* Navigation */}
+          </a>
         <nav className="flex-1 px-4 py-6 space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
@@ -218,7 +215,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
           </button>
-          <Link href="https://msppentesting.com" className="flex items-center gap-2">
+          <a href="https://dashboard.msppentesting.com" className="flex items-center gap-2">
             <Image
               src="/msp pentesting logo (1) (3) (1).png"
               alt="MSP Pentesting"
@@ -232,7 +229,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               MSP Pentesting
             </span>
-          </Link>
+          </a>
           <div className="w-10" /> {/* Spacer for centering */}
         </header>
 
