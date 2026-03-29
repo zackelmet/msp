@@ -3,6 +3,7 @@ import {
   getAuth,
   signInWithPopup,
   GoogleAuthProvider,
+  OAuthProvider,
   UserCredential,
 } from "firebase/auth";
 import firebase_app from "./firebaseClient";
@@ -25,7 +26,7 @@ interface SignInResult {
 export enum SignInMethod {
   EmailPassword = "email_password",
   Google = "google",
-  // Add other methods as needed (e.g., Facebook, Twitter, etc.)
+  Microsoft = "microsoft",
 }
 
 /**
@@ -92,6 +93,17 @@ export async function signIn(
       case SignInMethod.Google:
         const googleProvider = new GoogleAuthProvider();
         userCredential = await signInWithPopup(auth, googleProvider);
+
+        // Always call signupCallback — the endpoint is idempotent (no-op if doc exists)
+        if (options?.signupCallback) {
+          await options.signupCallback(userCredential);
+        }
+        break;
+
+      case SignInMethod.Microsoft:
+        const microsoftProvider = new OAuthProvider("microsoft.com");
+        microsoftProvider.setCustomParameters({ prompt: "select_account" });
+        userCredential = await signInWithPopup(auth, microsoftProvider);
 
         // Always call signupCallback — the endpoint is idempotent (no-op if doc exists)
         if (options?.signupCallback) {
