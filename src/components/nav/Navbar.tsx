@@ -34,18 +34,28 @@ export default function Navbar() {
           {!isLoadingAuth && !currentUser && (
             <Link
               href="/login"
-              className="px-4 py-2 text-sm font-semibold bg-[#4590e2] hover:bg-[#3a7bc8] text-white rounded-lg transition"
+              className="relative px-5 py-2 text-sm font-bold text-white overflow-hidden group"
+              style={{ fontFamily: "var(--font-chakra-petch)" }}
             >
-              Sign In
+              <span className="absolute inset-0 border border-[#4590e2]/60 group-hover:border-[#4590e2] transition-colors rounded" />
+              <span className="absolute inset-0 bg-[#4590e2]/15 group-hover:bg-[#4590e2]/25 transition-colors rounded" />
+              <span className="absolute top-0 right-0 w-2 h-2 bg-[#0a141f] rotate-45 translate-x-1 -translate-y-1" />
+              <span className="absolute bottom-0 left-0 w-2 h-2 bg-[#0a141f] rotate-45 -translate-x-1 translate-y-1" />
+              <span className="relative z-10">Sign In</span>
             </Link>
           )}
 
           {!isLoadingAuth && currentUser && (
             <Link
               href="/app/dashboard"
-              className="px-4 py-2 text-sm font-semibold bg-[#4590e2] hover:bg-[#3a7bc8] text-white rounded-lg transition"
+              className="relative px-5 py-2 text-sm font-bold text-white overflow-hidden group"
+              style={{ fontFamily: "var(--font-chakra-petch)" }}
             >
-              Dashboard
+              <span className="absolute inset-0 border border-[#4590e2]/60 group-hover:border-[#4590e2] transition-colors rounded" />
+              <span className="absolute inset-0 bg-[#4590e2]/15 group-hover:bg-[#4590e2]/25 transition-colors rounded" />
+              <span className="absolute top-0 right-0 w-2 h-2 bg-[#0a141f] rotate-45 translate-x-1 -translate-y-1" />
+              <span className="absolute bottom-0 left-0 w-2 h-2 bg-[#0a141f] rotate-45 -translate-x-1 translate-y-1" />
+              <span className="relative z-10">Dashboard</span>
             </Link>
           )}
         </div>
