@@ -14,13 +14,15 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 interface PricingTier {
   id: string;
   name: string;
-  price: number;
+  price?: number;
+  priceText?: string;
   priceId: string;
   description: string;
   features: string[];
   popular?: boolean;
   type: 'one-time' | 'subscription';
   cta: string;
+  quoteOnly?: boolean;
 }
 
 const AI_PENTEST_TIERS: PricingTier[] = [
@@ -66,44 +68,55 @@ const AI_PENTEST_TIERS: PricingTier[] = [
 
 const MANUAL_PENTEST_TIERS: PricingTier[] = [
   {
-    id: 'manual_basic',
-    name: 'Basic Manual Pentest',
-    price: 2000,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_MANUAL_BASIC || '',
-    description: 'Professional manual testing by certified experts',
+    id: 'external_ip_1_50',
+    name: 'External IP Manual Pentest (1-50)',
+    price: 3600,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_EXTERNAL_IP_1_50 || '',
+    description: 'Manual testing by CEH and OSCP professionals for up to 50 external IPs',
     type: 'one-time',
-    cta: 'Request Service',
+    cta: 'Buy 1-50 Package',
     features: [
-      'Certified pentesting team',
-      'Up to 3 targets/applications',
-      'OWASP Top 10 coverage',
-      '40 hours of testing',
-      'Executive summary report',
-      'Detailed technical findings',
+      '1-50 external IPs in scope',
+      'CEH-certified ethical hackers',
+      'OSCP professionals',
+      'Executive summary + technical findings',
       'Remediation recommendations',
-      '2 weeks engagement timeline',
+      'Dedicated scoping confirmation before kickoff',
     ],
   },
   {
-    id: 'manual_advanced',
-    name: 'Advanced Manual Pentest',
-    price: 5000,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_MANUAL_ADVANCED || '',
-    description: 'Comprehensive testing for complex infrastructure',
+    id: 'external_ip_51_100',
+    name: 'External IP Manual Pentest (51-100)',
+    price: 4500,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_EXTERNAL_IP_51_100 || '',
+    description: 'Expanded external attack-surface testing for 51-100 IPs',
     type: 'one-time',
-    cta: 'Request Service',
+    cta: 'Buy 51-100 Package',
     popular: true,
     features: [
-      'Senior pentesting specialists',
-      'Unlimited targets',
-      'Full-scope testing (web, network, API, mobile)',
-      '120 hours of testing',
-      'Executive and board-level reports',
-      'Detailed technical documentation',
-      'Remediation support and retesting',
-      'Compliance mapping (PCI-DSS, SOC2)',
-      '4-6 weeks engagement timeline',
-      'Dedicated project manager',
+      '51-100 external IPs in scope',
+      'CEH-certified ethical hackers',
+      'OSCP professionals',
+      'Executive summary + technical findings',
+      'Remediation recommendations',
+      'Dedicated scoping confirmation before kickoff',
+    ],
+  },
+  {
+    id: 'external_ip_101_plus_base',
+    name: 'External IP Manual Pentest (101+)',
+    priceText: 'Custom Quote',
+    priceId: '',
+    description: 'Large environments require custom scoping and quote-based pricing',
+    type: 'one-time',
+    cta: 'Get Custom Quote',
+    quoteOnly: true,
+    features: [
+      '101+ external IPs',
+      'Custom engagement plan',
+      'CEH-certified ethical hackers',
+      'OSCP professionals',
+      'Tailored reporting and remediation roadmap',
     ],
   },
 ];
@@ -127,9 +140,8 @@ export default function PricingPage() {
       return;
     }
 
-    // For manual pentests, redirect to request form instead of immediate checkout
-    if (tier.id.startsWith('manual_')) {
-      router.push(`/app/request-pentest?tier=${tier.id}`);
+    if (tier.quoteOnly || !tier.priceId) {
+      router.push('/app/manual-pentest');
       return;
     }
 
@@ -140,6 +152,8 @@ export default function PricingPage() {
       const pentestTypeMap: Record<string, string> = {
         'ai_single': 'external_ip',
         'ai_monthly': 'subscription',
+        'external_ip_1_50': 'manual_external_ip',
+        'external_ip_51_100': 'manual_external_ip',
       };
       const pentestType = pentestTypeMap[tier.id] || null;
 
@@ -192,7 +206,7 @@ export default function PricingPage() {
         <p className="text-gray-600 text-sm mb-4">{tier.description}</p>
         <div className="flex items-baseline">
           <span className="text-5xl font-extrabold text-gray-900">
-            ${tier.price.toLocaleString()}
+            {tier.priceText || `$${(tier.price || 0).toLocaleString()}`}
           </span>
           {tier.type === 'subscription' && (
             <span className="ml-2 text-gray-600">/month</span>
@@ -269,10 +283,10 @@ export default function PricingPage() {
               Manual Penetration Testing
             </h2>
             <p className="text-gray-600">
-              Expert-led security assessments by certified professionals
+              External IP manual assessments by CEH-certified ethical hackers and OSCP professionals
             </p>
           </div>
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {MANUAL_PENTEST_TIERS.map(renderTierCard)}
           </div>
         </div>

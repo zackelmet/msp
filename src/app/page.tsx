@@ -238,7 +238,7 @@ export default function Home() {
 
           <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
             Submit pentest requests, monitor progress in real time, and download
-            your reports — all in one place.
+            your reports — all in one place, with manual pentests led by CEH and OSCP professionals.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
@@ -257,6 +257,13 @@ export default function Home() {
                   <span className="absolute bottom-0 left-0 w-3 h-3 bg-[#0a141f] rotate-45 -translate-x-1.5 translate-y-1.5" />
                   <span className="relative z-10">Log In to Your Portal</span>
                 </Link>
+                <a
+                  href="/pricing"
+                  className="px-10 py-4 bg-[#4590e2]/10 hover:bg-[#4590e2]/20 border border-[#4590e2]/35 hover:border-[#4590e2]/60 text-white font-semibold transition-colors text-lg"
+                  style={{ fontFamily: "var(--font-chakra-petch)" }}
+                >
+                  View Pricing
+                </a>
                 <a
                   href="https://msppentesting.com"
                   target="_blank"
@@ -294,6 +301,59 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── PRICING PREVIEW ────────────────────────────────────────────────── */}
+      <section className="py-14 border-y border-[#4590e2]/15 bg-[#0d1e30]/40">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="bg-[#0d1e30] border border-[#4590e2]/20 rounded-xl p-6 lg:p-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div>
+                <p className="text-[#4590e2] text-xs font-semibold uppercase tracking-[0.2em] mb-2">
+                  External IP Manual Pentests
+                </p>
+                <h3 className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-chakra-petch)" }}>
+                  Transparent pricing with quote-only scaling
+                </h3>
+                <p className="text-[#7a9bb5] text-sm mt-2 max-w-2xl">
+                  Manual pentests are performed by certified ethical hackers (CEH) and OSCP professionals.
+                </p>
+              </div>
+              <Link
+                href="/pricing"
+                className="shrink-0 inline-flex items-center justify-center px-6 py-3 bg-[#4590e2] hover:bg-[#3a7bc8] text-white font-semibold rounded-lg transition-colors"
+              >
+                View Full Pricing
+              </Link>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4 mt-6">
+              {[
+                {
+                  tier: "1–50 External IPs",
+                  price: "$3,600",
+                  sub: "One-time engagement",
+                },
+                {
+                  tier: "51–100 External IPs",
+                  price: "$4,500",
+                  sub: "One-time engagement",
+                },
+                {
+                  tier: "101+ External IPs",
+                  price: "Custom Quote",
+                  sub: "Scope with our team",
+                },
+              ].map((item) => (
+                <div key={item.tier} className="bg-[#0a141f] border border-[#4590e2]/15 rounded-lg p-4">
+                  <p className="text-xs text-[#7a9bb5] uppercase tracking-wide">{item.tier}</p>
+                  <p className="text-2xl font-bold text-white mt-1">{item.price}</p>
+                  <p className="text-xs text-[#7a9bb5] mt-1">{item.sub}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS ────────────────────────────────────────────────────── */}
       <section className="py-24 relative">
         {/* subtle hex grid */}
@@ -314,7 +374,7 @@ export default function Home() {
             >
               How it works
             </h2>
-            <p className="text-gray-400 text-lg">Three steps from request to report</p>
+            <p className="text-gray-400 text-lg">Three steps from request to report — including manual testing by CEH and OSCP professionals.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-0">
@@ -329,7 +389,7 @@ export default function Home() {
                 step: "02",
                 icon: "🛡️",
                 title: "We Test",
-                desc: "Our team conducts your penetration test — AI-automated or manually by OSCP-certified experts.",
+                desc: "Our team conducts your penetration test — AI-automated or manually by CEH-certified ethical hackers and OSCP professionals.",
               },
               {
                 step: "03",
@@ -408,7 +468,10 @@ export default function Home() {
             >
               msppentesting.com
             </a>{" "}
-            to learn about our services and get a quote.
+            to learn about our services, view pricing, and get a quote.
+          </p>
+          <p className="text-[#7a9bb5] text-sm">
+            Manual pentests are performed by certified ethical hackers (CEH) and OSCP professionals.
           </p>
           <a
             href="https://msppentesting.com"

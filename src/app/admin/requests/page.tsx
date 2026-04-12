@@ -9,7 +9,7 @@ interface PentestRequest {
   id: string;
   userId: string;
   userEmail: string;
-  tier: 'manual_basic' | 'manual_advanced';
+  tier: 'manual_basic' | 'manual_advanced' | 'external_ip_1_50' | 'external_ip_51_100' | 'external_ip_101_plus_base' | string;
   status: string;
   contactName: string;
   companyName: string;
@@ -45,10 +45,15 @@ const STATUS_COLORS = {
   rejected: 'bg-red-100 text-red-800',
 };
 
-const TIER_NAMES = {
-  manual_basic: 'Basic Manual Pentest',
-  manual_advanced: 'Advanced Manual Pentest',
+const TIER_NAMES: Record<string, string> = {
+  manual_basic: 'Legacy: Basic Manual Pentest',
+  manual_advanced: 'Legacy: Advanced Manual Pentest',
+  external_ip_1_50: 'External IP Manual Pentest (1-50)',
+  external_ip_51_100: 'External IP Manual Pentest (51-100)',
+  external_ip_101_plus_base: 'External IP Manual Pentest (101+ Quote)',
 };
+
+const getTierLabel = (tier: string) => TIER_NAMES[tier] || tier.replaceAll('_', ' ');
 
 export default function AdminRequestsPage() {
   const { currentUser: user } = useAuth();
@@ -182,15 +187,18 @@ export default function AdminRequestsPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tier</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Package</label>
             <select
               value={filters.tier}
               onChange={(e) => setFilters({ ...filters, tier: e.target.value })}
               className="px-4 py-2 border border-gray-300 rounded-lg"
             >
-              <option value="all">All Tiers</option>
-              <option value="manual_basic">Basic</option>
-              <option value="manual_advanced">Advanced</option>
+              <option value="all">All Packages</option>
+              <option value="external_ip_1_50">External IP (1-50)</option>
+              <option value="external_ip_51_100">External IP (51-100)</option>
+              <option value="external_ip_101_plus_base">External IP (101+ Quote)</option>
+              <option value="manual_basic">Legacy: Basic</option>
+              <option value="manual_advanced">Legacy: Advanced</option>
             </select>
           </div>
         </div>
@@ -207,7 +215,7 @@ export default function AdminRequestsPage() {
                   Contact
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Tier
+                  Package
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Status
@@ -242,7 +250,7 @@ export default function AdminRequestsPage() {
                       <div className="text-sm text-gray-500">{request.userEmail}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {TIER_NAMES[request.tier]}
+                      {getTierLabel(request.tier)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
@@ -282,7 +290,7 @@ export default function AdminRequestsPage() {
                   <h2 className="text-2xl font-bold text-gray-900">
                     {selectedRequest.companyName}
                   </h2>
-                  <p className="text-gray-600">{TIER_NAMES[selectedRequest.tier]}</p>
+                  <p className="text-gray-600">{getTierLabel(selectedRequest.tier)}</p>
                 </div>
                 <button
                   onClick={() => setSelectedRequest(null)}

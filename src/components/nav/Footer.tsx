@@ -64,7 +64,7 @@ export default function Footer() {
             <Link href="/blog" className="hover:text-[var(--primary)] transition px-4">
               Blog
             </Link>
-            <Link href="/#pricing" className="hover:text-[var(--primary)] transition px-4">
+            <Link href="/pricing" className="hover:text-[var(--primary)] transition px-4">
               Pricing
             </Link>
             <Link href="/trust-safety" className="hover:text-[var(--primary)] transition px-4">
