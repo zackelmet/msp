@@ -7,11 +7,18 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   try {
-    const { priceId, userId, email, productType, mode, quantity, metadata } = await request.json();
+    const { priceId, manualPackageId, userId, email, productType, mode, quantity, metadata } = await request.json();
 
-    if (!priceId || !email) {
+    const manualPackagePriceMap: Record<string, string | undefined> = {
+      external_ip_1_50: process.env.NEXT_PUBLIC_STRIPE_PRICE_EXTERNAL_IP_1_50,
+      external_ip_51_100: process.env.NEXT_PUBLIC_STRIPE_PRICE_EXTERNAL_IP_51_100,
+    };
+
+    const resolvedPriceId = priceId || (manualPackageId ? manualPackagePriceMap[manualPackageId] : undefined);
+
+    if (!resolvedPriceId || !email) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields or package is not configured' },
         { status: 400 }
       );
     }
@@ -21,7 +28,7 @@ export async function POST(request: NextRequest) {
       payment_method_types: ['card'],
       line_items: [
         {
-          price: priceId,
+          price: resolvedPriceId,
           quantity: quantity || 1,
         },
       ],
@@ -32,6 +39,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         userId: userId || '',
         productType: productType || 'one-time',
+        manualPackageId: manualPackageId || '',
         ...(metadata || {}),
       },
       allow_promotion_codes: true,

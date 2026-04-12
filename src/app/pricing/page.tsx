@@ -16,7 +16,7 @@ interface PricingTier {
   name: string;
   price?: number;
   priceText?: string;
-  priceId: string;
+  priceId?: string;
   description: string;
   features: string[];
   popular?: boolean;
@@ -24,47 +24,6 @@ interface PricingTier {
   cta: string;
   quoteOnly?: boolean;
 }
-
-const AI_PENTEST_TIERS: PricingTier[] = [
-  {
-    id: 'ai_single',
-    name: 'Single AI Pentest',
-    price: 199,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AI_SINGLE || '',
-    description: 'One-time AI-driven automated penetration test',
-    type: 'one-time',
-    cta: 'Purchase Scan',
-    features: [
-      'AI-powered vulnerability scanning',
-      'Nmap network discovery',
-      'OpenVAS vulnerability assessment',
-      'OWASP ZAP web application testing',
-      'Automated findings report',
-      'Up to 5 targets per scan',
-      'Export results (PDF/JSON)',
-    ],
-  },
-  {
-    id: 'ai_monthly',
-    name: 'Unlimited AI Pentests',
-    price: 499,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AI_MONTHLY || '',
-    description: 'Unlimited AI-driven pentests, run anytime',
-    type: 'subscription',
-    cta: 'Subscribe Now',
-    popular: true,
-    features: [
-      'Unlimited AI-powered scans',
-      'Priority scan queue',
-      'Advanced scan configurations',
-      'Automated scheduling',
-      'Historical trend analysis',
-      'Unlimited targets',
-      'API access',
-      'Email alerts',
-    ],
-  },
-];
 
 const MANUAL_PENTEST_TIERS: PricingTier[] = [
   {
@@ -106,7 +65,6 @@ const MANUAL_PENTEST_TIERS: PricingTier[] = [
     id: 'external_ip_101_plus_base',
     name: 'External IP Manual Pentest (101+)',
     priceText: 'Custom Quote',
-    priceId: '',
     description: 'Large environments require custom scoping and quote-based pricing',
     type: 'one-time',
     cta: 'Get Custom Quote',
@@ -140,7 +98,7 @@ export default function PricingPage() {
       return;
     }
 
-    if (tier.quoteOnly || !tier.priceId) {
+    if (tier.quoteOnly) {
       router.push('/app/manual-pentest');
       return;
     }
@@ -148,24 +106,18 @@ export default function PricingPage() {
     setLoading(tier.id);
 
     try {
-      // Map tier IDs to pentest credit types for the webhook
-      const pentestTypeMap: Record<string, string> = {
-        'ai_single': 'external_ip',
-        'ai_monthly': 'subscription',
-        'external_ip_1_50': 'manual_external_ip',
-        'external_ip_51_100': 'manual_external_ip',
-      };
-      const pentestType = pentestTypeMap[tier.id] || null;
-
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          priceId: tier.priceId,
           userId: user.uid,
           email: user.email,
           productType: tier.type,
-          metadata: pentestType ? { pentestType } : {},
+          manualPackageId: tier.id,
+          metadata: {
+            pentestType: 'manual_external_ip',
+            manualTier: tier.id,
+          },
         }),
       });
 
@@ -253,27 +205,11 @@ export default function PricingPage() {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-extrabold text-white mb-4">
-            Pricing Plans
+            Manual Pentest Pricing
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Choose the right penetration testing solution for your needs.
-            From AI-driven automated scans to comprehensive manual testing.
+            External IP manual testing packages delivered by CEH-certified ethical hackers and OSCP professionals.
           </p>
-        </div>
-
-        {/* AI Pentests Section */}
-        <div className="mb-20">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              AI-Driven Automated Pentests
-            </h2>
-            <p className="text-gray-600">
-              Lightning-fast vulnerability scanning powered by AI
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {AI_PENTEST_TIERS.map(renderTierCard)}
-          </div>
         </div>
 
         {/* Manual Pentests Section */}
