@@ -11,7 +11,8 @@ async function isAdminUid(uid: string | undefined): Promise<boolean> {
 }
 
 // PATCH /api/admin/update-credits
-// Body: { targetUid: string, credits: { web_app?: number, ... } }
+// Body: { targetUid: string, externalIp1To50Credits?: number, externalIp51To100Credits?: number }
+// Legacy support: { targetUid: string, credits: { web_app?: number, external_ip?: number } }
 export async function PATCH(req: NextRequest) {
   const uid = cookies().get("uid")?.value;
   if (!(await isAdminUid(uid))) {
@@ -19,22 +20,69 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { targetUid, credits } = body;
+  const {
+    targetUid,
+    credits,
+    externalIp1To50Credits,
+    externalIp51To100Credits,
+    level1Credits,
+    level2Credits,
+  } = body;
 
-  if (!targetUid || !credits || typeof credits !== "object") {
-    return NextResponse.json({ error: "targetUid and credits object are required" }, { status: 400 });
+  if (!targetUid) {
+    return NextResponse.json(
+      { error: "targetUid is required" },
+      { status: 400 },
+    );
   }
 
-  const update: Record<string, number> = {};
-  for (const [key, val] of Object.entries(credits)) {
-    if (typeof val === "number") {
-      update[`credits.${key}`] = val;
+  const update: Record<string, number | string> = {};
+  const now = new Date().toISOString();
+
+  if (typeof externalIp1To50Credits === "number") {
+    update.externalIp1To50Credits = externalIp1To50Credits;
+  }
+
+  if (typeof externalIp51To100Credits === "number") {
+    update.externalIp51To100Credits = externalIp51To100Credits;
+  }
+
+  if (typeof level1Credits === "number") {
+    update.externalIp1To50Credits = level1Credits;
+  }
+
+  if (typeof level2Credits === "number") {
+    update.externalIp51To100Credits = level2Credits;
+  }
+
+  if (credits && typeof credits === "object") {
+    if (typeof credits.web_app === "number") {
+      update.externalIp1To50Credits = credits.web_app;
+    } else if (typeof credits.level1 === "number") {
+      update.externalIp1To50Credits = credits.level1;
+    }
+
+    if (typeof credits.external_ip === "number") {
+      update.externalIp51To100Credits = credits.external_ip;
+    } else if (typeof credits.level2 === "number") {
+      update.externalIp51To100Credits = credits.level2;
     }
   }
 
-  if (Object.keys(update).length === 0) {
-    return NextResponse.json({ error: "No valid credit fields provided" }, { status: 400 });
+  if (
+    typeof update.externalIp1To50Credits !== "number" &&
+    typeof update.externalIp51To100Credits !== "number"
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          "Provide externalIp1To50Credits and/or externalIp51To100Credits (or legacy credits map keys)",
+      },
+      { status: 400 },
+    );
   }
+
+  update.updatedAt = now;
 
   await adminDb.collection("users").doc(targetUid).update(update);
   return NextResponse.json({ success: true });

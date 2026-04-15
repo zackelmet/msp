@@ -1,15 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/lib/context/AuthContext';
-import { loadStripe } from '@stripe/stripe-js';
-import toast from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/lib/context/AuthContext";
+import { loadStripe } from "@stripe/stripe-js";
+import toast from "react-hot-toast";
 
 // Tell Next.js this page should be dynamically rendered
-export const runtime = 'edge'; // This prevents static generation
+export const runtime = "edge"; // This prevents static generation
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+);
 
 interface PricingTier {
   id: string;
@@ -20,61 +22,66 @@ interface PricingTier {
   description: string;
   features: string[];
   popular?: boolean;
-  type: 'one-time' | 'subscription';
+  type: "one-time" | "subscription";
   cta: string;
   quoteOnly?: boolean;
 }
 
 const MANUAL_PENTEST_TIERS: PricingTier[] = [
   {
-    id: 'external_ip_1_50',
-    name: 'External IP Manual Pentest (1-50)',
+    id: "external_ip_1_50",
+    name: "External IP Manual Pentest (1-50)",
     price: 3600,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_EXTERNAL_IP_1_50 || '',
-    description: 'Manual testing by CEH and OSCP professionals for up to 50 external IPs',
-    type: 'one-time',
-    cta: 'Buy 1-50 Package',
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_EXTERNAL_IP_1_50 || "",
+    description:
+      "Manual testing by CEH and OSCP professionals for up to 50 external IPs",
+    type: "one-time",
+    cta: "Buy 1-50 Package",
     features: [
-      '1-50 external IPs in scope',
-      'CEH-certified ethical hackers',
-      'OSCP professionals',
-      'Executive summary + technical findings',
-      'Remediation recommendations',
-      'Dedicated scoping confirmation before kickoff',
+      "1-50 external IPs in scope",
+      "CEH-certified ethical hackers",
+      "OSCP professionals",
+      "Executive summary + technical findings",
+      "Final report delivered within 5 business days after test completion",
+      "Remediation recommendations",
+      "Dedicated scoping confirmation before kickoff",
     ],
   },
   {
-    id: 'external_ip_51_100',
-    name: 'External IP Manual Pentest (51-100)',
+    id: "external_ip_51_100",
+    name: "External IP Manual Pentest (51-100)",
     price: 4500,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_EXTERNAL_IP_51_100 || '',
-    description: 'Expanded external attack-surface testing for 51-100 IPs',
-    type: 'one-time',
-    cta: 'Buy 51-100 Package',
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_EXTERNAL_IP_51_100 || "",
+    description: "Expanded external attack-surface testing for 51-100 IPs",
+    type: "one-time",
+    cta: "Buy 51-100 Package",
     popular: true,
     features: [
-      '51-100 external IPs in scope',
-      'CEH-certified ethical hackers',
-      'OSCP professionals',
-      'Executive summary + technical findings',
-      'Remediation recommendations',
-      'Dedicated scoping confirmation before kickoff',
+      "51-100 external IPs in scope",
+      "CEH-certified ethical hackers",
+      "OSCP professionals",
+      "Executive summary + technical findings",
+      "Final report delivered within 5 business days after test completion",
+      "Remediation recommendations",
+      "Dedicated scoping confirmation before kickoff",
     ],
   },
   {
-    id: 'external_ip_101_plus_base',
-    name: 'External IP Manual Pentest (101+)',
-    priceText: 'Custom Quote',
-    description: 'Large environments require custom scoping and quote-based pricing',
-    type: 'one-time',
-    cta: 'Get Custom Quote',
+    id: "external_ip_101_plus_base",
+    name: "External IP Manual Pentest (101+)",
+    priceText: "Custom Quote",
+    description:
+      "Large environments require custom scoping and quote-based pricing",
+    type: "one-time",
+    cta: "Get Custom Quote",
     quoteOnly: true,
     features: [
-      '101+ external IPs',
-      'Custom engagement plan',
-      'CEH-certified ethical hackers',
-      'OSCP professionals',
-      'Tailored reporting and remediation roadmap',
+      "101+ external IPs",
+      "Custom engagement plan",
+      "CEH-certified ethical hackers",
+      "OSCP professionals",
+      "Final report delivered within 5 business days after test completion",
+      "Tailored reporting and remediation roadmap",
     ],
   },
 ];
@@ -87,35 +94,35 @@ export default function PricingPage() {
 
   useEffect(() => {
     // Check for canceled checkout
-    if (searchParams.get('canceled')) {
-      toast.error('Checkout canceled');
+    if (searchParams.get("canceled")) {
+      toast.error("Checkout canceled");
     }
   }, [searchParams]);
 
   const handleCheckout = async (tier: PricingTier) => {
     if (!user) {
-      router.push('/login?redirect=/pricing');
+      router.push("/login?redirect=/pricing");
       return;
     }
 
     if (tier.quoteOnly) {
-      router.push('/app/manual-pentest');
+      router.push("/app/manual-pentest");
       return;
     }
 
     setLoading(tier.id);
 
     try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.uid,
           email: user.email,
           productType: tier.type,
           manualPackageId: tier.id,
           metadata: {
-            pentestType: 'manual_external_ip',
+            pentestType: "manual_external_ip",
             manualTier: tier.id,
           },
         }),
@@ -124,7 +131,7 @@ export default function PricingPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
+        throw new Error(data.error || "Failed to create checkout session");
       }
 
       // Redirect to Stripe Checkout
@@ -132,8 +139,8 @@ export default function PricingPage() {
         window.location.href = data.url;
       }
     } catch (error: any) {
-      console.error('Checkout error:', error);
-      toast.error(error.message || 'Failed to start checkout');
+      console.error("Checkout error:", error);
+      toast.error(error.message || "Failed to start checkout");
       setLoading(null);
     }
   };
@@ -143,8 +150,8 @@ export default function PricingPage() {
       key={tier.id}
       className={`relative rounded-lg border ${
         tier.popular
-          ? 'border-blue-500 shadow-xl scale-105'
-          : 'border-gray-200 shadow-lg'
+          ? "border-blue-500 shadow-xl scale-105"
+          : "border-gray-200 shadow-lg"
       } bg-white p-8 flex flex-col`}
     >
       {tier.popular && (
@@ -160,7 +167,7 @@ export default function PricingPage() {
           <span className="text-5xl font-extrabold text-gray-900">
             {tier.priceText || `$${(tier.price || 0).toLocaleString()}`}
           </span>
-          {tier.type === 'subscription' && (
+          {tier.type === "subscription" && (
             <span className="ml-2 text-gray-600">/month</span>
           )}
         </div>
@@ -190,11 +197,11 @@ export default function PricingPage() {
         disabled={loading === tier.id}
         className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
           tier.popular
-            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-            : 'bg-gray-800 hover:bg-gray-900 text-white'
+            ? "bg-blue-600 hover:bg-blue-700 text-white"
+            : "bg-gray-800 hover:bg-gray-900 text-white"
         } disabled:opacity-50 disabled:cursor-not-allowed`}
       >
-        {loading === tier.id ? 'Loading...' : tier.cta}
+        {loading === tier.id ? "Loading..." : tier.cta}
       </button>
     </div>
   );
@@ -208,7 +215,8 @@ export default function PricingPage() {
             Manual Pentest Pricing
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            External IP manual testing packages delivered by CEH-certified ethical hackers and OSCP professionals.
+            External IP manual testing packages delivered by CEH-certified
+            ethical hackers and OSCP professionals.
           </p>
         </div>
 
@@ -219,7 +227,12 @@ export default function PricingPage() {
               Manual Penetration Testing
             </h2>
             <p className="text-gray-600">
-              External IP manual assessments by CEH-certified ethical hackers and OSCP professionals
+              External IP manual assessments by CEH-certified ethical hackers
+              and OSCP professionals
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              SLA: final report delivered within 5 business days after test
+              completion.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -238,9 +251,10 @@ export default function PricingPage() {
                 What&apos;s the difference between AI and manual pentests?
               </h3>
               <p className="text-gray-600">
-                AI pentests use automated scanning tools to quickly identify common vulnerabilities.
-                Manual pentests involve human experts who perform deep analysis, test business logic,
-                and find complex security issues that automated tools might miss.
+                AI pentests use automated scanning tools to quickly identify
+                common vulnerabilities. Manual pentests involve human experts
+                who perform deep analysis, test business logic, and find complex
+                security issues that automated tools might miss.
               </p>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
@@ -248,8 +262,9 @@ export default function PricingPage() {
                 How long does a manual pentest take?
               </h3>
               <p className="text-gray-600">
-                Basic engagements typically take 2 weeks, while advanced pentests require 4-6 weeks
-                depending on scope and complexity. We&apos;ll provide a detailed timeline during consultation.
+                Basic engagements typically take 2 weeks, while advanced
+                pentests require 4-6 weeks depending on scope and complexity.
+                We&apos;ll provide a detailed timeline during consultation.
               </p>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
@@ -257,8 +272,9 @@ export default function PricingPage() {
                 Can I cancel my AI pentest subscription?
               </h3>
               <p className="text-gray-600">
-                Yes, you can cancel your subscription anytime from your account dashboard.
-                You&apos;ll retain access until the end of your current billing period.
+                Yes, you can cancel your subscription anytime from your account
+                dashboard. You&apos;ll retain access until the end of your
+                current billing period.
               </p>
             </div>
           </div>

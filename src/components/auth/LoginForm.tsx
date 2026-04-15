@@ -23,7 +23,7 @@ export default function AuthForm() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get('returnUrl') || '/app/dashboard';
+  const returnUrl = searchParams.get("returnUrl") || "/app/dashboard";
 
   const handleGoogleAuth = async () => {
     try {
@@ -32,7 +32,7 @@ export default function AuthForm() {
       const { user, error } = await signIn(SignInMethod.Google, {
         signupCallback: async (userCredential: any) => {
           // When a new user signs up, call the signup endpoint
-          await fetch("/api/users/signup", {
+          await fetch("/api/users/bootstrap", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -62,7 +62,7 @@ export default function AuthForm() {
       const { signIn, SignInMethod } = signInModule as any;
       const { user, error } = await signIn(SignInMethod.Microsoft, {
         signupCallback: async (userCredential: any) => {
-          await fetch("/api/users/signup", {
+          await fetch("/api/users/bootstrap", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -97,7 +97,7 @@ export default function AuthForm() {
         },
         signupCallback: async (userCredential: any) => {
           // When a new user signs up, call the signup endpoint
-          await fetch("/api/users/signup", {
+          await fetch("/api/users/bootstrap", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -135,7 +135,7 @@ export default function AuthForm() {
         password,
         async (userCredential: any) => {
           // Ensure a Firestore user document is created for newly registered users
-          await fetch("/api/users/signup", {
+          await fetch("/api/users/bootstrap", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -183,9 +183,7 @@ export default function AuthForm() {
   const HEX_SVG_URI = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='104' viewBox='0 0 120 104'%3E%3Cpolygon points='60,2 112,29 112,75 60,102 8,75 8,29' fill='none' stroke='%234590e2' stroke-width='0.8' opacity='0.22'/%3E%3C/svg%3E")`;
 
   return (
-    <div
-      className="relative min-h-screen bg-[#0a141f] text-white overflow-hidden flex items-center justify-center px-6 py-16"
-    >
+    <div className="relative min-h-screen bg-[#0a141f] text-white overflow-hidden flex items-center justify-center px-6 py-16">
       {/* Hex grid tile background */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -200,7 +198,6 @@ export default function AuthForm() {
 
       <div className="relative w-full max-w-6xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-12 items-center">
-
           {/* Left: copy */}
           <div className="flex-1 space-y-5 text-center lg:text-left">
             <div
@@ -213,7 +210,9 @@ export default function AuthForm() {
               className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight"
               style={{ fontFamily: "var(--font-chakra-petch)" }}
             >
-              {formMode === FormMode.Login ? "Welcome back." : "Get started today."}
+              {formMode === FormMode.Login
+                ? "Welcome back."
+                : "Get started today."}
             </h1>
             <p className="text-gray-300 text-base lg:text-lg max-w-md">
               {formMode === FormMode.Login
@@ -221,12 +220,25 @@ export default function AuthForm() {
                 : "Create your account and submit your first pentest request in minutes."}
             </p>
             <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
-              {["White-Labeled Reports", "OSCP-Certified Testers", "AI-Powered Testing"].map((tag) => (
+              {[
+                "White-Labeled Reports",
+                "OSCP-Certified Testers",
+                "AI-Powered Testing",
+              ].map((tag) => (
                 <span
                   key={tag}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#4590e2]/10 border border-[#4590e2]/25 text-[#7ab8f5] text-xs font-medium"
                 >
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   {tag}
                 </span>
               ))}
@@ -235,17 +247,19 @@ export default function AuthForm() {
 
           {/* Right: form card */}
           <div className="flex-1 w-full max-w-md">
-            <div
-              className="rounded-2xl bg-[#0d1e30] border border-[#4590e2]/25 shadow-[0_30px_80px_rgba(0,0,0,0.55)] p-7 space-y-6"
-            >
+            <div className="rounded-2xl bg-[#0d1e30] border border-[#4590e2]/25 shadow-[0_30px_80px_rgba(0,0,0,0.55)] p-7 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#4590e2]/70 mb-1"
+                  <p
+                    className="text-xs uppercase tracking-[0.18em] text-[#4590e2]/70 mb-1"
                     style={{ fontFamily: "var(--font-chakra-petch)" }}
                   >
-                    {formMode === FormMode.Login ? "Welcome back" : "Create account"}
+                    {formMode === FormMode.Login
+                      ? "Welcome back"
+                      : "Create account"}
                   </p>
-                  <h2 className="text-2xl font-bold text-white"
+                  <h2
+                    className="text-2xl font-bold text-white"
                     style={{ fontFamily: "var(--font-chakra-petch)" }}
                   >
                     {formMode === FormMode.Login ? "Sign in" : "Sign up"}
@@ -255,16 +269,22 @@ export default function AuthForm() {
                   className="text-sm px-3 py-1.5 border border-[#4590e2]/40 hover:border-[#4590e2] text-[#4590e2] hover:bg-[#4590e2]/10 rounded-lg transition-colors"
                   onClick={() =>
                     setFormMode(
-                      formMode === FormMode.Login ? FormMode.Register : FormMode.Login,
+                      formMode === FormMode.Login
+                        ? FormMode.Register
+                        : FormMode.Login,
                     )
                   }
                 >
-                  {formMode === FormMode.Login ? "New here?" : "Have an account?"}
+                  {formMode === FormMode.Login
+                    ? "New here?"
+                    : "Have an account?"}
                 </button>
               </div>
 
               {error && (
-                <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{error}</div>
+                <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+                  {error}
+                </div>
               )}
 
               <div className="space-y-4">
@@ -277,7 +297,10 @@ export default function AuthForm() {
                     placeholder="you@company.com"
                     className="w-full px-4 py-3 rounded-lg bg-white/5 border border-[#4590e2]/20 text-white placeholder-gray-500 focus:outline-none focus:border-[#4590e2] transition-colors text-sm"
                     value={email}
-                    onChange={(e) => { setEmail(e.target.value); clearErrorOnChange(); }}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      clearErrorOnChange();
+                    }}
                   />
                 </div>
 
@@ -290,7 +313,10 @@ export default function AuthForm() {
                     placeholder="Enter password"
                     className="w-full px-4 py-3 rounded-lg bg-white/5 border border-[#4590e2]/20 text-white placeholder-gray-500 focus:outline-none focus:border-[#4590e2] transition-colors text-sm"
                     value={password}
-                    onChange={(e) => { setPassword(e.target.value); clearErrorOnChange(); }}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      clearErrorOnChange();
+                    }}
                   />
                 </div>
 
@@ -362,7 +388,10 @@ export default function AuthForm() {
                   className="w-full py-3 font-semibold flex items-center justify-center gap-2 border border-[#00a4ef]/30 hover:border-[#00a4ef]/60 bg-[#00a4ef]/5 hover:bg-[#00a4ef]/10 text-white rounded transition-colors text-sm"
                   onClick={handleMicrosoftAuth}
                 >
-                  <FontAwesomeIcon icon={faWindows} className="text-base text-[#00a4ef]" />{" "}
+                  <FontAwesomeIcon
+                    icon={faWindows}
+                    className="text-base text-[#00a4ef]"
+                  />{" "}
                   Continue with Microsoft
                 </button>
               </div>
@@ -374,7 +403,6 @@ export default function AuthForm() {
               </p>
             </div>
           </div>
-
         </div>
       </div>
     </div>

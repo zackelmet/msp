@@ -80,7 +80,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { href: "/app/targets", label: "Target Groups", icon: faBullseye },
     { href: "/app/schedule", label: "Schedule Tests", icon: faCalendarAlt },
     { href: "/app/pentests", label: "Test History", icon: faList },
-    { href: "/app/manual-pentest", label: "Request a Pentest", icon: faRocket },
+    {
+      href: "/app/manual-pentest",
+      label: "Scope a Pentest",
+      icon: faQuestionCircle,
+    },
+    { href: "/app/launch-pentest", label: "Launch Pentest", icon: faRocket },
   ];
 
   const adminNavItems = [
@@ -113,7 +118,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         {/* Logo */}
         <div className="p-6 border-b border-[#4590e2]">
-          <a href="https://dashboard.msppentesting.com" className="flex items-center gap-3">
+          <a
+            href="https://dashboard.msppentesting.com"
+            className="flex items-center gap-3"
+          >
             <Image
               src="/msp pentesting logo (1) (3) (1).png"
               alt="MSP Pentesting"
@@ -269,7 +277,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
           </button>
-          <a href="https://dashboard.msppentesting.com" className="flex items-center gap-2">
+          <a
+            href="https://dashboard.msppentesting.com"
+            className="flex items-center gap-2"
+          >
             <Image
               src="/msp pentesting logo (1) (3) (1).png"
               alt="MSP Pentesting"
@@ -288,7 +299,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+          {children}
+        </main>
       </div>
     </div>
   );
