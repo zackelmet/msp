@@ -25,8 +25,9 @@ Single Cloud Run service that:
 
 1. **Set environment variables:**
 ```bash
-export ANTHROPIC_API_KEY="your-api-key-here"
+export ANTHROPIC_API_KEY="<set-in-secret-manager-or-env>"
 export GCP_PROJECT_ID="msp-ai-pentester"
+
 ```
 
 2. **Deploy to Cloud Run:**
@@ -35,7 +36,7 @@ gcloud run deploy msp-pentest-backend \
   --source . \
   --region us-east1 \
   --allow-unauthenticated \
-  --set-env-vars="GCP_WEBHOOK_SECRET=9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3" \
+  --set-env-vars="GCP_WEBHOOK_SECRET=<set-a-shared-webhook-secret>" \
   --set-env-vars="ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" \
   --set-env-vars="WEBAPP_API_URL=https://msppentesting.vercel.app/api/pentests" \
   --set-env-vars="GCS_BUCKET_NAME=msp-pentest-reports" \
@@ -58,7 +59,7 @@ vercel env add BACKEND_WEBHOOK_URL production
 ```bash
 curl -X POST https://your-service-url.run.app/execute-pentest \
   -H "Content-Type: application/json" \
-  -H "X-Webhook-Secret: 9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3" \
+  -H "X-Webhook-Secret: <set-a-shared-webhook-secret>" \
   -d '{
     "pentestId": "test123",
     "userId": "user_abc",

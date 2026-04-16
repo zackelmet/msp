@@ -17,6 +17,16 @@ if [ -z "$ANTHROPIC_API_KEY" ]; then
     exit 1
 fi
 
+# Check if GCP_WEBHOOK_SECRET is set
+if [ -z "$GCP_WEBHOOK_SECRET" ]; then
+    echo "❌ Error: GCP_WEBHOOK_SECRET environment variable not set"
+    echo ""
+    echo "Please set it first (must match webapp):"
+    echo "  export GCP_WEBHOOK_SECRET='<set-a-shared-webhook-secret>'"
+    echo ""
+    exit 1
+fi
+
 echo "✅ Anthropic API key found"
 echo "📦 Project: msp-ai-pentester"
 echo "🌍 Region: us-east1"
@@ -29,7 +39,7 @@ gcloud run deploy msp-pentest-backend \
   --project msp-ai-pentester \
   --region us-east1 \
   --allow-unauthenticated \
-  --set-env-vars="GCP_WEBHOOK_SECRET=9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3,ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY,WEBAPP_API_URL=https://msppentesting.vercel.app/api/pentests,GCS_BUCKET_NAME=msp-pentest-reports,GCP_PROJECT_ID=msp-ai-pentester" \
+    --set-env-vars="GCP_WEBHOOK_SECRET=$GCP_WEBHOOK_SECRET,ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY,WEBAPP_API_URL=https://msppentesting.vercel.app/api/pentests,GCS_BUCKET_NAME=msp-pentest-reports,GCP_PROJECT_ID=msp-ai-pentester" \
   --timeout=3600 \
   --memory=2Gi \
   --cpu=2

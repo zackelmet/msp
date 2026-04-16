@@ -15,9 +15,9 @@
 
 **Webhook Secret (CRITICAL):**
 ```
-GCP_WEBHOOK_SECRET=9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3
+GCP_WEBHOOK_SECRET=<set-a-shared-webhook-secret>
 ```
-⚠️ **Use this exact value in your backend environment variables to authenticate requests**
+⚠️ **Use the same shared value in both webapp and backend environment variables**
 
 **After Backend Deployment:**
 Update Vercel env var `BACKEND_WEBHOOK_URL` with your Cloud Run URL:
@@ -351,10 +351,10 @@ Response:
 ### Backend (Cloud Run / Cloud Functions)
 ```bash
 # Anthropic API
-ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_API_KEY=<set-in-secret-manager-or-env>
 
 # Webhook Authentication (CRITICAL - must match webapp)
-GCP_WEBHOOK_SECRET=9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3
+GCP_WEBHOOK_SECRET=<set-a-shared-webhook-secret>
 
 # Webapp Callback URL
 WEBAPP_API_URL=https://msppentesting.vercel.app/api/pentests
@@ -376,10 +376,10 @@ FIREBASE_ADMIN_PRIVATE_KEY=...
 BACKEND_WEBHOOK_URL=https://your-backend.run.app/execute-pentest
 
 # Shared webhook secret (already set)
-GCP_WEBHOOK_SECRET=9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3
+GCP_WEBHOOK_SECRET=<set-a-shared-webhook-secret>
 
 # Stripe webhook secret (already set)
-STRIPE_WEBHOOK_SECRET=whsec_eUo8mKBZqO31Rml5Oihq8mtLXb0EUMGB
+STRIPE_WEBHOOK_SECRET=<set-in-vercel-from-stripe-dashboard>
 ```
 
 ---
@@ -522,9 +522,9 @@ def parse_claude_response(response) -> dict:
 - [ ] Get Anthropic API key (ask for budget/account access)
 - [ ] Set up local development environment
 - [ ] Configure environment variables:
-  - `GCP_WEBHOOK_SECRET=9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3`
+  - `GCP_WEBHOOK_SECRET=<set-a-shared-webhook-secret>`
   - `WEBAPP_API_URL=https://msppentesting.vercel.app/api/pentests`
-  - `ANTHROPIC_API_KEY=sk-ant-...`
+  - `ANTHROPIC_API_KEY=<set-in-secret-manager-or-env>`
 
 ### Phase 2: Implementation
 - [ ] Build `POST /execute-pentest` webhook receiver endpoint
@@ -539,7 +539,7 @@ def parse_claude_response(response) -> dict:
 ```bash
 curl -X POST https://your-backend.run.app/execute-pentest \
   -H "Content-Type: application/json" \
-  -H "X-Webhook-Secret: 9e33b83b7ae6aeda980df8152927aba5551ecd5e718b6bd475bde3902ad6ecd3" \
+  -H "X-Webhook-Secret: <set-a-shared-webhook-secret>" \
   -d '{"pentestId":"test123","type":"web_app","targetUrl":"https://test.example.com"}'
 ```
 - [ ] Test Claude integration with sandbox target
