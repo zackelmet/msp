@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUsers,
@@ -13,6 +14,10 @@ import {
   faFilePdf,
   faFileWord,
   faTimes,
+  faShieldHalved,
+  faDollarSign,
+  faInbox,
+  faComments,
 } from "@fortawesome/free-solid-svg-icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -31,6 +36,29 @@ interface PentestItem {
   reportUrl: string | null;
 }
 
+interface Stats {
+  totalUsers: number;
+  totalPentests: number;
+  completedPentests: number;
+  pentestsLast7Days: number;
+  revenue30Days: {
+    cents: number;
+    count: number;
+    averageOrderCents: number;
+    unavailable: boolean;
+  };
+}
+
+interface QueueItem {
+  pentestId: string;
+  userEmail: string;
+  target: string;
+  type: string;
+  status: string;
+  batchName: string | null;
+  createdAt: string | null;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string | null): string {
@@ -43,6 +71,9 @@ function formatDate(iso: string | null): string {
     minute: "2-digit",
   });
 }
+
+const dollars = (cents: number) =>
+  `$${(cents / 100).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 
 const STATUS_STYLES: Record<string, string> = {
   completed: "bg-green-500/20 text-green-300 border-green-500/30",
@@ -89,8 +120,12 @@ function StepIndicator({ step }: { step: number }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
-  const [totalUsers, setTotalUsers] = useState<number | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [queueLoading, setQueueLoading] = useState(true);
+  const [feedback, setFeedback] = useState<any[]>([]);
 
+  // Wizard state
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [suggestions, setSuggestions] = useState<UserSuggestion[]>([]);
@@ -104,12 +139,39 @@ export default function AdminDashboard() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const loadStats = useCallback(() => {
     fetch("/api/admin/stats")
       .then((r) => r.json())
-      .then((d) => setTotalUsers(d.totalUsers ?? null))
+      .then((d) => setStats(d))
       .catch(() => {});
   }, []);
+
+  const loadQueue = useCallback(async () => {
+    setQueueLoading(true);
+    try {
+      const r = await fetch("/api/admin/active-pentests");
+      if (r.ok) setQueue((await r.json()).queue || []);
+    } catch {
+      /* ignore */
+    } finally {
+      setQueueLoading(false);
+    }
+  }, []);
+
+  const loadFeedback = useCallback(async () => {
+    try {
+      const r = await fetch("/api/admin/feedback");
+      if (r.ok) setFeedback((await r.json()).feedback || []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    loadStats();
+    loadQueue();
+    loadFeedback();
+  }, [loadStats, loadQueue, loadFeedback]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -162,6 +224,8 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (!res.ok) { showToast("error", data.error || "Upload failed"); return; }
       setStep(4);
+      loadQueue();
+      loadStats();
     } catch (err: any) {
       showToast("error", err.message || "Upload failed");
     } finally {
@@ -174,8 +238,23 @@ export default function AdminDashboard() {
     setPentests([]); setSelectedPentest(null); setFile(null);
   };
 
+  const statCards = [
+    { label: "Total Users", value: stats ? stats.totalUsers.toLocaleString() : null, icon: faUsers, color: "text-[#4590e2]" },
+    { label: "Total Pentests", value: stats ? stats.totalPentests.toLocaleString() : null, icon: faShieldHalved, color: "text-purple-400" },
+    { label: "Completed", value: stats ? stats.completedPentests.toLocaleString() : null, icon: faCheckCircle, color: "text-green-400" },
+    {
+      label: "Revenue (30d)",
+      value: stats ? (stats.revenue30Days.unavailable ? "n/a" : dollars(stats.revenue30Days.cents)) : null,
+      icon: faDollarSign,
+      color: "text-yellow-400",
+      sub: stats && !stats.revenue30Days.unavailable
+        ? `${stats.revenue30Days.count} orders · ${dollars(stats.revenue30Days.averageOrderCents)} avg`
+        : undefined,
+    },
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto p-6 lg:p-8 space-y-8">
+    <div className="max-w-5xl mx-auto p-6 lg:p-8 space-y-8">
 
       {/* Toast */}
       {toast && (
@@ -192,29 +271,57 @@ export default function AdminDashboard() {
       )}
 
       {/* Header */}
-      <div>
-        <h1 className="text-4xl font-bold text-white mb-1">Admin Portal</h1>
-        <p className="text-gray-400">Manage pentests and upload reports</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold text-white mb-1">Admin Portal</h1>
+          <p className="text-gray-400">Delivery queue, revenue, and report delivery.</p>
+        </div>
+        <Link href="/app/dashboard" className="text-xs text-[#4590e2] hover:underline">← Back to dashboard</Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white/5 border border-white/10 rounded-xl p-5 flex items-center gap-4">
-          <div className="p-3 rounded-lg bg-[#4590e2]/15 border border-[#4590e2]/30">
-            <FontAwesomeIcon icon={faUsers} className="text-[#4590e2] text-xl" />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Total Users</p>
-            <p className="text-2xl font-bold text-white">
-              {totalUsers === null ? (
+      {/* Analytics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((s) => (
+          <div key={s.label} className="bg-white/5 border border-white/10 rounded-xl p-5">
+            <FontAwesomeIcon icon={s.icon} className={`text-lg ${s.color}`} />
+            <p className="text-2xl font-bold text-white mt-3">
+              {s.value === null ? (
                 <FontAwesomeIcon icon={faCircleNotch} className="animate-spin text-gray-400 text-base" />
               ) : (
-                totalUsers.toLocaleString()
+                s.value
               )}
             </p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">{s.label}</p>
+            {s.sub && <p className="text-[10px] text-gray-600 mt-1">{s.sub}</p>}
           </div>
-        </div>
+        ))}
       </div>
+
+      {/* Sub-page nav */}
+      <div className="grid sm:grid-cols-3 gap-4">
+        {[
+          { href: "/admin/users", title: "Manage Users", sub: "View users, adjust credits" },
+          { href: "/admin/pentests", title: "All Pentests", sub: "View & filter every pentest" },
+          { href: "/admin/requests", title: "Pentest Requests", sub: "Review incoming requests" },
+        ].map((a) => (
+          <Link
+            key={a.href}
+            href={a.href}
+            className="bg-white/5 border border-white/10 rounded-xl p-5 hover:border-[#4590e2]/40 transition-colors"
+          >
+            <p className="text-sm font-semibold text-white">{a.title}</p>
+            <p className="text-xs text-gray-500 mt-1">{a.sub}</p>
+          </Link>
+        ))}
+      </div>
+
+      {/* Delivery queue */}
+      <DeliveryQueue
+        queue={queue}
+        loading={queueLoading}
+        onDelivered={() => { loadQueue(); loadStats(); }}
+        onError={(m) => showToast("error", m)}
+      />
 
       <div className="border-t border-white/10" />
 
@@ -388,6 +495,131 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Feedback */}
+      <FeedbackWindow feedback={feedback} />
+    </div>
+  );
+}
+
+// ─── Delivery Queue ───────────────────────────────────────────────────────────
+
+function DeliveryQueue({
+  queue,
+  loading,
+  onDelivered,
+  onError,
+}: {
+  queue: QueueItem[];
+  loading: boolean;
+  onDelivered: () => void;
+  onError: (msg: string) => void;
+}) {
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  const upload = async (pentestId: string, file: File) => {
+    setUploadingId(pentestId);
+    try {
+      const fd = new FormData();
+      fd.append("pentestId", pentestId);
+      fd.append("file", file);
+      const r = await fetch("/api/admin/upload-report", { method: "POST", body: fd });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        throw new Error(d.error || "Upload failed");
+      }
+      onDelivered();
+    } catch (e: any) {
+      onError(e.message || "Upload failed");
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+          <FontAwesomeIcon icon={faInbox} className="text-[#4590e2]" />
+          Delivery Queue
+        </h2>
+        <span className="text-xs text-gray-500">{queue.length} pending</span>
+      </div>
+
+      {loading ? (
+        <div className="px-6 py-10 text-center text-sm text-gray-500">Loading…</div>
+      ) : queue.length === 0 ? (
+        <div className="px-6 py-10 text-center text-sm text-gray-500">Nothing awaiting delivery. 🎉</div>
+      ) : (
+        <div className="divide-y divide-white/5">
+          {queue.map((q) => (
+            <div key={q.pentestId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-3.5">
+              <div className="min-w-0">
+                <p className="text-sm text-white font-mono truncate">{q.target}</p>
+                <p className="text-xs text-gray-500">
+                  {q.userEmail} · {q.type}{q.batchName ? ` · ${q.batchName}` : ""}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <StatusBadge status={q.status} />
+                <label className="cursor-pointer text-xs px-3 py-1.5 border border-[#4590e2]/40 text-[#4590e2] hover:bg-[#4590e2]/10 rounded-lg transition-colors flex items-center gap-1.5">
+                  {uploadingId === q.pentestId ? (
+                    <FontAwesomeIcon icon={faCircleNotch} className="animate-spin" />
+                  ) : (
+                    <FontAwesomeIcon icon={faUpload} />
+                  )}
+                  Upload report
+                  <input
+                    type="file"
+                    accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    className="hidden"
+                    disabled={uploadingId !== null}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) upload(q.pentestId, f);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Feedback ─────────────────────────────────────────────────────────────────
+
+function FeedbackWindow({ feedback }: { feedback: any[] }) {
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+      <div className="px-6 py-4 border-b border-white/10">
+        <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+          <FontAwesomeIcon icon={faComments} className="text-[#4590e2]" />
+          Recent Feedback
+        </h2>
+      </div>
+      {feedback.length === 0 ? (
+        <div className="px-6 py-10 text-center text-sm text-gray-500">No feedback yet.</div>
+      ) : (
+        <div className="divide-y divide-white/5">
+          {feedback.map((f) => (
+            <div key={f.id} className="px-6 py-3.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-[#4590e2]">{f.userEmail}</span>
+                {f.rating != null && (
+                  <span className="text-xs text-yellow-400">
+                    {"★".repeat(Math.max(0, Math.min(5, Number(f.rating))))}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-white mt-1">{f.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
