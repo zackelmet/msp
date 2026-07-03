@@ -9,6 +9,31 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+// Credit buckets the webhook is allowed to top up. Anything else (e.g. the
+// manual pay-and-launch flow's metadata) is ignored so we never create junk
+// credit fields on the user doc.
+const VALID_CREDIT_TYPES = new Set(["web_app", "external_ip", "ai_pentest"]);
+
+/**
+ * Idempotency guard. Records the Stripe event id exactly once; returns true if
+ * we've already processed this event (a Stripe retry) so the caller can skip.
+ * A genuine write error is rethrown so the webhook returns 500 and Stripe retries.
+ */
+async function isDuplicateEvent(eventId: string): Promise<boolean> {
+  const ref = adminDb.collection("stripeEvents").doc(eventId);
+  try {
+    await ref.create({ processedAt: FieldValue.serverTimestamp() });
+    return false;
+  } catch (err: any) {
+    const code = err?.code;
+    const msg = String(err?.message || "");
+    if (code === 6 || code === "already-exists" || msg.includes("ALREADY_EXISTS")) {
+      return true;
+    }
+    throw err;
+  }
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature')!;
@@ -28,6 +53,10 @@ export async function POST(request: NextRequest) {
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
+        if (await isDuplicateEvent(event.id)) {
+          console.log('Skipping already-processed event:', event.id);
+          break;
+        }
         const session = event.data.object as Stripe.Checkout.Session;
         await handleCheckoutSessionCompleted(session);
         break;
@@ -63,15 +92,17 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   console.log('Checkout session completed:', session.id);
 
   const userId = session.metadata?.userId;
-  const pentestType = session.metadata?.pentestType; // 'web_app' or 'external_ip'
+  const pentestType = session.metadata?.pentestType; // 'web_app' | 'external_ip' | 'ai_pentest'
 
   if (!userId) {
     console.error('No userId in session metadata');
     return;
   }
 
-  // If this is a pentest credit purchase
-  if (pentestType) {
+  // Only grant credits for recognized buckets. Other flows (e.g. the manual
+  // pay-and-launch checkout) carry a different metadata.pentestType and are
+  // fulfilled elsewhere — grant nothing here rather than minting junk credits.
+  if (pentestType && VALID_CREDIT_TYPES.has(pentestType)) {
     // line_items are NOT included in webhook events by default - retrieve them
     let quantity = 1;
     try {
@@ -97,14 +128,15 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     } catch (error) {
       console.error('Error adding credits:', error);
       
-      // If user doesn't exist, create with credits
+      // If user doesn't exist, create with credits (merge preserves any other
+      // credit buckets already present on the doc).
       try {
         await adminDb.collection('users').doc(userId).set({
           uid: userId,
           credits: {
-            web_app: pentestType === 'web_app' ? quantity : 0,
-            external_ip: pentestType === 'external_ip' ? quantity : 0,
+            [pentestType]: quantity,
           },
+          currentPlan: 'paid',
           updatedAt: FieldValue.serverTimestamp(),
         }, { merge: true });
         

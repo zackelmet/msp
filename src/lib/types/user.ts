@@ -11,6 +11,9 @@ export interface UserDocument {
   credits: {
     web_app: number;
     external_ip: number;
+    // Volume-priced AI pentest credits (dashboard "Buy AI Credits" flow).
+    // One credit = one IP / domain / URL launched.
+    ai_pentest?: number;
   };
 
   // Optional profile fields

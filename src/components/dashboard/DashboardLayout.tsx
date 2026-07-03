@@ -18,6 +18,7 @@ import {
   faBullseye,
   faCalendarAlt,
   faUserShield,
+  faBolt,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/lib/context/AuthContext";
 import signout from "@/lib/firebase/signout";
@@ -80,6 +81,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { href: "/app/targets", label: "Target Groups", icon: faBullseye },
     { href: "/app/schedule", label: "Schedule Tests", icon: faCalendarAlt },
     { href: "/app/pentests", label: "Test History", icon: faList },
+    { href: "/app/ai-pentest-launch", label: "Launch AI Pentest", icon: faRocket },
+    { href: "/app/buy-credits", label: "Buy AI Credits", icon: faBolt },
     {
       href: "/app/manual-pentest",
       label: "Scope a Pentest",
@@ -258,7 +261,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Buy Credits button */}
           <Link
-            href="/app/dashboard?purchase=web_app"
+            href="/app/buy-credits"
             className="block w-full px-4 py-3 bg-[#4590e2] text-white font-semibold rounded-lg text-center hover:bg-[#3a7bc8] transition-colors"
           >
             Buy Credits

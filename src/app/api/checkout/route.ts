@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { computeAiPentestPricing } from "@/lib/pricing/aiPentest";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2023-10-16",
@@ -58,36 +59,84 @@ export async function POST(request: NextRequest) {
       "/app/dashboard?canceled=true",
     );
 
-    if (!resolvedPriceId) {
-      return NextResponse.json(
+    const isAiPentest = productType === "ai_pentest";
+
+    let lineItems: Stripe.Checkout.SessionCreateParams.LineItem[];
+    let sessionMetadata: Record<string, string>;
+    let sessionMode: Stripe.Checkout.SessionCreateParams.Mode;
+
+    if (isAiPentest) {
+      // Volume-priced AI-pentest credits. Pricing is computed SERVER-SIDE from
+      // the shared tier table so the client can never dictate the amount; we use
+      // Stripe price_data (ad-hoc unit amount) because the flat-tier total is not
+      // a fixed price × quantity.
+      if (!userId) {
+        return NextResponse.json(
+          { error: "Sign in required to purchase credits" },
+          { status: 401 },
+        );
+      }
+      if (!Number.isFinite(quantity) || quantity < 1) {
+        return NextResponse.json(
+          { error: "Quantity must be at least 1" },
+          { status: 400 },
+        );
+      }
+
+      const pricing = computeAiPentestPricing(quantity);
+      lineItems = [
         {
-          error: "Missing required fields or package is not configured",
-          details: { manualPackageId: manualPackageId || null },
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `AI Pentest Credits — ${pricing.tierLabel}`,
+              description: `${pricing.quantity} AI pentest credit(s) at $${pricing.ratePerIpDollars}/IP`,
+            },
+            unit_amount: pricing.ratePerIpCents,
+          },
+          quantity: pricing.quantity,
         },
-        { status: 400 },
-      );
+      ];
+      sessionMode = "payment";
+      sessionMetadata = {
+        ...(metadata || {}),
+        userId,
+        productType: "ai_pentest",
+        // pentestType drives the webhook credit grant — set LAST so a caller's
+        // metadata object can never override it.
+        pentestType: "ai_pentest",
+        quantity: String(pricing.quantity),
+      };
+    } else {
+      if (!resolvedPriceId) {
+        return NextResponse.json(
+          {
+            error: "Missing required fields or package is not configured",
+            details: { manualPackageId: manualPackageId || null },
+          },
+          { status: 400 },
+        );
+      }
+      lineItems = [{ price: resolvedPriceId, quantity: quantity || 1 }];
+      sessionMode =
+        mode || (productType === "subscription" ? "subscription" : "payment");
+      sessionMetadata = {
+        userId: userId || "",
+        productType: productType || "one-time",
+        manualPackageId: manualPackageId || "",
+        ...(metadata || {}),
+      };
     }
 
     // Create Checkout Session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price: resolvedPriceId,
-          quantity: quantity || 1,
-        },
-      ],
-      mode:
-        mode || (productType === "subscription" ? "subscription" : "payment"),
+      line_items: lineItems,
+      mode: sessionMode,
       success_url: resolvedSuccessUrl,
       cancel_url: resolvedCancelUrl,
       ...(email ? { customer_email: email } : {}),
-      metadata: {
-        userId: userId || "",
-        productType: productType || "one-time",
-        manualPackageId: manualPackageId || "",
-        ...(metadata || {}),
-      },
+      metadata: sessionMetadata,
       allow_promotion_codes: true,
     });
 
