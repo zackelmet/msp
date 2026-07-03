@@ -120,15 +120,22 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   // pay-and-launch checkout) carry a different metadata.pentestType and are
   // fulfilled elsewhere — grant nothing here rather than minting junk credits.
   if (pentestType && VALID_CREDIT_TYPES.has(pentestType)) {
-    // line_items are NOT included in webhook events by default - retrieve them
+    // Determine how many credits to grant. AI-pentest checkouts charge the
+    // graduated TOTAL as one line item, so the credit count travels in
+    // metadata.quantity. Fixed-price credit purchases use the line-item qty.
     let quantity = 1;
-    try {
-      const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
-        expand: ['line_items'],
-      });
-      quantity = expandedSession.line_items?.data?.[0]?.quantity || 1;
-    } catch (e) {
-      console.warn('Could not retrieve line_items, defaulting to quantity 1:', e);
+    if (pentestType === 'ai_pentest' && session.metadata?.quantity) {
+      quantity = parseInt(session.metadata.quantity, 10) || 1;
+    } else {
+      // line_items are NOT included in webhook events by default - retrieve them
+      try {
+        const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
+          expand: ['line_items'],
+        });
+        quantity = expandedSession.line_items?.data?.[0]?.quantity || 1;
+      } catch (e) {
+        console.warn('Could not retrieve line_items, defaulting to quantity 1:', e);
+      }
     }
     
     try {

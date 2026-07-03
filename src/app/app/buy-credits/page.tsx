@@ -15,7 +15,7 @@ import {
   faHeadset,
 } from "@fortawesome/free-solid-svg-icons";
 import {
-  AI_PENTEST_TIERS,
+  AI_PENTEST_BRACKETS,
   computeAiPentestPricing,
 } from "@/lib/pricing/aiPentest";
 
@@ -142,17 +142,20 @@ export default function BuyCreditsPage() {
           </Link>
         </div>
 
-        {/* Tier table */}
+        {/* Volume pricing (graduated / marginal) */}
         <div className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#4590e2]/15">
+          <div className="px-6 py-4 border-b border-[#4590e2]/15 flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-white">Volume Pricing</h2>
+            <span className="text-xs text-[#7a9bb5]">
+              Marginal rate per IP — bulk discount baked in
+            </span>
           </div>
           <div className="divide-y divide-[#4590e2]/10">
-            {AI_PENTEST_TIERS.map((t) => {
-              const active = t.label === pricing.tierLabel;
+            {AI_PENTEST_BRACKETS.map((b) => {
+              const active = pricing.breakdown.some((r) => r.label === b.label);
               return (
                 <div
-                  key={t.label}
+                  key={b.label}
                   className={`flex items-center justify-between px-6 py-4 ${
                     active ? "bg-[#4590e2]/10" : ""
                   }`}
@@ -160,12 +163,12 @@ export default function BuyCreditsPage() {
                   <span
                     className={`text-sm ${active ? "text-[#4590e2] font-semibold" : "text-white"}`}
                   >
-                    {t.label}
+                    {b.label}
                   </span>
                   <span
                     className={`text-sm ${active ? "text-[#4590e2] font-semibold" : "text-[#7a9bb5]"}`}
                   >
-                    ${t.ratePerIpCents / 100} / IP
+                    ${b.ratePerIpCents / 100} / IP
                   </span>
                 </div>
               );
@@ -197,17 +200,29 @@ export default function BuyCreditsPage() {
                 ${pricing.totalDollars.toLocaleString()}
               </div>
               <div className="text-xs text-[#7a9bb5]">
-                {pricing.quantity} × ${pricing.ratePerIpDollars}/IP
+                {pricing.quantity} IPs · blended $
+                {pricing.blendedRatePerIpDollars.toFixed(2)}/IP
               </div>
             </div>
           </div>
 
-          {pricing.nextTier && (
-            <div className="flex items-center gap-2 text-xs text-[#4590e2] bg-[#4590e2]/5 border border-[#4590e2]/20 rounded-lg px-4 py-2.5">
+          {/* How the total is built (graduated brackets) */}
+          <div className="text-xs text-[#7a9bb5] space-y-1 border-t border-[#4590e2]/10 pt-3">
+            {pricing.breakdown.map((r) => (
+              <div key={r.label} className="flex justify-between">
+                <span>
+                  {r.ips} × ${r.ratePerIpCents / 100}{" "}
+                  <span className="opacity-60">({r.label})</span>
+                </span>
+                <span>${(r.subtotalCents / 100).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+
+          {pricing.savingsVsTopRateCents > 0 && (
+            <div className="flex items-center gap-2 text-xs text-green-400 bg-green-500/5 border border-green-500/20 rounded-lg px-4 py-2.5">
               <FontAwesomeIcon icon={faInfoCircle} />
-              Add {pricing.nextTier.addIps} more IP
-              {pricing.nextTier.addIps === 1 ? "" : "s"} to reach $
-              {pricing.nextTier.ratePerIpCents / 100}/IP.
+              Bulk pricing saves ${(pricing.savingsVsTopRateCents / 100).toLocaleString()} vs. flat $100/IP.
             </div>
           )}
 

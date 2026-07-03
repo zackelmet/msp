@@ -84,17 +84,19 @@ export async function POST(request: NextRequest) {
       }
 
       const pricing = computeAiPentestPricing(quantity);
+      // Graduated pricing isn't rate × qty, so charge the exact computed TOTAL
+      // as a single line item and carry the credit count in metadata.quantity.
       lineItems = [
         {
           price_data: {
             currency: "usd",
             product_data: {
-              name: `AI Pentest Credits — ${pricing.tierLabel}`,
-              description: `${pricing.quantity} AI pentest credit(s) at $${pricing.ratePerIpDollars}/IP`,
+              name: `${pricing.quantity} AI Pentest Credit${pricing.quantity === 1 ? "" : "s"}`,
+              description: `Volume pricing — blended $${pricing.blendedRatePerIpDollars.toFixed(2)}/IP`,
             },
-            unit_amount: pricing.ratePerIpCents,
+            unit_amount: pricing.totalCents,
           },
-          quantity: pricing.quantity,
+          quantity: 1,
         },
       ];
       sessionMode = "payment";
