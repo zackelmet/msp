@@ -23,6 +23,10 @@ import {
 import { useAuth } from "@/lib/context/AuthContext";
 import signout from "@/lib/firebase/signout";
 import Image from "next/image";
+import OnboardingTour, {
+  START_TOUR_EVENT,
+} from "@/components/onboarding/OnboardingTour";
+import { faCompass } from "@fortawesome/free-solid-svg-icons";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -105,6 +109,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-[#0a141f] flex overflow-hidden">
+      {/* First-run product tour (auto-starts once; replay via "Take a tour") */}
+      <OnboardingTour />
+
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -149,6 +156,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <Link
                 key={item.href}
                 href={item.href}
+                data-tour={`nav-${item.href.split("/").pop()}`}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive
                     ? "bg-[#4590e2]/20 text-[#4590e2] font-semibold border border-[#4590e2]/30"
@@ -204,6 +212,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 {item.label}
               </a>
             ))}
+            <button
+              type="button"
+              onClick={() => {
+                setSidebarOpen(false);
+                window.dispatchEvent(new Event(START_TOUR_EVENT));
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors text-sm"
+            >
+              <FontAwesomeIcon icon={faCompass} className="w-4 h-4" />
+              Take a tour
+            </button>
           </div>
 
           {/* Account */}
@@ -262,6 +281,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Buy Credits button */}
           <Link
             href="/app/buy-credits"
+            data-tour="buy-credits-btn"
             className="block w-full px-4 py-3 bg-[#4590e2] text-white font-semibold rounded-lg text-center hover:bg-[#3a7bc8] transition-colors"
           >
             Buy Credits

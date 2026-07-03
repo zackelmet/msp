@@ -19,6 +19,10 @@ export interface UserDocument {
   // Optional profile fields
   companyName?: string;
   profileImageUrl?: string;
+
+  // Onboarding tour state
+  onboardingCompleted?: boolean;
+  onboardingCompletedAt?: Timestamp;
 }
 
 // ---------------------------------------------------------------------------
