@@ -5,6 +5,8 @@ import { createUserWithEmailAndPassword, UserCredential } from "firebase/auth";
 jest.mock("firebase/auth", () => ({
   getAuth: jest.fn(() => ({})),
   createUserWithEmailAndPassword: jest.fn(),
+  // signUp() sends a verification email after account creation.
+  sendEmailVerification: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Mock the firebaseClient module

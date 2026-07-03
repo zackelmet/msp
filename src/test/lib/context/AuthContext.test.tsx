@@ -69,7 +69,11 @@ describe("AuthContext", () => {
   });
 
   it("updates auth state when user logs in", async () => {
-    const mockUser = { uid: "123" } as User;
+    const mockUser = {
+      uid: "123",
+      emailVerified: true,
+      providerData: [{ providerId: "password" }],
+    } as unknown as User;
     const mockClaims = { role: "user" };
 
     mockAuthService.onAuthStateChanged.mockImplementation((callback) => {
@@ -125,7 +129,11 @@ describe("AuthContext", () => {
     const mockPush = jest.fn();
     mockUseRouter.mockReturnValue({ push: mockPush });
 
-    const mockUser = { uid: "123" } as User;
+    const mockUser = {
+      uid: "123",
+      emailVerified: true,
+      providerData: [{ providerId: "password" }],
+    } as unknown as User;
     mockAuthService.onAuthStateChanged.mockImplementation((callback) => {
       callback(mockUser);
       return jest.fn(); // Return a mock unsubscribe function
