@@ -16,10 +16,11 @@ jobs:
         with:
           # Node 20.19+/22 required: some deps (eslint-visitor-keys@5) drop Node 18.
           node-version: "22"
-          cache: "npm"
 
+      # This repo intentionally gitignores package-lock.json (.gitignore), so we
+      # use `npm install` (not `npm ci`) and skip the lockfile-based npm cache.
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Run linter
         run: npm run lint
