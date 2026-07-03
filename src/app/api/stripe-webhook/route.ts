@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
+import {
+  sendEmail,
+  opsEmail,
+  manualOrderCustomerEmail,
+  manualOrderOpsEmail,
+} from '@/lib/email/send';
+
+// Manual (expert-led) engagement packages sold via /pricing and /app/launch-pentest.
+// A purchase here is fulfilled by a human, so the webhook records a paid ORDER
+// in the admin Requests queue rather than granting self-serve credits.
+const MANUAL_PACKAGES: Record<
+  string,
+  { tier: 'manual_basic' | 'manual_advanced'; label: string }
+> = {
+  external_ip_1_50: { tier: 'manual_basic', label: 'Manual Pentest — External IP (1–50)' },
+  external_ip_51_100: { tier: 'manual_advanced', label: 'Manual Pentest — External IP (51–100)' },
+};
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
@@ -147,6 +164,12 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     }
   }
   
+  // Manual (expert-led) package purchase → record a paid order for the team.
+  const manualPackageId = session.metadata?.manualPackageId;
+  if (manualPackageId && MANUAL_PACKAGES[manualPackageId]) {
+    await handleManualOrder(session, userId, manualPackageId);
+  }
+
   // Handle subscription-based purchases (legacy support)
   if (session.mode === 'subscription' && session.subscription) {
     try {
@@ -166,5 +189,82 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     } catch (error) {
       console.error('Error updating subscription:', error);
     }
+  }
+}
+
+/**
+ * Records a paid manual-engagement order in the `pentestRequests` collection so
+ * it surfaces in the admin Requests queue, then notifies the customer + ops.
+ * Idempotent: the doc id is derived from the Stripe session id.
+ */
+async function handleManualOrder(
+  session: Stripe.Checkout.Session,
+  userId: string,
+  manualPackageId: string,
+) {
+  const pkg = MANUAL_PACKAGES[manualPackageId];
+  const amountCents = session.amount_total || 0;
+
+  // Prefer the checkout email, fall back to the user doc.
+  let userEmail =
+    session.customer_details?.email || session.customer_email || null;
+  if (!userEmail) {
+    try {
+      const u = await adminDb.collection('users').doc(userId).get();
+      userEmail = (u.data()?.email as string) || null;
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const requestId = `stripe_${session.id}`;
+
+  try {
+    // Deterministic id → a Stripe retry can't create a duplicate order.
+    await adminDb.collection('pentestRequests').doc(requestId).set(
+      {
+        id: requestId,
+        userId,
+        userEmail: userEmail || '',
+        tier: pkg.tier,
+        status: 'pending',
+        source: 'stripe_checkout',
+        paymentStatus: 'paid',
+        amountPaidCents: amountCents,
+        stripeSessionId: session.id,
+        packageId: manualPackageId,
+        needsScoping: true,
+        // Minimal display fields for the admin Requests table; scope is
+        // captured later via the /app/request-pentest form.
+        contactName: userEmail || '',
+        companyName: '',
+        targetDomains: [],
+        targetApplications: [],
+        scopeDescription: '',
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+    console.log(`Recorded paid manual order ${requestId} (${pkg.label})`);
+  } catch (err) {
+    console.error('Error recording manual order:', err);
+    return; // don't attempt emails if the order didn't persist
+  }
+
+  // Notifications (no-op unless RESEND_API_KEY/EMAIL_FROM are configured).
+  if (userEmail) {
+    const c = manualOrderCustomerEmail({ packageLabel: pkg.label, amountCents });
+    await sendEmail({ to: userEmail, subject: c.subject, html: c.html });
+  }
+  const ops = opsEmail();
+  if (ops) {
+    const o = manualOrderOpsEmail({
+      customerEmail: userEmail || 'unknown',
+      packageLabel: pkg.label,
+      amountCents,
+      requestId,
+    });
+    await sendEmail({ to: ops, subject: o.subject, html: o.html });
   }
 }

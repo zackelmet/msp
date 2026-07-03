@@ -121,6 +121,9 @@ export default function PricingPage() {
           email: user.email,
           productType: tier.type,
           manualPackageId: tier.id,
+          // After payment, send the customer to scope their engagement so the
+          // paid order (recorded by the webhook) can actually be fulfilled.
+          successUrl: `/app/request-pentest?paid=1&package=${tier.id}&session={CHECKOUT_SESSION_ID}`,
           metadata: {
             pentestType: "manual_external_ip",
             manualTier: tier.id,
