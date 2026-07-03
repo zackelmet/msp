@@ -9,7 +9,7 @@ import {
   faLifeRing,
   faQuestionCircle,
   faBars,
-  faRocket,
+  faJetFighter,
   faSignOutAlt,
   faCog,
   faChevronUp,
@@ -81,21 +81,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { href: "/app/targets", label: "Target Groups", icon: faBullseye },
     { href: "/app/schedule", label: "Schedule Tests", icon: faCalendarAlt },
     { href: "/app/pentests", label: "Test History", icon: faList },
-    { href: "/app/ai-pentest-launch", label: "Launch AI Pentest", icon: faRocket },
+    { href: "/app/ai-pentest-launch", label: "Launch AI Pentest", icon: faJetFighter },
     { href: "/app/buy-credits", label: "Buy AI Credits", icon: faBolt },
     {
       href: "/app/manual-pentest",
       label: "Scope a Pentest",
       icon: faQuestionCircle,
     },
-    { href: "/app/launch-pentest", label: "Launch Pentest", icon: faRocket },
+    { href: "/app/launch-pentest", label: "Launch a Manual Test", icon: faJetFighter },
   ];
 
   const adminNavItems = [
     { href: "/admin", label: "Admin Overview", icon: faUserShield },
     { href: "/admin/users", label: "Manage Users", icon: faUserShield },
     { href: "/admin/pentests", label: "All Pentests", icon: faList },
-    { href: "/admin/requests", label: "Pentest Requests", icon: faRocket },
+    { href: "/admin/requests", label: "Pentest Requests", icon: faJetFighter },
   ];
 
   const bottomItems = [

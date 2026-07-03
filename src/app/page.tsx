@@ -3,6 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/lib/context/AuthContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faClipboardList,
+  faShieldHalved,
+  faFileLines,
+} from "@fortawesome/free-solid-svg-icons";
 
 // ─── Inline SVG hexagon background grid ───────────────────────────────────────
 const HEX_SVG_URI = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='104' viewBox='0 0 120 104'%3E%3Cpolygon points='60,2 112,29 112,75 60,102 8,75 8,29' fill='none' stroke='%234590e2' stroke-width='0.8' opacity='0.22'/%3E%3C/svg%3E")`;
@@ -381,19 +387,19 @@ export default function Home() {
             {[
               {
                 step: "01",
-                icon: "📋",
+                icon: faClipboardList,
                 title: "Submit a Request",
                 desc: "Log in and submit an AI or manual pentest request. Provide your target, scope, and notes for our team.",
               },
               {
                 step: "02",
-                icon: "🛡️",
+                icon: faShieldHalved,
                 title: "We Test",
                 desc: "Our team conducts your penetration test — AI-automated or manually by CEH-certified ethical hackers and OSCP professionals.",
               },
               {
                 step: "03",
-                icon: "📄",
+                icon: faFileLines,
                 title: "Get Your Report",
                 desc: "Receive a detailed findings report with severity ratings, exploitation details, and remediation guidance.",
               },
@@ -410,7 +416,7 @@ export default function Home() {
                     <span className="absolute top-4 right-5 text-[#4590e2]/15 font-extrabold text-5xl leading-none select-none" style={{ fontFamily: "var(--font-chakra-petch)" }}>
                       {item.step}
                     </span>
-                    <HexIcon>{item.icon}</HexIcon>
+                    <HexIcon><FontAwesomeIcon icon={item.icon} /></HexIcon>
                     <h3
                       className="text-lg font-bold text-white mb-3 uppercase tracking-wide"
                       style={{ fontFamily: "var(--font-chakra-petch)" }}

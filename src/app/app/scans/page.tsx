@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
-  faRocket,
+  faJetFighter,
   faHistory,
   faSatelliteDish,
 } from "@fortawesome/free-solid-svg-icons";
@@ -344,7 +344,7 @@ export default function ScansPage() {
             {!hasActiveSubscription ? (
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center shadow-sm">
                 <FontAwesomeIcon
-                  icon={faRocket}
+                  icon={faJetFighter}
                   className="text-5xl mb-4 text-[#0A1128]"
                 />
                 <h2 className="text-2xl font-bold text-[#0A1128] mb-3">
@@ -359,7 +359,7 @@ export default function ScansPage() {
                   href="/#pricing"
                   className="inline-block px-6 py-3 bg-[#00FED9] text-[#0A1128] font-semibold rounded-lg hover:bg-[#00D4B8] transition-colors"
                 >
-                  <FontAwesomeIcon icon={faRocket} className="mr-2" />
+                  <FontAwesomeIcon icon={faJetFighter} className="mr-2" />
                   Upgrade Now
                 </a>
               </div>
@@ -661,7 +661,7 @@ export default function ScansPage() {
                     disabled={submitting}
                     className="w-full px-5 py-3 bg-[#00FED9] text-[#0A1128] font-semibold rounded-lg hover:bg-[#00D4B8] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    <FontAwesomeIcon icon={faRocket} />
+                    <FontAwesomeIcon icon={faJetFighter} />
                     {submitting ? "Launching..." : "Launch Scan"}
                   </button>
 
