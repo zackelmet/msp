@@ -12,9 +12,9 @@ service cloud.firestore {
     }
     
     function isAdmin() {
-      return isAuthenticated() && 
+      return isAuthenticated() &&
              exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
     // Users collection
@@ -89,14 +89,6 @@ service cloud.firestore {
       allow read: if isOwner(resource.data.userId) || isAdmin();
       allow create: if isAuthenticated();
       allow update: if isAdmin(); // Only admins can update request status
-      allow delete: if isAdmin();
-    }
-
-    // Pentests collection (AI-powered pentests)
-    match /pentests/{pentestId} {
-      allow read: if isOwner(resource.data.userId) || isAdmin();
-      allow create: if isAuthenticated();
-      allow update: if isOwner(resource.data.userId) || isAdmin();
       allow delete: if isAdmin();
     }
   }
