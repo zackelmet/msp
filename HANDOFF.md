@@ -66,7 +66,8 @@ Full deal notes + open questions in **`COMPULAB_PARTNERSHIP.md`**. Key impacts:
 ### Decisions locked (2026-07-10)
 - **Hierarchy: 3-level org tree** — Platform → Reseller/MSP → Tenant (client) → pentests.
   _(Superseded 2026-07-12: go N-level to fit the Compulab distributor tier — see above.)_
-- **Provisioning: new direct engine** — job queue → scanner runners, bypassing Make.com.
+- **Provisioning: launch via the Make.com pipeline** (the only real engine — there are **no GCP
+  scanner runners**). Optionally put Cloud Tasks in front for retry / rate-limit / per-tier concurrency.
 - **Auth: programmatic API keys** (`mspp_live_<key>`) scoped per tenant, alongside the
   existing Firebase ID-token auth for the dashboard UI.
 - **Tier attaches at the reseller level**, cascades to tenants, per-tenant override allowed.
@@ -85,11 +86,10 @@ Full deal notes + open questions in **`COMPULAB_PARTNERSHIP.md`**. Key impacts:
   - `src/app/api/launch-pentest/route.ts` — Stripe-session-gated → Make.com webhook.
   - `src/app/api/ai-pentest-launch/route.ts` — Firebase auth → credit transaction
     (`credits.ai_pentest`, 1/target) → Make.com per target → callback to `/api/pentests`.
-- **Provisioning engines:**
-  - GCP Cloud Run scanners via `src/lib/gcp/scannerClient.ts` (`enqueueScanJob`:
-    nmap/openvas/zap, fire-and-forget, per-type `GCP_*_SCANNER_URL` env).
-  - Make.com scenarios (to be retired).
-  - Results POST back to `/api/pentests` (PATCH), gated by `GCP_WEBHOOK_SECRET`.
+- **Provisioning engine:** **Make.com only** — `/api/pentests` + `/api/ai-pentest-launch` fire a
+  Make webhook; Make runs the pentest and PATCHes results back to `/api/pentests` (secret-gated).
+  There are **no GCP scanner runners**; `src/lib/gcp/scannerClient.ts` + `/api/scans/**` +
+  `/api/ai-pentest` are dead code slated for removal (ROADMAP P1.1).
 - **Auth helper:** `verifyAuthToken(req)` → userId (`src/lib/firebase/firebaseAdmin.ts`,
   exports `adminDb`, `adminAuth`, `adminStorage`). All API routes use `Authorization: Bearer <firebase-id-token>`.
 - **Relevant deps already installed:** `@google-cloud/tasks` (UNUSED — available for the
@@ -119,7 +119,7 @@ provisioningJobs/{jobId}    ← queue records, + { resellerId, tenantId }
 interface Tier {
   id: string; name: string;               // "Starter" | "Pro" | "Enterprise"
   limits: { pentestsPerMonth: number; concurrentJobs: number; tenantsMax: number };
-  scanners: ("nmap"|"openvas"|"zap"|"hybrid")[];
+  skus: SKU[];  // which SKUs this tier may launch (ai_pentest | external | internal | web_app | manual)
   features: { apiAccess: boolean; scheduledScans: boolean; whiteLabel: boolean };
 }
 ```
@@ -130,13 +130,14 @@ Assigned to reseller, cascades to tenants (per-tenant override allowed). Checked
 Auth middleware resolves key → `{ resellerId, tenantId?, scopes }`; sits next to Firebase-token auth so
 dashboard + headless callers share route handlers.
 
-### 4. Direct provisioning flow (no Make.com)
+### 4. Provisioning flow (via Make.com)
 ```
 POST /api/v1/pentests → entitlement check → create pentest+job docs
-                      → Cloud Tasks enqueue → scanner runner (existing GCP fns via enqueueScanJob)
-                      → runner callback POST /api/v1/pentests/{id}/result (HMAC-verified)
+                      → launch via Make.com webhook (optionally Cloud Tasks in front)
+                      → Make callback POST /api/v1/pentests/{id}/result (HMAC-verified)
 ```
-Cloud Tasks in front of existing scanner URLs gives retry / rate-limit / per-tier concurrency control.
+An optional Cloud Tasks queue in front of the Make launch gives retry / rate-limit / per-tier
+concurrency control. (No GCP scanner runners exist.)
 
 ### 5. New endpoints (`/api/v1`, key-or-token auth)
 - `POST /resellers`, `POST /resellers/{id}/tenants` — provision org tree

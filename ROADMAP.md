@@ -15,20 +15,20 @@ Three priorities, in order. **P1 must land before P2 depth.**
 **Goal:** a launched pentest reaches a real engine and its results + report flow back into the
 dashboard, exactly like the sibling **AIP** app.
 
-**Reality check (from the AIP↔msp gap analysis):** AIP has no secret engine. It runs on two
-pipelines that **already exist and are wired in msp**:
-- **GCP Cloud Run scanners** (nmap/openvas/zap) via `/api/scans` → `enqueueScanJob` → results
-  callback `/api/scans/webhook`. `scannerClient.ts` and `scans/webhook` are byte-identical to AIP.
-- **Make.com managed/AI pentest** via `/api/pentests` + `/api/ai-pentest-launch` → Make webhook →
-  PATCH callback to `/api/pentests`. Callback is fully implemented.
+**Reality check (from the AIP↔msp gap analysis + Zack):** AIP has no secret engine. There are **no
+GCP/Cloud-Run scanner runners** — the **single real pipeline is Make.com**: `/api/pentests` +
+`/api/ai-pentest-launch` → Make webhook → PATCH callback to `/api/pentests` (callback fully
+implemented). Make.com runs the actual pentest workflow (tooling + human operators).
 
-So P1 is **closing specific gaps + confirming the external plumbing**, not building an engine:
+So P1 is **closing specific gaps on the Make.com pipeline + removing dead scanner code**, not
+building an engine:
 
-- [ ] **P1.1 — Fix the orphaned AI-pentest orchestrator.** `src/app/api/ai-pentest/route.ts:178`
-      is a `// TODO: Trigger actual scan execution` — it creates `aiPentestRuns` + `scans` docs but
-      never dispatches them, so those scans are orphaned at `queued`. Either dispatch via
-      `enqueueScanJob` (mirror `scans/route.ts:364-405`) or route it through the working
-      `/api/scans` flow. (Redundant route — prefer consolidating.)
+- [ ] **P1.1 — Remove dead GCP scanner code.** There are no runners, so `src/lib/gcp/scannerClient.ts`
+      (`enqueueScanJob`), `src/app/api/scans/**` (incl. `scans/webhook`), and the orphaned
+      `src/app/api/ai-pentest/route.ts` (whose `:178 // TODO: Trigger actual scan execution` never
+      fires) are dead paths. Delete them (and any `GCP_*_SCANNER_URL` config), or repoint
+      `/api/ai-pentest` at the Make.com flow if that batch UX is still wanted. Removing avoids
+      confusion about a second "engine" that doesn't exist.
 - [ ] **P1.2 — Harden pentest auth (security).** `src/app/api/pentests/route.ts` POST (:8) / GET
       (:123) and `pentests/[id]/route.ts` (:11) trust a **client-supplied `userId`**. These spend
       credits — switch to `verifyAuthToken` (already at `firebaseAdmin.ts:84`, used by
@@ -45,12 +45,12 @@ So P1 is **closing specific gaps + confirming the external plumbing**, not build
       Make it create a `pentests` doc + `callbackUrl`/secret (like `ai-pentest-launch`), or retire it.
 - [ ] **P1.6 — Config + external plumbing (TRUE BLOCKER).** Replace hardcoded Make URLs
       (`pentests/route.ts:77`, `ai-pentest-launch/route.ts:11`) with `MAKE_WEBHOOK_URL`. Confirm envs:
-      `GCP_{NMAP,OPENVAS,ZAP}_SCANNER_URL`, `GCP_WEBHOOK_SECRET`, `GCP_BUCKET_NAME`,
-      `GCP_SERVICE_ACCOUNT_KEY`/`GCP_PROJECT_ID`, `NEXT_PUBLIC_SITE_URL`, `RESEND_API_KEY`.
-      **Verify the Make.com scenario actually PATCHes results back** with `X-Webhook-Secret`, and the
-      GCP scanner Cloud Run functions are live. Without these, launches sit at `pending` forever.
+      `MAKE_WEBHOOK_URL`, the callback secret used by the PATCH route, `NEXT_PUBLIC_SITE_URL`,
+      `RESEND_API_KEY`. **Verify the Make.com scenario actually PATCHes results back** with the
+      webhook-secret header. Without it, launches sit at `pending` forever.
 - [ ] **P1.7 — (later) Scheduled pentests.** msp stores `scheduled-tests` but has no cron
-      dispatcher. Port AIP `/api/schedules/run` + `CRON_SECRET` when continuous testing is needed.
+      dispatcher. Port AIP `/api/schedules/run` + `CRON_SECRET` (fires the same Make webhook) when
+      continuous testing is needed.
 
 ---
 
@@ -68,8 +68,8 @@ provisioning API, and billing decoupled from provisioning. Design: `docs/api-v1.
 - [ ] **Phase 2 — API keys + auth.** Mint/verify `mspp_live_`/`mspp_test_` (store SHA-256 + prefix),
       scopes, and a **dual auth middleware** (API key OR Firebase token) shared by all handlers.
 - [ ] **Phase 3 — Provisioning core.** `POST /api/v1/pentests`: entitlement check → `reserveQuota`
-      → enqueue (Cloud Tasks in front of the existing scanner/Make paths) → HMAC callback →
-      `consumeQuota` + `usageLedger`. Idempotency-Key support.
+      → launch via the Make.com pipeline (optionally Cloud Tasks in front for retry/rate-limit) →
+      HMAC callback → `consumeQuota` + `usageLedger`. Idempotency-Key support.
 - [ ] **Phase 4 — Org + quota management endpoints** (`/api/v1/orgs`, `/quota`, `/caps`, `/usage`,
       `/api-keys`, `/webhooks`) + dashboard wiring.
 - [ ] **Phase 5 — Billing decoupled from provisioning.** Metered usage → monthly rollup → single

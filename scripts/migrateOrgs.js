@@ -162,7 +162,6 @@ async function main() {
       id: IDS.tier,
       name: "Starter",
       skus: ["ai_pentest", "external", "web_app", "manual"],
-      scanners: ["nmap", "zap"],
       limits: { pentestsPerMonth: 0, concurrentJobs: 2, tenantsMax: 0 },
       features: {
         apiAccess: true,
