@@ -11,7 +11,10 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-5 pt-10 pb-12 flex flex-col gap-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <Link href="https://msppentesting.com" className="flex items-center gap-3 hover:opacity-90 transition">
+            <Link
+              href="https://msppentesting.com"
+              className="flex items-center gap-3 hover:opacity-90 transition"
+            >
               <Image
                 src="/msp pentesting logo (1) (3) (1).png"
                 alt="MSP Pentesting Logo"
@@ -61,16 +64,34 @@ export default function Footer() {
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm text-[var(--text-muted)]">
           <div className="flex items-center gap-0 divide-x divide-gray-600">
-            <Link href="/blog" className="hover:text-[var(--primary)] transition px-4">
+            <Link
+              href="/blog"
+              className="hover:text-[var(--primary)] transition px-4"
+            >
               Blog
             </Link>
-            <Link href="/pricing" className="hover:text-[var(--primary)] transition px-4">
+            <Link
+              href="/pricing"
+              className="hover:text-[var(--primary)] transition px-4"
+            >
               Pricing
             </Link>
-            <Link href="/trust-safety" className="hover:text-[var(--primary)] transition px-4">
+            <Link
+              href="/docs/api"
+              className="hover:text-[var(--primary)] transition px-4"
+            >
+              API
+            </Link>
+            <Link
+              href="/trust-safety"
+              className="hover:text-[var(--primary)] transition px-4"
+            >
               Trust + Safety
             </Link>
-            <Link href="/support" className="hover:text-[var(--primary)] transition px-4">
+            <Link
+              href="/support"
+              className="hover:text-[var(--primary)] transition px-4"
+            >
               Support
             </Link>
           </div>
