@@ -17,6 +17,31 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
+    // --- Multi-tenant org-tree helpers ---
+    // Materialized ancestor path (root→self) of the signed-in user's org.
+    function myOrgPath() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgPath;
+    }
+    function myOrgId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
+    }
+    function myRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    function hasOrg() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             myOrgId() != null;
+    }
+    // An org is visible if it is an ancestor of me (on my path) or in my subtree
+    // (my org id appears on its path).
+    function orgVisible(orgId, orgPath) {
+      return hasOrg() && (orgId in myOrgPath() || myOrgId() in orgPath);
+    }
+    function isResellerAdmin() {
+      return hasOrg() && (myRole() == "reseller_admin" || myRole() == "platform_admin");
+    }
+
     // Users collection
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
@@ -90,6 +115,57 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       allow update: if isAdmin(); // Only admins can update request status
       allow delete: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------------
+    // Multi-tenant platform (consolidated-buying) collections.
+    // All mutations go through the Admin SDK (server-side, entitlement-checked);
+    // clients get scoped read-only access based on their org path.
+    // ---------------------------------------------------------------------
+
+    // Org tree — read any node on my path or in my subtree. Writes: server only.
+    match /orgs/{orgId} {
+      allow read: if isAdmin() || orgVisible(resource.data.id, resource.data.path);
+      allow write: if false;
+    }
+
+    // Tier templates — readable by any authed user; server-managed.
+    match /tiers/{tierId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // Quota pools — money-critical. Reseller/platform admins may read pools in
+    // their subtree; nobody writes from the client (Admin SDK transactions only).
+    match /quotaPools/{orgId} {
+      // Visible if the pool belongs to me or an ancestor I draw from
+      // (its orgId is on my path). Subtree/child pools resolve server-side.
+      allow read: if isAdmin() ||
+                     (isResellerAdmin() && resource.data.orgId in myOrgPath());
+      allow write: if false;
+    }
+
+    // Per-node caps — same visibility as pools.
+    match /orgCaps/{orgId} {
+      allow read: if isAdmin() || isResellerAdmin();
+      allow write: if false;
+    }
+
+    // API keys — contain a secret hash. Never client-readable or writable.
+    match /apiKeys/{keyId} {
+      allow read, write: if false;
+    }
+
+    // Usage ledger — append-only, server-written. Readable within my subtree.
+    match /usageLedger/{entryId} {
+      allow read: if isAdmin() || (hasOrg() && myOrgId() in resource.data.path);
+      allow write: if false;
+    }
+
+    // Provisioning jobs — readable within my subtree; server-written.
+    match /provisioningJobs/{jobId} {
+      allow read: if isAdmin() || (hasOrg() && myOrgId() in resource.data.path);
+      allow write: if false;
     }
   }
 }

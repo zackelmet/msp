@@ -1,11 +1,26 @@
 import { Timestamp } from "firebase-admin/firestore";
 
+/**
+ * Role within the org tree. Governs what a user may do in the dashboard;
+ * orthogonal to the org `path` which governs *which* subtree they can see.
+ */
+export type UserRole = "platform_admin" | "reseller_admin" | "tenant_user";
+
 export interface UserDocument {
   uid: string;
   email: string;
   name: string;
   createdAt: Timestamp;
   updatedAt?: Timestamp;
+
+  // --- Org membership (multi-tenant platform) ---
+  // The org node this user belongs to (usually a tenant, or a reseller for
+  // partner admins). `orgPath` is the resolved ancestor path (root→org) copied
+  // from the org doc for cheap subtree authz in rules + queries.
+  // Optional during migration; backfilled by scripts/migrate-orgs.
+  orgId?: string;
+  orgPath?: string[];
+  role?: UserRole;
 
   // Pentest credits
   credits: {
