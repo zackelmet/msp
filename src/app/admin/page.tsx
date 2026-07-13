@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
-import AdminDashboard from "@/components/admin/AdminDashboard";
+import AdminConsole from "@/components/admin/AdminConsole";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,7 @@ export default async function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#0a141f]">
-      <AdminDashboard />
+      <AdminConsole />
     </div>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUsers,
@@ -106,8 +105,8 @@ function StepIndicator({ step }: { step: number }) {
             n === step
               ? "bg-[#4590e2] border-[#4590e2] text-white"
               : n < step
-              ? "bg-[#4590e2]/20 border-[#4590e2]/40 text-[#4590e2]"
-              : "bg-white/5 border-white/10 text-gray-500"
+                ? "bg-[#4590e2]/20 border-[#4590e2]/40 text-[#4590e2]"
+                : "bg-white/5 border-white/10 text-gray-500"
           }`}
         >
           {n === 1 ? "Client" : n === 2 ? "Pentest" : "Upload"}
@@ -131,10 +130,15 @@ export default function AdminDashboard() {
   const [suggestions, setSuggestions] = useState<UserSuggestion[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [pentests, setPentests] = useState<PentestItem[]>([]);
-  const [selectedPentest, setSelectedPentest] = useState<PentestItem | null>(null);
+  const [selectedPentest, setSelectedPentest] = useState<PentestItem | null>(
+    null,
+  );
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [toast, setToast] = useState<{ type: "error" | "success"; msg: string } | null>(null);
+  const [toast, setToast] = useState<{
+    type: "error" | "success";
+    msg: string;
+  } | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -175,10 +179,15 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (email.length < 2) { setSuggestions([]); return; }
+    if (email.length < 2) {
+      setSuggestions([]);
+      return;
+    }
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/admin/search-users?q=${encodeURIComponent(email)}`);
+        const res = await fetch(
+          `/api/admin/search-users?q=${encodeURIComponent(email)}`,
+        );
         const data = await res.json();
         if (Array.isArray(data)) setSuggestions(data);
       } catch {}
@@ -187,7 +196,10 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setShowDropdown(false);
       }
     };
@@ -203,14 +215,24 @@ export default function AdminDashboard() {
   const handleFetchPentests = async () => {
     if (!email.trim()) return;
     try {
-      const res = await fetch(`/api/admin/user-pentests?userEmail=${encodeURIComponent(email.trim())}`);
+      const res = await fetch(
+        `/api/admin/user-pentests?userEmail=${encodeURIComponent(email.trim())}`,
+      );
       const data = await res.json();
-      if (!res.ok) { showToast("error", data.error || "User not found"); return; }
-      if (!Array.isArray(data) || data.length === 0) { showToast("error", "No pentests found for this user"); return; }
+      if (!res.ok) {
+        showToast("error", data.error || "User not found");
+        return;
+      }
+      if (!Array.isArray(data) || data.length === 0) {
+        showToast("error", "No pentests found for this user");
+        return;
+      }
       setPentests(data);
       setSelectedPentest(null);
       setStep(2);
-    } catch { showToast("error", "Network error"); }
+    } catch {
+      showToast("error", "Network error");
+    }
   };
 
   const handleUpload = async () => {
@@ -220,9 +242,15 @@ export default function AdminDashboard() {
       const fd = new FormData();
       fd.append("pentestId", selectedPentest.pentestId);
       fd.append("file", file);
-      const res = await fetch("/api/admin/upload-report", { method: "POST", body: fd });
+      const res = await fetch("/api/admin/upload-report", {
+        method: "POST",
+        body: fd,
+      });
       const data = await res.json();
-      if (!res.ok) { showToast("error", data.error || "Upload failed"); return; }
+      if (!res.ok) {
+        showToast("error", data.error || "Upload failed");
+        return;
+      }
       setStep(4);
       loadQueue();
       loadStats();
@@ -234,35 +262,60 @@ export default function AdminDashboard() {
   };
 
   const resetWizard = () => {
-    setStep(1); setEmail(""); setSuggestions([]);
-    setPentests([]); setSelectedPentest(null); setFile(null);
+    setStep(1);
+    setEmail("");
+    setSuggestions([]);
+    setPentests([]);
+    setSelectedPentest(null);
+    setFile(null);
   };
 
   const statCards = [
-    { label: "Total Users", value: stats ? stats.totalUsers.toLocaleString() : null, icon: faUsers, color: "text-[#4590e2]" },
-    { label: "Total Pentests", value: stats ? stats.totalPentests.toLocaleString() : null, icon: faShieldHalved, color: "text-purple-400" },
-    { label: "Completed", value: stats ? stats.completedPentests.toLocaleString() : null, icon: faCheckCircle, color: "text-green-400" },
+    {
+      label: "Total Users",
+      value: stats ? stats.totalUsers.toLocaleString() : null,
+      icon: faUsers,
+      color: "text-[#4590e2]",
+    },
+    {
+      label: "Total Pentests",
+      value: stats ? stats.totalPentests.toLocaleString() : null,
+      icon: faShieldHalved,
+      color: "text-purple-400",
+    },
+    {
+      label: "Completed",
+      value: stats ? stats.completedPentests.toLocaleString() : null,
+      icon: faCheckCircle,
+      color: "text-green-400",
+    },
     {
       label: "Revenue (30d)",
-      value: stats ? (stats.revenue30Days.unavailable ? "n/a" : dollars(stats.revenue30Days.cents)) : null,
+      value: stats
+        ? stats.revenue30Days.unavailable
+          ? "n/a"
+          : dollars(stats.revenue30Days.cents)
+        : null,
       icon: faDollarSign,
       color: "text-yellow-400",
-      sub: stats && !stats.revenue30Days.unavailable
-        ? `${stats.revenue30Days.count} orders · ${dollars(stats.revenue30Days.averageOrderCents)} avg`
-        : undefined,
+      sub:
+        stats && !stats.revenue30Days.unavailable
+          ? `${stats.revenue30Days.count} orders · ${dollars(stats.revenue30Days.averageOrderCents)} avg`
+          : undefined,
     },
   ];
 
   return (
     <div className="max-w-5xl mx-auto p-6 lg:p-8 space-y-8">
-
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl border shadow-xl text-sm font-semibold ${
-          toast.type === "error"
-            ? "bg-red-500/20 border-red-500/40 text-red-200"
-            : "bg-green-500/20 border-green-500/40 text-green-200"
-        }`}>
+        <div
+          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl border shadow-xl text-sm font-semibold ${
+            toast.type === "error"
+              ? "bg-red-500/20 border-red-500/40 text-red-200"
+              : "bg-green-500/20 border-green-500/40 text-green-200"
+          }`}
+        >
           {toast.msg}
           <button onClick={() => setToast(null)}>
             <FontAwesomeIcon icon={faTimes} />
@@ -270,48 +323,29 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold text-white mb-1">Admin Portal</h1>
-          <p className="text-gray-400">Delivery queue, revenue, and report delivery.</p>
-        </div>
-        <Link href="/app/dashboard" className="text-xs text-[#4590e2] hover:underline">← Back to dashboard</Link>
-      </div>
-
       {/* Analytics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((s) => (
-          <div key={s.label} className="bg-white/5 border border-white/10 rounded-xl p-5">
+          <div
+            key={s.label}
+            className="bg-white/5 border border-white/10 rounded-xl p-5"
+          >
             <FontAwesomeIcon icon={s.icon} className={`text-lg ${s.color}`} />
             <p className="text-2xl font-bold text-white mt-3">
               {s.value === null ? (
-                <FontAwesomeIcon icon={faCircleNotch} className="animate-spin text-gray-400 text-base" />
+                <FontAwesomeIcon
+                  icon={faCircleNotch}
+                  className="animate-spin text-gray-400 text-base"
+                />
               ) : (
                 s.value
               )}
             </p>
-            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">{s.label}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
+              {s.label}
+            </p>
             {s.sub && <p className="text-[10px] text-gray-600 mt-1">{s.sub}</p>}
           </div>
-        ))}
-      </div>
-
-      {/* Sub-page nav */}
-      <div className="grid sm:grid-cols-3 gap-4">
-        {[
-          { href: "/admin/users", title: "Manage Users", sub: "View users, adjust credits" },
-          { href: "/admin/pentests", title: "All Pentests", sub: "View & filter every pentest" },
-          { href: "/admin/requests", title: "Pentest Requests", sub: "Review incoming requests" },
-        ].map((a) => (
-          <Link
-            key={a.href}
-            href={a.href}
-            className="bg-white/5 border border-white/10 rounded-xl p-5 hover:border-[#4590e2]/40 transition-colors"
-          >
-            <p className="text-sm font-semibold text-white">{a.title}</p>
-            <p className="text-xs text-gray-500 mt-1">{a.sub}</p>
-          </Link>
         ))}
       </div>
 
@@ -319,7 +353,10 @@ export default function AdminDashboard() {
       <DeliveryQueue
         queue={queue}
         loading={queueLoading}
-        onDelivered={() => { loadQueue(); loadStats(); }}
+        onDelivered={() => {
+          loadQueue();
+          loadStats();
+        }}
         onError={(m) => showToast("error", m)}
       />
 
@@ -327,20 +364,30 @@ export default function AdminDashboard() {
 
       {/* Wizard */}
       <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 lg:p-8">
-        <h2 className="text-xl font-bold text-white mb-6">Upload Pentest Report</h2>
+        <h2 className="text-xl font-bold text-white mb-6">
+          Upload Pentest Report
+        </h2>
         <StepIndicator step={step} />
 
         {/* Step 1 */}
         {step === 1 && (
           <div className="space-y-4">
-            <label className="block text-sm text-gray-400 font-medium mb-1">Client email address</label>
+            <label className="block text-sm text-gray-400 font-medium mb-1">
+              Client email address
+            </label>
             <div className="relative" ref={dropdownRef}>
               <div className="relative">
-                <FontAwesomeIcon icon={faSearch} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm" />
+                <FontAwesomeIcon
+                  icon={faSearch}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm"
+                />
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => { setEmail(e.target.value); setShowDropdown(true); }}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setShowDropdown(true);
+                  }}
                   onFocus={() => setShowDropdown(true)}
                   placeholder="client@example.com"
                   className="w-full bg-white/5 border border-white/15 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#4590e2]/60 focus:ring-1 focus:ring-[#4590e2]/30 text-sm"
@@ -352,7 +399,11 @@ export default function AdminDashboard() {
                     <button
                       key={s.uid}
                       className="w-full text-left px-4 py-2.5 hover:bg-white/5 text-sm text-white transition-colors"
-                      onMouseDown={() => { setEmail(s.email); setShowDropdown(false); setSuggestions([]); }}
+                      onMouseDown={() => {
+                        setEmail(s.email);
+                        setShowDropdown(false);
+                        setSuggestions([]);
+                      }}
                     >
                       {s.email}
                     </button>
@@ -374,11 +425,21 @@ export default function AdminDashboard() {
         {step === 2 && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
-              <FontAwesomeIcon icon={faCheckCircle} className="text-[#4590e2]" />
+              <FontAwesomeIcon
+                icon={faCheckCircle}
+                className="text-[#4590e2]"
+              />
               <span className="text-white font-medium">{email}</span>
-              <button onClick={() => setStep(1)} className="ml-1 text-[#4590e2] hover:underline text-xs">Change</button>
+              <button
+                onClick={() => setStep(1)}
+                className="ml-1 text-[#4590e2] hover:underline text-xs"
+              >
+                Change
+              </button>
             </div>
-            <label className="block text-sm text-gray-400 font-medium mb-1">Select pentest</label>
+            <label className="block text-sm text-gray-400 font-medium mb-1">
+              Select pentest
+            </label>
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
               {pentests.map((p) => (
                 <button
@@ -392,10 +453,16 @@ export default function AdminDashboard() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-white font-semibold truncate">{p.target}</p>
+                      <p className="text-white font-semibold truncate">
+                        {p.target}
+                      </p>
                       <p className="text-gray-500 text-xs mt-0.5">
                         {p.type} · {formatDate(p.createdAt)}
-                        {p.reportUrl && <span className="ml-2 text-green-400">✓ has report</span>}
+                        {p.reportUrl && (
+                          <span className="ml-2 text-green-400">
+                            ✓ has report
+                          </span>
+                        )}
                       </p>
                     </div>
                     <StatusBadge status={p.status} />
@@ -404,7 +471,10 @@ export default function AdminDashboard() {
               ))}
             </div>
             <div className="flex gap-3 pt-2">
-              <button onClick={() => setStep(1)} className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold rounded-xl text-sm transition-colors">
+              <button
+                onClick={() => setStep(1)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold rounded-xl text-sm transition-colors"
+              >
                 <FontAwesomeIcon icon={faArrowLeft} /> Back
               </button>
               <button
@@ -422,30 +492,49 @@ export default function AdminDashboard() {
         {step === 3 && selectedPentest && (
           <div className="space-y-5">
             <div className="bg-[#4590e2]/10 border border-[#4590e2]/30 rounded-xl px-4 py-3 text-sm">
-              <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">Uploading report for</p>
-              <p className="text-white font-semibold">{selectedPentest.target}</p>
-              <p className="text-gray-500 text-xs mt-0.5">{selectedPentest.type} · {formatDate(selectedPentest.createdAt)}</p>
+              <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">
+                Uploading report for
+              </p>
+              <p className="text-white font-semibold">
+                {selectedPentest.target}
+              </p>
+              <p className="text-gray-500 text-xs mt-0.5">
+                {selectedPentest.type} · {formatDate(selectedPentest.createdAt)}
+              </p>
             </div>
             <div>
-              <label className="block text-sm text-gray-400 font-medium mb-2">Report file (PDF or DOCX)</label>
+              <label className="block text-sm text-gray-400 font-medium mb-2">
+                Report file (PDF or DOCX)
+              </label>
               <label className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-white/15 hover:border-[#4590e2]/50 rounded-xl px-6 py-10 cursor-pointer transition-colors group">
                 <div className="p-3 rounded-xl bg-white/5 group-hover:bg-[#4590e2]/10 transition-colors">
                   {file ? (
                     <FontAwesomeIcon
-                      icon={file.type === "application/pdf" ? faFilePdf : faFileWord}
+                      icon={
+                        file.type === "application/pdf" ? faFilePdf : faFileWord
+                      }
                       className="text-[#4590e2] text-2xl"
                     />
                   ) : (
-                    <FontAwesomeIcon icon={faUpload} className="text-gray-500 text-2xl" />
+                    <FontAwesomeIcon
+                      icon={faUpload}
+                      className="text-gray-500 text-2xl"
+                    />
                   )}
                 </div>
                 {file ? (
                   <div className="text-center">
-                    <p className="text-white text-sm font-semibold">{file.name}</p>
-                    <p className="text-gray-500 text-xs mt-0.5">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p className="text-white text-sm font-semibold">
+                      {file.name}
+                    </p>
+                    <p className="text-gray-500 text-xs mt-0.5">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
                   </div>
                 ) : (
-                  <p className="text-gray-400 text-sm">Click to select a PDF or DOCX file</p>
+                  <p className="text-gray-400 text-sm">
+                    Click to select a PDF or DOCX file
+                  </p>
                 )}
                 <input
                   type="file"
@@ -456,7 +545,10 @@ export default function AdminDashboard() {
               </label>
             </div>
             <div className="flex gap-3 pt-1">
-              <button onClick={() => setStep(2)} className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold rounded-xl text-sm transition-colors">
+              <button
+                onClick={() => setStep(2)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold rounded-xl text-sm transition-colors"
+              >
                 <FontAwesomeIcon icon={faArrowLeft} /> Back
               </button>
               <button
@@ -465,9 +557,17 @@ export default function AdminDashboard() {
                 className="flex items-center gap-2 px-6 py-2.5 bg-[#4590e2] hover:bg-[#3a7bc8] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-sm transition-colors"
               >
                 {uploading ? (
-                  <><FontAwesomeIcon icon={faCircleNotch} className="animate-spin" /> Uploading…</>
+                  <>
+                    <FontAwesomeIcon
+                      icon={faCircleNotch}
+                      className="animate-spin"
+                    />{" "}
+                    Uploading…
+                  </>
                 ) : (
-                  <><FontAwesomeIcon icon={faUpload} /> Upload Report</>
+                  <>
+                    <FontAwesomeIcon icon={faUpload} /> Upload Report
+                  </>
                 )}
               </button>
             </div>
@@ -478,12 +578,19 @@ export default function AdminDashboard() {
         {step === 4 && (
           <div className="text-center py-8 space-y-5">
             <div className="inline-flex p-5 rounded-full bg-green-500/15 border border-green-500/30">
-              <FontAwesomeIcon icon={faCheckCircle} className="text-green-400 text-4xl" />
+              <FontAwesomeIcon
+                icon={faCheckCircle}
+                className="text-green-400 text-4xl"
+              />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-white mb-2">Report Uploaded</h3>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Report Uploaded
+              </h3>
               <p className="text-gray-400">
-                The report for <span className="text-white font-semibold">{email}</span> has been uploaded and the pentest is now marked as completed.
+                The report for{" "}
+                <span className="text-white font-semibold">{email}</span> has
+                been uploaded and the pentest is now marked as completed.
               </p>
             </div>
             <button
@@ -523,7 +630,10 @@ function DeliveryQueue({
       const fd = new FormData();
       fd.append("pentestId", pentestId);
       fd.append("file", file);
-      const r = await fetch("/api/admin/upload-report", { method: "POST", body: fd });
+      const r = await fetch("/api/admin/upload-report", {
+        method: "POST",
+        body: fd,
+      });
       if (!r.ok) {
         const d = await r.json().catch(() => ({}));
         throw new Error(d.error || "Upload failed");
@@ -547,24 +657,37 @@ function DeliveryQueue({
       </div>
 
       {loading ? (
-        <div className="px-6 py-10 text-center text-sm text-gray-500">Loading…</div>
+        <div className="px-6 py-10 text-center text-sm text-gray-500">
+          Loading…
+        </div>
       ) : queue.length === 0 ? (
-        <div className="px-6 py-10 text-center text-sm text-gray-500">Nothing awaiting delivery. 🎉</div>
+        <div className="px-6 py-10 text-center text-sm text-gray-500">
+          Nothing awaiting delivery. 🎉
+        </div>
       ) : (
         <div className="divide-y divide-white/5">
           {queue.map((q) => (
-            <div key={q.pentestId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-3.5">
+            <div
+              key={q.pentestId}
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-3.5"
+            >
               <div className="min-w-0">
-                <p className="text-sm text-white font-mono truncate">{q.target}</p>
+                <p className="text-sm text-white font-mono truncate">
+                  {q.target}
+                </p>
                 <p className="text-xs text-gray-500">
-                  {q.userEmail} · {q.type}{q.batchName ? ` · ${q.batchName}` : ""}
+                  {q.userEmail} · {q.type}
+                  {q.batchName ? ` · ${q.batchName}` : ""}
                 </p>
               </div>
               <div className="flex items-center gap-3">
                 <StatusBadge status={q.status} />
                 <label className="cursor-pointer text-xs px-3 py-1.5 border border-[#4590e2]/40 text-[#4590e2] hover:bg-[#4590e2]/10 rounded-lg transition-colors flex items-center gap-1.5">
                   {uploadingId === q.pentestId ? (
-                    <FontAwesomeIcon icon={faCircleNotch} className="animate-spin" />
+                    <FontAwesomeIcon
+                      icon={faCircleNotch}
+                      className="animate-spin"
+                    />
                   ) : (
                     <FontAwesomeIcon icon={faUpload} />
                   )}
@@ -602,7 +725,9 @@ function FeedbackWindow({ feedback }: { feedback: any[] }) {
         </h2>
       </div>
       {feedback.length === 0 ? (
-        <div className="px-6 py-10 text-center text-sm text-gray-500">No feedback yet.</div>
+        <div className="px-6 py-10 text-center text-sm text-gray-500">
+          No feedback yet.
+        </div>
       ) : (
         <div className="divide-y divide-white/5">
           {feedback.map((f) => (

@@ -85,21 +85,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { href: "/app/targets", label: "Target Groups", icon: faBullseye },
     { href: "/app/schedule", label: "Schedule Tests", icon: faCalendarAlt },
     { href: "/app/pentests", label: "Test History", icon: faList },
-    { href: "/app/ai-pentest-launch", label: "Launch AI Pentest", icon: faJetFighter },
+    {
+      href: "/app/ai-pentest-launch",
+      label: "Launch AI Pentest",
+      icon: faJetFighter,
+    },
     { href: "/app/buy-credits", label: "Buy AI Credits", icon: faBolt },
     {
       href: "/app/manual-pentest",
       label: "Scope a Pentest",
       icon: faQuestionCircle,
     },
-    { href: "/app/launch-pentest", label: "Launch a Manual Test", icon: faJetFighter },
+    {
+      href: "/app/launch-pentest",
+      label: "Launch a Manual Test",
+      icon: faJetFighter,
+    },
   ];
 
+  // Admin pages are consolidated into one /admin console with in-page tabs.
   const adminNavItems = [
-    { href: "/admin", label: "Admin Overview", icon: faUserShield },
-    { href: "/admin/users", label: "Manage Users", icon: faUserShield },
-    { href: "/admin/pentests", label: "All Pentests", icon: faList },
-    { href: "/admin/requests", label: "Pentest Requests", icon: faJetFighter },
+    { href: "/admin", label: "Admin Console", icon: faUserShield },
   ];
 
   const bottomItems = [
