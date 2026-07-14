@@ -146,8 +146,8 @@ export async function checkEntitlement(
     return { ...base, reason: "tier_forbids" };
   }
 
-  // 2. Pool
-  const poolOrgId = await resolvePoolOrgId(org);
+  // 2. Pool (always the supplier root)
+  const poolOrgId = resolvePoolOrgId(org);
   if (!poolOrgId) return { ...base, reason: "no_pool" };
   const pool = await getPool(poolOrgId);
   if (!pool) return { ...base, reason: "no_pool" };
@@ -204,7 +204,7 @@ export async function reserveQuota(
   sku: SKU,
   units: number,
 ): Promise<{ poolOrgId: string; overage: boolean }> {
-  const poolOrgId = await resolvePoolOrgId(org);
+  const poolOrgId = resolvePoolOrgId(org);
   if (!poolOrgId) throw new Error("NO_POOL");
   const policy = await (async () => {
     const p = await getPool(poolOrgId);
@@ -252,7 +252,7 @@ export async function reserveQuota(
  */
 export async function consumeQuota(params: {
   poolOrgId: string;
-  tenantId: string;
+  clientId: string;
   path: string[];
   sku: SKU;
   units: number;
@@ -286,7 +286,7 @@ export async function consumeQuota(params: {
       {
         id: ledgerRef.id,
         poolOrgId: params.poolOrgId,
-        tenantId: params.tenantId,
+        clientId: params.clientId,
         path: params.path,
         sku: params.sku,
         units: params.units,
@@ -308,7 +308,7 @@ export async function consumeQuota(params: {
  */
 export async function releaseQuota(params: {
   poolOrgId: string;
-  tenantId: string;
+  clientId: string;
   path: string[];
   sku: SKU;
   units: number;
@@ -335,7 +335,7 @@ export async function releaseQuota(params: {
     tx.set(ledgerRef, {
       id: ledgerRef.id,
       poolOrgId: params.poolOrgId,
-      tenantId: params.tenantId,
+      clientId: params.clientId,
       path: params.path,
       sku: params.sku,
       units: params.units,

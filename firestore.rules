@@ -38,8 +38,12 @@ service cloud.firestore {
     function orgVisible(orgId, orgPath) {
       return hasOrg() && (orgId in myOrgPath() || myOrgId() in orgPath);
     }
-    function isResellerAdmin() {
-      return hasOrg() && (myRole() == "reseller_admin" || myRole() == "platform_admin");
+    // Partner admins: supplier/reseller admins (and platform admins) — the roles
+    // allowed to read shared quota/pool state within their own subtree.
+    function isPartnerAdmin() {
+      return hasOrg() && (myRole() == "supplier_admin" ||
+                          myRole() == "reseller_admin" ||
+                          myRole() == "platform_admin");
     }
 
     // Users collection
@@ -135,19 +139,19 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Quota pools — money-critical. Reseller/platform admins may read pools in
-    // their subtree; nobody writes from the client (Admin SDK transactions only).
+    // Quota pools — money-critical. Supplier/reseller/platform admins may read
+    // pools on their path; nobody writes from the client (Admin SDK txns only).
     match /quotaPools/{orgId} {
       // Visible if the pool belongs to me or an ancestor I draw from
       // (its orgId is on my path). Subtree/child pools resolve server-side.
       allow read: if isAdmin() ||
-                     (isResellerAdmin() && resource.data.orgId in myOrgPath());
+                     (isPartnerAdmin() && resource.data.orgId in myOrgPath());
       allow write: if false;
     }
 
     // Per-node caps — same visibility as pools.
     match /orgCaps/{orgId} {
-      allow read: if isAdmin() || isResellerAdmin();
+      allow read: if isAdmin() || isPartnerAdmin();
       allow write: if false;
     }
 

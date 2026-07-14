@@ -2,12 +2,16 @@
  * Phase 1 migration — backfill the flat, user-centric data model into the
  * multi-tenant org tree used by the consolidated-buying platform.
  *
+ * Fixed 3-level model: supplier → reseller → client. MSP Pentesting is itself
+ * the supplier for its own direct business; direct clients sit under a "house"
+ * reseller node beneath it. The single quota pool lives on the supplier.
+ *
  * What it does (idempotent):
- *   1. Creates the platform root org, a default reseller, and a default tenant.
- *   2. Seeds a "Starter" tier and attaches it to the default reseller.
- *   3. Attaches every existing user to the default tenant (orgId/orgPath/role).
- *   4. Stamps every existing pentest with { resellerId, tenantId }.
- *   5. (optional) Seeds a soft quota pool on the reseller for testing.
+ *   1. Creates the MSPP supplier root, its house reseller, and a default client.
+ *   2. Seeds a "Starter" tier and attaches it to the house reseller.
+ *   3. Attaches every existing user to the default client (orgId/orgPath/role).
+ *   4. Stamps every existing pentest with { resellerId, clientId }.
+ *   5. (optional) Seeds a soft quota pool on the SUPPLIER for testing.
  *
  * SAFETY: dry-run by default. Pass --commit to write. Run against prod with
  * Firebase Admin credentials present in the environment (this repo keeps them
@@ -30,9 +34,9 @@ const SEED_POOL = seedPoolArg ? parseInt(seedPoolArg.split("=")[1], 10) : 0;
 
 // Stable ids so the migration is idempotent.
 const IDS = {
-  platform: "org_platform",
-  reseller: "org_default_reseller",
-  tenant: "org_default_tenant",
+  supplier: "org_msp", // MSP Pentesting as supplier (holds the pool)
+  reseller: "org_msp_house", // house reseller for MSPP direct sales
+  client: "org_msp_direct_client", // default client; existing users land here
   tier: "tier_starter",
 };
 
@@ -94,24 +98,24 @@ async function main() {
     }) ===\n`,
   );
 
-  // 1. Org tree skeleton --------------------------------------------------
+  // 1. Org tree skeleton (supplier → reseller → client) -------------------
   await ensureDoc(
     db,
     "orgs",
-    IDS.platform,
+    IDS.supplier,
     {
-      id: IDS.platform,
-      type: "platform",
+      id: IDS.supplier,
+      type: "supplier",
       parentOrgId: null,
-      path: [IDS.platform],
+      path: [IDS.supplier],
       name: "MSP Pentesting",
-      slug: "platform",
+      slug: "msp",
       billing: { mode: "consolidated" },
       status: "active",
       createdAt: ts,
       createdBy: "system:migrateOrgs",
     },
-    "platform root",
+    "MSPP supplier root (holds the pool)",
   );
 
   await ensureDoc(
@@ -121,36 +125,36 @@ async function main() {
     {
       id: IDS.reseller,
       type: "reseller",
-      parentOrgId: IDS.platform,
-      path: [IDS.platform, IDS.reseller],
-      name: "Default Reseller",
-      slug: "default",
+      parentOrgId: IDS.supplier,
+      path: [IDS.supplier, IDS.reseller],
+      name: "MSP Pentesting (Direct)",
+      slug: "house",
       tierId: IDS.tier,
-      billing: { mode: "direct" },
-      status: "active",
-      createdAt: ts,
-      createdBy: "system:migrateOrgs",
-    },
-    "default reseller",
-  );
-
-  await ensureDoc(
-    db,
-    "orgs",
-    IDS.tenant,
-    {
-      id: IDS.tenant,
-      type: "tenant",
-      parentOrgId: IDS.reseller,
-      path: [IDS.platform, IDS.reseller, IDS.tenant],
-      name: "Default Tenant",
-      slug: "default-tenant",
       billing: { mode: "inherited" },
       status: "active",
       createdAt: ts,
       createdBy: "system:migrateOrgs",
     },
-    "default tenant (existing users land here)",
+    "house reseller (MSPP direct sales)",
+  );
+
+  await ensureDoc(
+    db,
+    "orgs",
+    IDS.client,
+    {
+      id: IDS.client,
+      type: "client",
+      parentOrgId: IDS.reseller,
+      path: [IDS.supplier, IDS.reseller, IDS.client],
+      name: "Default Client",
+      slug: "default-client",
+      billing: { mode: "inherited" },
+      status: "active",
+      createdAt: ts,
+      createdBy: "system:migrateOrgs",
+    },
+    "default client (existing users land here)",
   );
 
   // 2. Starter tier -------------------------------------------------------
@@ -162,7 +166,7 @@ async function main() {
       id: IDS.tier,
       name: "Starter",
       skus: ["ai_pentest", "external", "web_app", "manual"],
-      limits: { pentestsPerMonth: 0, concurrentJobs: 2, tenantsMax: 0 },
+      limits: { pentestsPerMonth: 0, concurrentJobs: 2, clientsMax: 0 },
       features: {
         apiAccess: true,
         scheduledScans: false,
@@ -174,20 +178,20 @@ async function main() {
     "Starter tier",
   );
 
-  // 3. Optional soft quota pool on the reseller --------------------------
+  // 3. Optional soft quota pool on the SUPPLIER --------------------------
   if (SEED_POOL > 0) {
-    const poolRef = db.collection("quotaPools").doc(IDS.reseller);
+    const poolRef = db.collection("quotaPools").doc(IDS.supplier);
     const exists = (await poolRef.get()).exists;
     if (exists) {
-      log("skip (exists)", `quotaPools/${IDS.reseller}`);
+      log("skip (exists)", `quotaPools/${IDS.supplier}`);
     } else {
       log(
         "create",
-        `quotaPools/${IDS.reseller} — soft ai_pentest=${SEED_POOL}`,
+        `quotaPools/${IDS.supplier} — soft ai_pentest=${SEED_POOL}`,
       );
       if (COMMIT)
         await poolRef.set({
-          orgId: IDS.reseller,
+          orgId: IDS.supplier,
           purchased: { ai_pentest: SEED_POOL },
           reserved: {},
           consumed: {},
@@ -208,13 +212,13 @@ async function main() {
       userSkipped++;
       continue;
     }
-    const role = d.isAdmin ? "platform_admin" : "tenant_user";
+    const role = d.isAdmin ? "platform_admin" : "client_user";
     userUpdated++;
     if (COMMIT) {
       await doc.ref.set(
         {
-          orgId: IDS.tenant,
-          orgPath: [IDS.platform, IDS.reseller, IDS.tenant],
+          orgId: IDS.client,
+          orgPath: [IDS.supplier, IDS.reseller, IDS.client],
           role,
           updatedAt: ts,
         },
@@ -224,7 +228,7 @@ async function main() {
   }
   log(
     "users",
-    `${userUpdated} attached to default tenant, ${userSkipped} skipped (already have orgId)`,
+    `${userUpdated} attached to default client, ${userSkipped} skipped (already have orgId)`,
   );
 
   // 5. Stamp pentests -----------------------------------------------------
@@ -233,14 +237,14 @@ async function main() {
     ptSkipped = 0;
   for (const doc of ptSnap.docs) {
     const d = doc.data() || {};
-    if (d.tenantId && d.resellerId && !FORCE) {
+    if (d.clientId && d.resellerId && !FORCE) {
       ptSkipped++;
       continue;
     }
     ptUpdated++;
     if (COMMIT) {
       await doc.ref.set(
-        { resellerId: IDS.reseller, tenantId: IDS.tenant, updatedAt: ts },
+        { resellerId: IDS.reseller, clientId: IDS.client, updatedAt: ts },
         { merge: true },
       );
     }

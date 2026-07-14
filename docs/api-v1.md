@@ -2,7 +2,7 @@
 
 _Status: **draft / proposed** — not yet implemented. Last updated 2026-07-13._
 
-Programmatic API for partners (distributors, resellers/MSPs) to provision org trees, mint keys,
+Programmatic API for partners (suppliers, resellers/MSPs) to provision org trees, mint keys,
 launch pentests, and pull results. Backs the Compulab consolidated-buying program. See
 `COMPULAB_PARTNERSHIP.md` and `HANDOFF.md` for the design rationale.
 
@@ -27,16 +27,17 @@ launch pentests, and pull results. Backs the Compulab consolidated-buying progra
 
 ## Org tree
 
-General tree of typed nodes: `platform → distributor → reseller → tenant`. Every node carries a
-materialized `path[]` (root→self).
+Fixed 3-level tree: `supplier → reseller → client` (no sub-resellers). A supplier
+selling direct uses a "house" reseller node so the tree is always exactly 3 deep.
+Every node carries a materialized `path[]` (supplier→self).
 
 ### `POST /orgs`
 Create a node anywhere in the tree.
 ```jsonc
 // request
 {
-  "type": "reseller",                 // distributor | reseller | tenant
-  "parentOrgId": "org_compulab",
+  "type": "reseller",                 // supplier | reseller | client
+  "parentOrgId": "org_supplier",
   "name": "Acme MSP",
   "slug": "acme",                     // optional; used for portal subdomain
   "tierId": "tier_pro",               // optional; inherited from ancestor if omitted
@@ -44,8 +45,8 @@ Create a node anywhere in the tree.
   "billing": { "mode": "inherited" }  // consolidated | direct | inherited
 }
 // 201
-{ "id": "org_acme", "type": "reseller", "parentOrgId": "org_compulab",
-  "path": ["org_platform","org_compulab","org_acme"], "status": "active" }
+{ "id": "org_acme", "type": "reseller", "parentOrgId": "org_supplier",
+  "path": ["org_msp","org_supplier","org_acme"], "status": "active" }
 ```
 
 ### `GET /orgs/{id}` · `GET /orgs/{id}/children` · `GET /orgs?subtreeOf={id}`
@@ -58,7 +59,7 @@ Update `name`, `status` (`active|suspended`), `tierId`, `branding`, `billing`.
 
 ## Quota & allocations
 
-Pool lives on the purchasing node (usually the distributor), denominated in **per-SKU buckets**
+Pool lives on the supplier (tree root), denominated in **per-SKU buckets**
 (`ai_pentest`, `external`, `internal`, `manual`, …). Draw-down is shared across the subtree; child
 **caps** are optional ceilings.
 
@@ -91,7 +92,7 @@ Mint a scoped key. Full secret returned **once**; only a SHA-256 hash + prefix a
 // request
 { "name": "Compulab provisioning", "scopes": ["orgs:write","pentests:write","usage:read"] }
 // 201
-{ "id": "key_123", "prefix": "mspp_live_a1b2", "secret": "mspp_live_a1b2c3…", "orgId": "org_compulab" }
+{ "id": "key_123", "prefix": "mspp_live_a1b2", "secret": "mspp_live_a1b2c3…", "orgId": "org_supplier" }
 ```
 
 ### `GET /orgs/{id}/api-keys` · `DELETE /api-keys/{keyId}`
@@ -105,19 +106,19 @@ List (prefix + metadata only) / revoke.
 Launch. Runs walk-up entitlement (tier capability + pool/cap check), reserves units, enqueues the job.
 ```jsonc
 // request
-{ "tenantId": "org_client_x",
+{ "clientId": "org_client_x",
   "scanType": "ai_pentest",          // maps to a SKU
   "targets": ["example.com", "10.0.0.0/24"],
   "webhookUrl": "https://compulab.example/hooks/mspp",  // optional per-launch override
   "metadata": { "poNumber": "CL-4471" } }
 // 202 (queued)
-{ "id": "pt_789", "status": "queued", "tenantId": "org_client_x",
+{ "id": "pt_789", "status": "queued", "clientId": "org_client_x",
   "sku": "ai_pentest", "units": 2, "reserved": true, "createdAt": "2026-07-13T…Z" }
 // 402 if hard-blocked
 { "error": { "code": "quota_exhausted", "message": "ai_pentest pool exhausted", "details": { "available": 0 } } }
 ```
 
-### `GET /pentests?tenantId=&resellerId=&status=` · `GET /pentests/{id}`
+### `GET /pentests?clientId=&resellerId=&status=` · `GET /pentests/{id}`
 List (scoped to the key's subtree) / fetch status + findings summary.
 
 ### `GET /pentests/{id}/report?format=pdf|json`
@@ -157,7 +158,7 @@ Partner registers endpoints; MSPP POSTs signed events (`X-MSPP-Signature`, HMAC-
 ```jsonc
 // example delivery
 { "type": "pentest.completed", "id": "evt_…", "createdAt": "…",
-  "data": { "pentestId": "pt_789", "tenantId": "org_client_x", "sku": "ai_pentest",
+  "data": { "pentestId": "pt_789", "clientId": "org_client_x", "sku": "ai_pentest",
             "findingsCount": 14, "reportUrl": "…" } }
 ```
 
@@ -180,4 +181,4 @@ Partner registers endpoints; MSPP POSTs signed events (`X-MSPP-Signature`, HMAC-
 ## Open items (pending Luis)
 - Allocation model default (shared draw-down + caps vs strict envelope).
 - Hard/soft defaults per SKU. · Pool replenishment (monthly commit vs one-time, rollover?).
-- Whether tenant-level keys are exposed or reseller-scoped only.
+- Whether client-level keys are exposed or reseller-scoped only.

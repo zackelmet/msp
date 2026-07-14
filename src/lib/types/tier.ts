@@ -14,8 +14,8 @@ export interface TierLimits {
   /** Per-org rate limit (distinct from the consumable pool). 0 = unlimited. */
   pentestsPerMonth: number;
   concurrentJobs: number;
-  /** Max direct child tenants a reseller may create. 0 = unlimited. */
-  tenantsMax: number;
+  /** Max direct child clients a reseller may create. 0 = unlimited. */
+  clientsMax: number;
 }
 
 export interface TierFeatures {

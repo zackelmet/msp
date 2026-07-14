@@ -3,7 +3,7 @@
 _Last updated: 2026-07-13. Priority order set by Zack after the 2nd Luis (Compulab) meeting._
 
 **The goal:** turn the MSPP dashboard into a **consolidated-buyer pentest platform** — a
-distributor buys pentest capacity in bulk and allocates it down to MSPs and their clients —
+supplier buys pentest capacity in bulk and allocates it down to reseller MSPs and their clients —
 with the product actually executing real pentests, and a provisioning UX modeled on Acronis.
 
 Three priorities, in order. **P1 must land before P2 depth.**
@@ -56,13 +56,24 @@ building an engine:
 
 ## P2 — Consolidated-buyer platform  ← SECOND
 
-**Goal:** distributor → reseller → tenant org tree, consumable quota pools, scoped API keys, a
-provisioning API, and billing decoupled from provisioning. Design: `docs/api-v1.md`,
-`COMPULAB_PARTNERSHIP.md`.
+**Goal:** **fixed 3-level** `supplier → reseller → client` org tree (no sub-resellers), consumable
+quota pools, scoped API keys, a provisioning API, and billing decoupled from provisioning. Design:
+`docs/api-v1.md`, `COMPULAB_PARTNERSHIP.md`.
 
-- [x] **Phase 1 — data-model foundation (built).** `src/lib/types/{org,tier,quota,apiKey,usage}.ts`,
-      `src/lib/org/{collections,tree,entitlement}.ts`, `scripts/migrateOrgs.js`, updated
-      `firestore.rules`, `users` extended with `orgId/orgPath/role`.
+> **Model locked (2026-07-14, Zack + Luis transcript):** exactly 3 levels. **Supplier** holds the
+> single quota pool and is billed post-paid on its subtree's consolidated consumption. **MSP
+> Pentesting is itself a supplier** (for its own direct business, via a "house" reseller) *and*
+> operates the platform (`platform_admin` sees all suppliers); **Compulab** is another supplier.
+> **Soft/hard quotas per client** (Luis's Acronis "sell 2 servers" example): hard = block at the
+> ceiling; soft = allow overage, meter it as billable, notify. **White-label = reports + end-client
+> portal** driven by the reseller's logo/colors/footer, with an on/off toggle. Roles:
+> `platform_admin | supplier_admin | reseller_admin | client_user`.
+
+- [x] **Phase 1 — data-model foundation (built, refactored to 3-level 2026-07-14).**
+      `src/lib/types/{org,tier,quota,apiKey,usage}.ts`, `src/lib/org/{collections,tree,entitlement}.ts`,
+      `scripts/migrateOrgs.js`, updated `firestore.rules`, `users` extended with `orgId/orgPath/role`.
+      N-level tree trimmed to fixed supplier→reseller→client; `resolvePoolOrgId` is now `path[0]`;
+      `tenant`→`client` throughout. Nothing wired to live launch paths yet. tsc + build clean.
 - [ ] **P2.0 — Run the migration on prod.** `node scripts/migrateOrgs.js --commit` (needs Firebase
       Admin creds available in the run environment — one-time enablement).
 - [ ] **Phase 2 — API keys + auth.** Mint/verify `mspp_live_`/`mspp_test_` (store SHA-256 + prefix),
@@ -73,7 +84,7 @@ provisioning API, and billing decoupled from provisioning. Design: `docs/api-v1.
 - [ ] **Phase 4 — Org + quota management endpoints** (`/api/v1/orgs`, `/quota`, `/caps`, `/usage`,
       `/api-keys`, `/webhooks`) + dashboard wiring.
 - [ ] **Phase 5 — Billing decoupled from provisioning.** Metered usage → monthly rollup → single
-      consolidated distributor invoice (Stripe Invoicing); downstream MSPs never touch Stripe.
+      consolidated supplier invoice (Stripe Invoicing); downstream MSPs never touch Stripe.
       Signed outbound webhooks (`pentest.completed`, `report.ready`, `quota.*`).
 - [ ] **Adopt Acronis quota model** (see P3): explicit **overage grace band** per SKU on
       `QuotaPool.policy`, and enforce the **parent-cap invariant** (a child's hard quota ≤ parent's)

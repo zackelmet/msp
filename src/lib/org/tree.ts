@@ -6,9 +6,9 @@ import { TierDocument } from "@/lib/types/tier";
 /**
  * Org-tree read + resolution helpers.
  *
- * Everything keys off the materialized `path[]` (root→self). Subtree queries
- * are a single `array-contains`; ancestor resolution (tier, branding, pool)
- * walks `path` from self back toward the root and reads the nearest match.
+ * Everything keys off the materialized `path[]` (supplier→self). Subtree queries
+ * are a single `array-contains`; tier/branding resolution walks `path` from self
+ * back toward the root; the quota pool is always the supplier root (path[0]).
  */
 
 const orgs = () => adminDb.collection(COLLECTIONS.orgs);
@@ -83,20 +83,12 @@ export async function resolveBranding(org: OrgDocument): Promise<OrgBranding> {
 }
 
 /**
- * Nearest ancestor (including self) that owns a quota pool. Callers use this to
- * decide which pool a launch draws from. Returns the orgId or null.
+ * The pool-holding node for a launch. In the fixed 3-level model the supplier
+ * (tree root, path[0]) always holds the single pool, so this is just path[0].
+ * Returns null only for a malformed org with an empty path.
  */
-export async function resolvePoolOrgId(
-  org: OrgDocument,
-): Promise<string | null> {
-  // path is root→self; the pool-holding node is usually high (distributor),
-  // but a lower node may own its own pool. Prefer the *nearest* to self.
-  for (let i = org.path.length - 1; i >= 0; i--) {
-    const id = org.path[i];
-    const pool = await adminDb.collection(COLLECTIONS.quotaPools).doc(id).get();
-    if (pool.exists) return id;
-  }
-  return null;
+export function resolvePoolOrgId(org: OrgDocument): string | null {
+  return org.path[0] ?? null;
 }
 
 /**

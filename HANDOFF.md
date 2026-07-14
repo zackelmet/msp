@@ -17,6 +17,33 @@ _Last updated: 2026-07-14_
 - **Next P1:** P1.3 (port AIP report-engine — largest missing subsystem), P1.5 (wire-or-retire
   `/api/launch-pentest`), P1.6 (env-ify hardcoded Make URL + verify the Make PATCH callback).
 
+## ✅ Org model refactored: N-level → fixed 3-level (2026-07-14)
+
+Decision by Zack (backed by the full Luis/Compulab call transcript). The Phase-1 org code was built
+N-level (arbitrary depth, `distributor` above `reseller`); trimmed to a **fixed 3-level tree**:
+
+```
+supplier → reseller → client        (Luis/Acronis vocab: master → reseller → end client)
+```
+
+- **No sub-resellers.** A supplier selling direct uses a "house" reseller node → always exactly 3 deep.
+- **Supplier holds the single quota pool** (`resolvePoolOrgId` is now just `path[0]`) and is billed
+  **post-paid** on its subtree's **consolidated** consumption (one invoice; downstream MSPs never
+  touch Stripe). One billing model only (Luis: "you should have only one").
+- **MSP Pentesting is itself a supplier** (its own direct clients live under an MSPP "house" reseller)
+  **and** operates the platform: `platform_admin` users see across every supplier tree. Compulab is a
+  second supplier. Migration seeds `org_msp` (supplier) → `org_msp_house` (reseller) → `org_msp_direct_client`.
+- **Soft/hard quotas per client** — Luis's Acronis "sell this client 2 servers" example:
+  **hard** = block at the ceiling; **soft** = allow the overage, meter it as billable, notify of excess.
+  Modeled by `QuotaPool.policy` + `QuotaCaps.policy` (per-SKU) + `usageLedger` `overage` entries.
+- **White-label = reports + the end-client portal** (NOT necessarily the dashboard), driven by the
+  **reseller's** logo / colors / footer contacts, with an on/off toggle (`OrgBranding.whiteLabelEnabled`).
+- Roles: `platform_admin | supplier_admin | reseller_admin | client_user`.
+- Renames: `tenant`→`client` (`tenantId`→`clientId`), `tenantsMax`→`clientsMax`, `isResellerAdmin`→
+  `isPartnerAdmin` (rules). Touched: `types/{org,quota,usage,user,tier}`, `org/{tree,entitlement}`,
+  `scripts/migrateOrgs.js`, `firestore.rules`, `docs/api-v1.md`. **tsc + build clean; nothing wired to
+  live paths yet** (safe to iterate). Bridge insight for P3 UX: today's **"target group" ≈ a client**.
+
 ## ⏳ In progress: Phase 1 (data-model foundation) — BUILT, not yet migrated
 
 The multi-tenant org-tree foundation for the consolidated-buying platform is now

@@ -1,17 +1,38 @@
 import { Timestamp } from "firebase-admin/firestore";
 
 /**
- * Multi-tenant org tree for the consolidated-buying / white-label platform.
+ * Fixed 3-level org tree for the consolidated-buying / white-label platform:
  *
- * Nodes form a general tree: platform → distributor → reseller → tenant.
- * Every node carries a materialized `path` (root→self, inclusive) so any
- * subtree query is a single `array-contains` and entitlement checks can walk
- * up the ancestor chain without recursive reads.
+ *   supplier → reseller → client
+ *
+ * (Luis/Acronis vocabulary: master → reseller → end client. We use "supplier"
+ * for the top. Acronis also allows sub-resellers; we deliberately do NOT —
+ * exactly 3 levels.)
+ *
+ * - supplier: buys pentest capacity in bulk and holds the single quota pool
+ *   (e.g. Compulab). Always the root (path[0]). Billed post-paid on the
+ *   consolidated consumption of its whole subtree.
+ * - reseller: an MSP under a supplier. Owns white-label branding (logo/colors/
+ *   footer) that drives its clients' reports + portal, and sets per-client
+ *   quota caps (soft/hard).
+ * - client: the end customer a pentest is launched for (the tree leaf). In
+ *   today's app a client corresponds to a "target group".
+ *
+ * There can be MANY supplier-rooted trees. MSP Pentesting is itself a supplier
+ * (for its own direct business), Compulab is another, etc. When a supplier
+ * sells directly (no MSP in between) its clients sit under a "house" reseller
+ * node representing the supplier itself — so the tree is always exactly 3 deep.
+ * MSP Pentesting also OPERATES the platform: its staff are `platform_admin`
+ * users who can see across every supplier tree, on top of MSPP's own supplier node.
+ *
+ * Every node carries a materialized `path` (root→self, inclusive), so any
+ * subtree query is a single `array-contains` and tier/branding/pool resolution
+ * walks the (at most 3-deep) ancestor chain without recursive reads.
  *
  * Design rationale: docs/api-v1.md + COMPULAB_PARTNERSHIP.md.
  */
 
-export type OrgType = "platform" | "distributor" | "reseller" | "tenant";
+export type OrgType = "supplier" | "reseller" | "client";
 
 export type OrgStatus = "active" | "suspended";
 
@@ -26,6 +47,10 @@ export interface OrgBranding {
   cname?: string;
   reportCoverUrl?: string;
   emailSender?: string;
+  /** Free-text footer for white-labeled reports (reseller address / contacts). */
+  reportFooter?: string;
+  /** Reseller opt-in: apply this branding to end-client reports + portal. */
+  whiteLabelEnabled?: boolean;
 }
 
 export interface OrgBilling {
@@ -39,9 +64,9 @@ export interface OrgBilling {
 export interface OrgDocument {
   id: string;
   type: OrgType;
-  /** null only for the single platform root. */
+  /** null only for a supplier (the root of its tree). */
   parentOrgId: string | null;
-  /** Materialized ancestor path, root→self inclusive. path[0] is the platform root, path[last] === id. */
+  /** Materialized ancestor path, root→self inclusive. path[0] is the supplier, path[last] === id. */
   path: string[];
   name: string;
   /** Optional; used for portal subdomain + human-friendly references. Unique among siblings. */
@@ -61,19 +86,25 @@ export interface OrgDocument {
   createdBy?: string;
 }
 
-/** Depth ordering used to validate parent/child type relationships. */
+/** Depth of each level. supplier is the root pool-holder; client is the leaf. */
 export const ORG_TYPE_DEPTH: Record<OrgType, number> = {
-  platform: 0,
-  distributor: 1,
-  reseller: 2,
-  tenant: 3,
+  supplier: 0,
+  reseller: 1,
+  client: 2,
+};
+
+/** The single legal child type for each level (client is a leaf → null). */
+export const CHILD_TYPE: Record<OrgType, OrgType | null> = {
+  supplier: "reseller",
+  reseller: "client",
+  client: null,
 };
 
 /**
- * Allowed child types for each org type. The tree is flexible (a distributor
- * may sit directly above a tenant, or a reseller directly under the platform),
- * but a node can never parent something at or above its own level.
+ * Strict parent/child rule for the fixed 3-level tree: a node may only parent
+ * the level immediately below it (supplier→reseller, reseller→client). No
+ * level-skipping and no same-level nesting.
  */
 export function canParent(parent: OrgType, child: OrgType): boolean {
-  return ORG_TYPE_DEPTH[child] > ORG_TYPE_DEPTH[parent];
+  return CHILD_TYPE[parent] === child;
 }

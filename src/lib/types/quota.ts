@@ -3,10 +3,16 @@ import { Timestamp } from "firebase-admin/firestore";
 /**
  * Consumable quota model for the consolidated-buying program.
  *
- * A pool is prepurchased on a node (usually the distributor) and drawn down
- * across its whole subtree. Child nodes may declare optional `caps` (ceilings)
- * on how much of the shared pool they can consume. Entitlement checks walk UP
- * the tree to the nearest pool-holding ancestor. See docs/api-v1.md.
+ * The pool is prepurchased on the SUPPLIER (tree root, path[0]) and drawn down
+ * across its whole subtree (resellers + clients). Reseller/client nodes may
+ * declare optional per-SKU `caps` (ceilings) on how much of the shared pool
+ * their subtree may consume. Entitlement checks resolve the pool at the
+ * supplier root and the nearest cap on the path. See docs/api-v1.md.
+ *
+ * Soft vs hard (Luis's Acronis example — "sell this client 2 servers"):
+ *   - hard: block at the ceiling — the client simply cannot exceed it.
+ *   - soft: allow the overage, meter it as billable, and flag it so the
+ *     partner is notified of the excess usage.
  */
 
 /**
