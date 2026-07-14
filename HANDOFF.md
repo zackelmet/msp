@@ -50,11 +50,14 @@ breadcrumb to ascend), per-supplier quota-pool usage bars (soft/hard aware), whi
 Read-only `/api/admin/orgs` (uid-cookie admin-gated). Shows empty state until the migration runs.
 **Next on this:** editable provisioning screen — set soft/hard quotas + white-label settings inline.
 
-## ⛔ One blocker to unblock everything Firebase-side (P2.0)
-`.env.local` has `FIREBASE_SERVICE_ACCOUNT_KEY=` **empty**. Drop a real service-account JSON (Firebase
-console → project `msp-pentesting` → Project settings → Service accounts → Generate new private key)
-into that var (`.env.local` is gitignored). Then Claude can dry-run + `--commit` migrateOrgs and manage
-Firebase directly. Without it the org tree stays empty and the Platform tab shows its empty state.
+## ✅ P2.0 migration RUN on prod (2026-07-14)
+`FIREBASE_SERVICE_ACCOUNT_KEY` (msp-pentesting service account) is now in the gitignored `.env.local`,
+so Admin-SDK scripts run directly. `migrateOrgs.js --commit` applied: seeded `org_msp` (supplier) →
+`org_msp_house` (reseller) → `org_msp_direct_client` (client) + Starter tier; attached 6 users
+(role `client_user`, or `platform_admin` if isAdmin) to the default client; stamped 3 pentests with
+`{resellerId, clientId}`. Idempotent (re-run = no-op). **No quota pool seeded** — real capacity is a
+business decision; `node scripts/migrateOrgs.js --commit --seed-pool=N` adds a test AI-pentest pool
+on the supplier (e.g. to give Luis trial credits). The Platform tab now renders this tree.
 
 ## ⏳ In progress: Phase 1 (data-model foundation) — BUILT, not yet migrated
 
