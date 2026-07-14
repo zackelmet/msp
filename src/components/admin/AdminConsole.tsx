@@ -9,11 +9,13 @@ import {
   faUsers,
   faShieldHalved,
   faInbox,
+  faSitemap,
 } from "@fortawesome/free-solid-svg-icons";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import UsersSection from "@/components/admin/sections/UsersSection";
 import PentestsSection from "@/components/admin/sections/PentestsSection";
 import RequestsSection from "@/components/admin/sections/RequestsSection";
+import PlatformSection from "@/components/admin/sections/PlatformSection";
 
 /**
  * Consolidated admin console: a single page with tabbed sections (Overview,
@@ -23,6 +25,7 @@ import RequestsSection from "@/components/admin/sections/RequestsSection";
  */
 const TABS = [
   { id: "overview", label: "Overview", icon: faGaugeHigh },
+  { id: "platform", label: "Platform", icon: faSitemap },
   { id: "users", label: "Users", icon: faUsers },
   { id: "pentests", label: "Pentests", icon: faShieldHalved },
   { id: "requests", label: "Requests", icon: faInbox },
@@ -70,6 +73,7 @@ function AdminConsoleInner() {
 
       {/* Active section */}
       {active === "overview" && <AdminDashboard />}
+      {active === "platform" && <PlatformSection />}
       {active === "users" && <UsersSection />}
       {active === "pentests" && <PentestsSection />}
       {active === "requests" && <RequestsSection />}
