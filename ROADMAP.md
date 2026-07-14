@@ -23,16 +23,16 @@ implemented). Make.com runs the actual pentest workflow (tooling + human operato
 So P1 is **closing specific gaps on the Make.com pipeline + removing dead scanner code**, not
 building an engine:
 
-- [ ] **P1.1 — Remove dead GCP scanner code.** There are no runners, so `src/lib/gcp/scannerClient.ts`
-      (`enqueueScanJob`), `src/app/api/scans/**` (incl. `scans/webhook`), and the orphaned
-      `src/app/api/ai-pentest/route.ts` (whose `:178 // TODO: Trigger actual scan execution` never
-      fires) are dead paths. Delete them (and any `GCP_*_SCANNER_URL` config), or repoint
-      `/api/ai-pentest` at the Make.com flow if that batch UX is still wanted. Removing avoids
-      confusion about a second "engine" that doesn't exist.
-- [ ] **P1.2 — Harden pentest auth (security).** `src/app/api/pentests/route.ts` POST (:8) / GET
-      (:123) and `pentests/[id]/route.ts` (:11) trust a **client-supplied `userId`**. These spend
-      credits — switch to `verifyAuthToken` (already at `firebaseAdmin.ts:84`, used by
-      `ai-pentest-launch`).
+- [x] **P1.1 — Remove dead GCP scanner code. (done — commit 63606c6)** Deleted `scannerClient.ts`
+      (`enqueueScanJob` + `GCP_*_SCANNER_URL`), `/api/scans/**` (incl. `scans/webhook`), the orphaned
+      `/api/ai-pentest/route.ts`, and their two nav-unlinked pages (`/app/ai-pentest`, `/app/scans`).
+      Full retirement chosen (Zack) since Make.com is the only engine. `tsc` + `next build` clean.
+      _Follow-up:_ `src/lib/gcp/storageClient.ts` also has zero importers — likely dead too, left in
+      place (out of the confirmed P1.1 scope); confirm before removing.
+- [x] **P1.2 — Harden pentest auth (security). (done — commit bd3ec9e)** `/api/pentests` POST+GET and
+      `/api/pentests/[id]` GET now derive the user from `verifyAuthToken`, not a client-supplied
+      `userId`. Frontend callers (`new-pentest`, pentest-detail) send the Firebase ID token as a
+      Bearer header. `tsc`/ESLint clean.
 - [ ] **P1.3 — Automated report engine (largest missing subsystem).** msp has no
       `src/lib/report-engine/*`, no `/api/admin/report-engine/*`, no `parseFindingsBlock`. Port from
       AIP: `report-engine/{types,docx-template,pdf-template,cvss,storage}.ts`,

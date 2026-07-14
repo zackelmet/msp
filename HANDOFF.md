@@ -1,10 +1,21 @@
 # MSPP Dashboard — Handoff
 
-_Last updated: 2026-07-13_
+_Last updated: 2026-07-14_
 
 > **See `ROADMAP.md` for the prioritized dev plan** (P1 run-real-pentests → P2 consolidated-buyer
 > platform → P3 Acronis-north-star UX), set after the 2nd Luis/Compulab meeting. North-star UX
 > teardown in `docs/north-star-acronis.md`. This file tracks the P2 Phase-1 build detail below.
+
+## ✅ P1 progress (2026-07-14 session)
+- **P1.2 — pentest auth hardened (commit bd3ec9e).** `/api/pentests` POST+GET and `/api/pentests/[id]`
+  GET no longer trust a client-supplied `userId` (the POST spends credits) — all three use
+  `verifyAuthToken`; frontend callers now send the Firebase ID token as a Bearer header.
+- **P1.1 — dead GCP scanner code removed (commit 63606c6).** Deleted `scannerClient.ts`, `/api/scans/**`,
+  `/api/ai-pentest`, and the two nav-unlinked pages (`/app/ai-pentest`, `/app/scans`). Make.com is the
+  only engine. `tsc` + `next build` clean. _Follow-up:_ `src/lib/gcp/storageClient.ts` also looks dead
+  (no importers) — left in place, confirm before removing.
+- **Next P1:** P1.3 (port AIP report-engine — largest missing subsystem), P1.5 (wire-or-retire
+  `/api/launch-pentest`), P1.6 (env-ify hardcoded Make URL + verify the Make PATCH callback).
 
 ## ⏳ In progress: Phase 1 (data-model foundation) — BUILT, not yet migrated
 
