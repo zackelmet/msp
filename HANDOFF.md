@@ -6,6 +6,45 @@ _Last updated: 2026-07-14_
 > platform → P3 Acronis-north-star UX), set after the 2nd Luis/Compulab meeting. North-star UX
 > teardown in `docs/north-star-acronis.md`. This file tracks the P2 Phase-1 build detail below.
 
+## 📌 Session ledger — 2026-07-14 (all on `main` unless noted)
+
+| Commit | What |
+|--------|------|
+| `bd3ec9e` | **P1.2** pentest auth hardened (verifyAuthToken, no client `userId`) |
+| `63606c6` | **P1.1** dead GCP scanner code + 2 orphan pages removed |
+| `9c49578` | Admin **Requests** tab dark-themed to match console |
+| `63daee9` | **Org model refactored N-level → fixed 3-level** (supplier→reseller→client) |
+| _(prod)_ | **P2.0 migration RUN** on prod: seeded org tree + tier, attached 6 users, stamped 3 pentests |
+| `e719439` | **Control plane** started — clients grid + drill-down (Platform tab) |
+| `6cb7a7b` | **Report engine** ported from AIP (PDF v2) + reseller white-labeling → **Reports** tab |
+| `8beccae` | **Control plane** editable provisioning — client soft/hard quota caps + white-label settings |
+| _(VPS)_ | **PentAGI deployed** as the pentest engine on the Oracle VPS (see below) |
+
+Firebase is now fully manageable from the checkout (`FIREBASE_SERVICE_ACCOUNT_KEY` in gitignored
+`.env.local`, project `msp-pentesting`). tsc + eslint + `next build` green across all app commits.
+
+## ⏭️ Tomorrow / next up
+1. **PentAGI eval + hardening** — log in over the SSH tunnel and run a real flow to judge Groq quality;
+   change default admin creds + mint an API token; fix the embedder (add an OpenAI key or local Ollama);
+   consider `llama-3.3-70b-versatile` vs the reasoning-model `gpt-oss-120b`. (Details in the `pentagi-engine`
+   memory + section below.)
+2. **Wire PentAGI into the app** — design a job-submit/callback contract mirroring the Make webhook so a
+   launched pentest can route to PentAGI's `POST /api/v1/flows` and its result flows back to `/api/pentests`.
+3. **P1.5** wire-or-retire `/api/launch-pentest` (creates no doc, no callback → results never surface).
+4. **P1.6** (Zack said "next session") env-ify hardcoded Make URL + verify the Make PATCH callback + make
+   the launch flow fully autonomous for users.
+5. Optional cleanup: `src/lib/gcp/storageClient.ts` looks dead (no importers) — confirm + remove.
+
+## 🖥️ PentAGI engine — deployed 2026-07-14 (Oracle VPS, EVAL)
+Chosen over Vulnetic. Running on `autojob-vps` (`147.224.173.192`, ubuntu, key
+`/home/zack/Desktop/openclaw/ssh-key-2026-02-02.key`) at `/home/ubuntu/pentagi` — 4 containers
+(pentagi/pgvector/scraper/pgexporter) **bound to 127.0.0.1** (not exposed). LLM = **Groq** via the
+custom OpenAI-compatible provider (`LLM_SERVER_PROVIDER=groq`, model `openai/gpt-oss-120b`, key from the
+box's `~/vuln-trends-engine/.env`). UI/REST/Swagger return 200. **Access:** `ssh -L 8443:localhost:8443
+autojob-vps` → `https://localhost:8443`, login `admin@pentagi.com` / `admin` (change it). Caveats: embedder
+needs a key (no Groq embeddings; vector-memory degraded, non-fatal); `gpt-oss-120b` is a reasoning model.
+Full runbook in the `pentagi-engine` memory. NOT yet wired into the msp launch path.
+
 ## ✅ P1 progress (2026-07-14 session)
 - **P1.2 — pentest auth hardened (commit bd3ec9e).** `/api/pentests` POST+GET and `/api/pentests/[id]`
   GET no longer trust a client-supplied `userId` (the POST spends credits) — all three use
@@ -44,10 +83,21 @@ supplier → reseller → client        (Luis/Acronis vocab: master → reseller
   `scripts/migrateOrgs.js`, `firestore.rules`, `docs/api-v1.md`. **tsc + build clean; nothing wired to
   live paths yet** (safe to iterate). Bridge insight for P3 UX: today's **"target group" ≈ a client**.
 
-## 🟡 Control plane (Acronis north-star) — started (2026-07-14, commit e719439)
-New **Platform** tab in the admin console: clients grid + drill-down (supplier→reseller→client,
-breadcrumb to ascend), per-supplier quota-pool usage bars (soft/hard aware), white-label badge.
-Read-only `/api/admin/orgs` (uid-cookie admin-gated). Shows empty state until the migration runs.
+## ✅ Control plane (Acronis north-star) — grid + editable provisioning (commits e719439, 8beccae)
+**Platform** tab in the admin console: clients grid + drill-down (supplier→reseller→client, breadcrumb
+to ascend), per-supplier quota-pool usage bars (soft/hard aware), white-label badge. Drilling into a
+**client leaf** opens an editable provisioning panel: per-SKU **quota caps + soft/hard toggle** and the
+parent reseller's **white-label settings**. Backed by `/api/admin/orgs` (read) + `PUT /api/admin/orgs/[id]/{caps,branding}`
+(write, Admin-SDK + uid-cookie gated). Renders live now that the migration has run.
+**Next on this:** per-client usage rollup views; wire branding auto-resolve into report generation.
+
+## ✅ Report engine (AIP PDF v2) + reseller white-labeling — commit 6cb7a7b
+Ported `src/lib/report-engine/{types,cvss,storage,docx-template,pdf-template}.ts` + `findings/parseFindingsBlock.ts`
++ `/api/admin/report-engine/{submit,finalize,reports/[reportId]}` + a dark **Reports** tab
+(`ReportEngineSection`). `buildReportPdf` takes a `ReportBranding` (company/logo/color/footer) that
+overrides the default MSPP identity when white-label is enabled. Deps added: `pdf-lib`, `docxtemplater`,
+`pizzip`. Runtime-verified (valid branded PDFs). **TODO:** auto-resolve branding from `resellerId` →
+`orgs/{resellerId}.branding` once the org tree is wired to launches.
 **Next on this:** editable provisioning screen — set soft/hard quotas + white-label settings inline.
 
 ## ✅ P2.0 migration RUN on prod (2026-07-14)
