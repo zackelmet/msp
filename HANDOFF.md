@@ -44,6 +44,18 @@ supplier → reseller → client        (Luis/Acronis vocab: master → reseller
   `scripts/migrateOrgs.js`, `firestore.rules`, `docs/api-v1.md`. **tsc + build clean; nothing wired to
   live paths yet** (safe to iterate). Bridge insight for P3 UX: today's **"target group" ≈ a client**.
 
+## 🟡 Control plane (Acronis north-star) — started (2026-07-14, commit e719439)
+New **Platform** tab in the admin console: clients grid + drill-down (supplier→reseller→client,
+breadcrumb to ascend), per-supplier quota-pool usage bars (soft/hard aware), white-label badge.
+Read-only `/api/admin/orgs` (uid-cookie admin-gated). Shows empty state until the migration runs.
+**Next on this:** editable provisioning screen — set soft/hard quotas + white-label settings inline.
+
+## ⛔ One blocker to unblock everything Firebase-side (P2.0)
+`.env.local` has `FIREBASE_SERVICE_ACCOUNT_KEY=` **empty**. Drop a real service-account JSON (Firebase
+console → project `msp-pentesting` → Project settings → Service accounts → Generate new private key)
+into that var (`.env.local` is gitignored). Then Claude can dry-run + `--commit` migrateOrgs and manage
+Firebase directly. Without it the org tree stays empty and the Platform tab shows its empty state.
+
 ## ⏳ In progress: Phase 1 (data-model foundation) — BUILT, not yet migrated
 
 The multi-tenant org-tree foundation for the consolidated-buying platform is now
