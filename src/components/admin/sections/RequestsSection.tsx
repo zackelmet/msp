@@ -10,8 +10,8 @@ import toast from "react-hot-toast";
  * admin server-side, so the standalone login/isAdmin redirect was removed;
  * useAuth is kept only to stamp the acting admin's uid on updates.
  *
- * NOTE: this section retains its original light styling (white cards) — it
- * predates the dark admin theme. Restyle to match later if desired.
+ * Styled to match the dark admin theme (bg-[#0d1e30] cards, #4590e2 accent,
+ * #7a9bb5 muted text) — same palette as PentestsSection/UsersSection.
  */
 interface PentestRequest {
   id: string;
@@ -44,13 +44,13 @@ interface PentestRequest {
 }
 
 const STATUS_COLORS = {
-  pending: "bg-yellow-100 text-yellow-800",
-  reviewing: "bg-blue-100 text-blue-800",
-  scoping: "bg-purple-100 text-purple-800",
-  approved: "bg-green-100 text-green-800",
-  in_progress: "bg-indigo-100 text-indigo-800",
-  completed: "bg-gray-100 text-gray-800",
-  rejected: "bg-red-100 text-red-800",
+  pending: "text-yellow-400 bg-yellow-400/10 border border-yellow-400/30",
+  reviewing: "text-blue-400 bg-blue-400/10 border border-blue-400/30",
+  scoping: "text-purple-400 bg-purple-400/10 border border-purple-400/30",
+  approved: "text-green-400 bg-green-400/10 border border-green-400/30",
+  in_progress: "text-indigo-400 bg-indigo-400/10 border border-indigo-400/30",
+  completed: "text-[#7a9bb5] bg-[#4590e2]/10 border border-[#4590e2]/30",
+  rejected: "text-red-400 bg-red-400/10 border border-red-400/30",
 };
 
 const TIER_NAMES: Record<string, string> = {
@@ -151,9 +151,12 @@ export default function RequestsSection() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {Object.entries(statusCounts).map(([status, count]) => (
-          <div key={status} className="bg-white rounded-lg shadow p-4">
-            <div className="text-2xl font-bold text-gray-900">{count}</div>
-            <div className="text-sm text-gray-600 capitalize">
+          <div
+            key={status}
+            className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-4"
+          >
+            <div className="text-2xl font-bold text-white">{count}</div>
+            <div className="text-sm text-[#7a9bb5] capitalize">
               {status.replace("_", " ")}
             </div>
           </div>
@@ -161,15 +164,15 @@ export default function RequestsSection() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6 flex gap-4">
+      <div className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-4 mb-6 flex gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-[#7a9bb5] mb-2">
             Status
           </label>
           <select
             value={filters.status}
             onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg"
+            className="px-4 py-2 bg-[#0a141f] border border-[#4590e2]/20 rounded-lg text-sm text-white focus:outline-none focus:border-[#4590e2]/50"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -182,13 +185,13 @@ export default function RequestsSection() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-[#7a9bb5] mb-2">
             Package
           </label>
           <select
             value={filters.tier}
             onChange={(e) => setFilters({ ...filters, tier: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg"
+            className="px-4 py-2 bg-[#0a141f] border border-[#4590e2]/20 rounded-lg text-sm text-white focus:outline-none focus:border-[#4590e2]/50"
           >
             <option value="all">All Packages</option>
             <option value="external_ip_1_50">External IP (1-50)</option>
@@ -203,63 +206,66 @@ export default function RequestsSection() {
       </div>
 
       {/* Requests Table */}
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl shadow overflow-x-auto">
+        <table className="min-w-full divide-y divide-[#4590e2]/10">
+          <thead className="bg-[#0a141f]">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#7a9bb5] uppercase">
                 Company
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#7a9bb5] uppercase">
                 Contact
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#7a9bb5] uppercase">
                 Package
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#7a9bb5] uppercase">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#7a9bb5] uppercase">
                 Submitted
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#7a9bb5] uppercase">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-[#4590e2]/10">
             {filteredRequests.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                <td
+                  colSpan={6}
+                  className="px-6 py-8 text-center text-[#7a9bb5]"
+                >
                   No requests found
                 </td>
               </tr>
             ) : (
               filteredRequests.map((request) => (
-                <tr key={request.id} className="hover:bg-gray-50">
+                <tr key={request.id} className="hover:bg-[#4590e2]/5">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-white">
                       {request.companyName}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-[#7a9bb5]">
                       {request.targetDomains.slice(0, 2).join(", ")}
                       {request.targetDomains.length > 2 && " +more"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm text-white">
                       {request.contactName}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-[#7a9bb5]">
                       {request.userEmail}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-[#c3d4e3]">
                     {getTierLabel(request.tier)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      className={`px-2 py-1 text-xs font-semibold rounded-full capitalize ${
                         STATUS_COLORS[
                           request.status as keyof typeof STATUS_COLORS
                         ]
@@ -268,13 +274,13 @@ export default function RequestsSection() {
                       {request.status.replace("_", " ")}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-[#7a9bb5]">
                     {new Date(request.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <button
                       onClick={() => setSelectedRequest(request)}
-                      className="text-blue-600 hover:text-blue-800 font-medium"
+                      className="text-[#4590e2] hover:text-white font-medium"
                     >
                       View Details
                     </button>
@@ -288,21 +294,21 @@ export default function RequestsSection() {
 
       {/* Request Detail Modal */}
       {selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-bold text-white">
                     {selectedRequest.companyName}
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-[#7a9bb5]">
                     {getTierLabel(selectedRequest.tier)}
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedRequest(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-[#7a9bb5] hover:text-white"
                 >
                   <svg
                     className="w-6 h-6"
@@ -320,28 +326,28 @@ export default function RequestsSection() {
                 </button>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-6 text-[#c3d4e3]">
                 {/* Contact Info */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">
+                  <h3 className="text-lg font-semibold mb-3 text-white">
                     Contact Information
                   </h3>
                   <div className="grid md:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-600">Contact:</span>{" "}
+                      <span className="text-[#7a9bb5]">Contact:</span>{" "}
                       <span className="font-medium">
                         {selectedRequest.contactName}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600">Email:</span>{" "}
+                      <span className="text-[#7a9bb5]">Email:</span>{" "}
                       <span className="font-medium">
                         {selectedRequest.userEmail}
                       </span>
                     </div>
                     {selectedRequest.phoneNumber && (
                       <div>
-                        <span className="text-gray-600">Phone:</span>{" "}
+                        <span className="text-[#7a9bb5]">Phone:</span>{" "}
                         <span className="font-medium">
                           {selectedRequest.phoneNumber}
                         </span>
@@ -352,10 +358,10 @@ export default function RequestsSection() {
 
                 {/* Scope */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Scope Details</h3>
+                  <h3 className="text-lg font-semibold mb-3 text-white">Scope Details</h3>
                   <div className="space-y-2 text-sm">
                     <div>
-                      <span className="text-gray-600">Target Domains:</span>
+                      <span className="text-[#7a9bb5]">Target Domains:</span>
                       <ul className="list-disc list-inside ml-4 mt-1">
                         {selectedRequest.targetDomains.map((domain, idx) => (
                           <li key={idx} className="font-mono">
@@ -365,7 +371,7 @@ export default function RequestsSection() {
                       </ul>
                     </div>
                     <div>
-                      <span className="text-gray-600">Applications:</span>
+                      <span className="text-[#7a9bb5]">Applications:</span>
                       <ul className="list-disc list-inside ml-4 mt-1">
                         {selectedRequest.targetApplications.map((app, idx) => (
                           <li key={idx}>{app}</li>
@@ -373,7 +379,7 @@ export default function RequestsSection() {
                       </ul>
                     </div>
                     <div className="mt-3">
-                      <span className="text-gray-600 font-medium">
+                      <span className="text-[#7a9bb5] font-medium">
                         Description:
                       </span>
                       <p className="mt-1 whitespace-pre-wrap">
@@ -385,7 +391,7 @@ export default function RequestsSection() {
 
                 {/* Technical Details */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">
+                  <h3 className="text-lg font-semibold mb-3 text-white">
                     Technical Details
                   </h3>
                   <div className="grid md:grid-cols-2 gap-3 text-sm">
@@ -421,11 +427,11 @@ export default function RequestsSection() {
                 </div>
 
                 {/* Admin Actions */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold mb-3">Admin Actions</h3>
+                <div className="border-t border-[#4590e2]/15 pt-6">
+                  <h3 className="text-lg font-semibold mb-3 text-white">Admin Actions</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-[#7a9bb5] mb-2">
                         Update Status
                       </label>
                       <select
@@ -437,7 +443,7 @@ export default function RequestsSection() {
                           });
                         }}
                         disabled={updating}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                        className="w-full px-4 py-2 bg-[#0a141f] border border-[#4590e2]/20 rounded-lg text-sm text-white placeholder-[#7a9bb5] focus:outline-none focus:border-[#4590e2]/50"
                       >
                         <option value="pending">Pending</option>
                         <option value="reviewing">Reviewing</option>
@@ -449,7 +455,7 @@ export default function RequestsSection() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-[#7a9bb5] mb-2">
                         Admin Notes
                       </label>
                       <textarea
@@ -462,7 +468,7 @@ export default function RequestsSection() {
                           }
                         }}
                         rows={3}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                        className="w-full px-4 py-2 bg-[#0a141f] border border-[#4590e2]/20 rounded-lg text-sm text-white placeholder-[#7a9bb5] focus:outline-none focus:border-[#4590e2]/50"
                         placeholder="Internal notes about this request..."
                       />
                     </div>
@@ -473,7 +479,7 @@ export default function RequestsSection() {
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => setSelectedRequest(null)}
-                  className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                  className="px-6 py-2 bg-[#4590e2]/10 text-[#c3d4e3] border border-[#4590e2]/20 rounded-lg hover:bg-[#4590e2]/20"
                 >
                   Close
                 </button>
