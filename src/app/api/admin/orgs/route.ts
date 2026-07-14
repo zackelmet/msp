@@ -23,9 +23,10 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  const [orgSnap, poolSnap] = await Promise.all([
+  const [orgSnap, poolSnap, capSnap] = await Promise.all([
     adminDb.collection(COLLECTIONS.orgs).get(),
     adminDb.collection(COLLECTIONS.quotaPools).get(),
+    adminDb.collection(COLLECTIONS.orgCaps).get(),
   ]);
 
   const orgs = orgSnap.docs.map((doc) => {
@@ -57,5 +58,14 @@ export async function GET(_req: NextRequest) {
     };
   });
 
-  return NextResponse.json({ orgs, pools });
+  const caps = capSnap.docs.map((doc) => {
+    const d = doc.data();
+    return {
+      orgId: doc.id,
+      caps: d.caps ?? {},
+      policy: d.policy ?? {},
+    };
+  });
+
+  return NextResponse.json({ orgs, pools, caps });
 }

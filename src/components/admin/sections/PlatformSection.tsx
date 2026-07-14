@@ -15,12 +15,35 @@ import {
  * current level with drill-down (click a name) + breadcrumb (ascend), over the
  * fixed 3-level tree: supplier → reseller → client. No tree widget.
  *
- * Read-only first cut: lists the org tree from /api/admin/orgs and shows the
- * supplier's quota pool. Provisioning (editable soft/hard quotas, white-label
- * settings) lands next. Empty until scripts/migrateOrgs has run.
+ * Lists the org tree from /api/admin/orgs, shows the supplier's quota pool, and
+ * — when you drill into a client leaf — opens an editable provisioning panel to
+ * set that client's per-SKU quota caps (soft/hard) and the parent reseller's
+ * white-label branding. Writes via PUT /api/admin/orgs/[id]/{caps,branding}.
  */
 
 type OrgType = "supplier" | "reseller" | "client";
+type QuotaPolicy = "soft" | "hard";
+
+// Mirror of SKUS in src/lib/types/quota.ts (kept local to avoid pulling the
+// firebase-admin import in that module into the client bundle).
+const SKUS = [
+  "ai_pentest",
+  "external",
+  "internal",
+  "web_app",
+  "manual",
+] as const;
+type Sku = (typeof SKUS)[number];
+
+interface OrgBranding {
+  logoUrl?: string;
+  primaryColor?: string;
+  cname?: string;
+  reportFooter?: string;
+  reportCoverUrl?: string;
+  emailSender?: string;
+  whiteLabelEnabled?: boolean;
+}
 
 interface Org {
   id: string;
@@ -30,7 +53,7 @@ interface Org {
   name: string;
   status: string;
   tierId: string | null;
-  branding: { whiteLabelEnabled?: boolean } | null;
+  branding: OrgBranding | null;
 }
 
 interface Pool {
@@ -38,7 +61,13 @@ interface Pool {
   purchased: Record<string, number>;
   reserved: Record<string, number>;
   consumed: Record<string, number>;
-  policy: Record<string, "soft" | "hard">;
+  policy: Record<string, QuotaPolicy>;
+}
+
+interface Cap {
+  orgId: string;
+  caps: Record<string, number>;
+  policy: Record<string, QuotaPolicy>;
 }
 
 const TYPE_META: Record<
@@ -59,25 +88,31 @@ const CHILD_LABEL: Record<OrgType, string> = {
 export default function PlatformSection() {
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [pools, setPools] = useState<Pool[]>([]);
+  const [caps, setCaps] = useState<Cap[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // The node we've drilled INTO. null = root (list all suppliers).
   const [currentId, setCurrentId] = useState<string | null>(null);
+  // The client leaf we've opened the provisioning panel for.
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+
+  const load = async () => {
+    try {
+      const res = await fetch("/api/admin/orgs");
+      if (!res.ok) throw new Error(`Failed to load orgs (${res.status})`);
+      const data = await res.json();
+      setOrgs(data.orgs ?? []);
+      setPools(data.pools ?? []);
+      setCaps(data.caps ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load orgs");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/admin/orgs");
-        if (!res.ok) throw new Error(`Failed to load orgs (${res.status})`);
-        const data = await res.json();
-        setOrgs(data.orgs ?? []);
-        setPools(data.pools ?? []);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to load orgs");
-      } finally {
-        setLoading(false);
-      }
-    })();
+    load();
   }, []);
 
   const byId = useMemo(
@@ -87,6 +122,10 @@ export default function PlatformSection() {
   const poolByOrg = useMemo(
     () => Object.fromEntries(pools.map((p) => [p.orgId, p])),
     [pools],
+  );
+  const capByOrg = useMemo(
+    () => Object.fromEntries(caps.map((c) => [c.orgId, c])),
+    [caps],
   );
 
   const childrenOf = (parentId: string | null) =>
@@ -188,13 +227,17 @@ export default function PlatformSection() {
             const meta = TYPE_META[o.type ?? "client"];
             const isLeaf = o.type === "client";
             const count = childCount(o.id);
+            const isSelected = isLeaf && selectedClientId === o.id;
             return (
               <button
                 key={o.id}
-                disabled={isLeaf}
-                onClick={() => !isLeaf && setCurrentId(o.id)}
-                className={`w-full flex items-center gap-4 px-5 py-4 text-left transition-colors ${
-                  isLeaf ? "cursor-default" : "hover:bg-[#4590e2]/5"
+                onClick={() =>
+                  isLeaf
+                    ? setSelectedClientId(isSelected ? null : o.id)
+                    : setCurrentId(o.id)
+                }
+                className={`w-full flex items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-[#4590e2]/5 ${
+                  isSelected ? "bg-[#4590e2]/10" : ""
                 }`}
               >
                 <FontAwesomeIcon
@@ -220,7 +263,11 @@ export default function PlatformSection() {
                     {o.status}
                   </span>
                 )}
-                {!isLeaf && (
+                {isLeaf ? (
+                  <span className="text-xs text-[#4590e2]">
+                    {isSelected ? "Close" : "Manage"}
+                  </span>
+                ) : (
                   <FontAwesomeIcon
                     icon={faChevronRight}
                     className="w-3 h-3 text-[#7a9bb5]"
@@ -231,6 +278,323 @@ export default function PlatformSection() {
           })}
         </div>
       )}
+
+      {/* Provisioning panel for the opened client leaf */}
+      {selectedClientId &&
+        byId[selectedClientId]?.type === "client" &&
+        rows.some((r) => r.id === selectedClientId) && (
+          <ProvisioningPanel
+            key={selectedClientId}
+            client={byId[selectedClientId]}
+            reseller={byId[byId[selectedClientId].parentOrgId ?? ""] ?? null}
+            existingCap={capByOrg[selectedClientId] ?? null}
+            onSaved={load}
+            onClose={() => setSelectedClientId(null)}
+          />
+        )}
+    </div>
+  );
+}
+
+const SKU_LABEL: Record<Sku, string> = {
+  ai_pentest: "AI Pentest",
+  external: "External",
+  internal: "Internal",
+  web_app: "Web App",
+  manual: "Manual",
+};
+
+/**
+ * Editable provisioning for a client leaf: per-SKU quota caps (soft/hard) on the
+ * client, and the parent reseller's white-label branding. Persists via
+ * PUT /api/admin/orgs/[id]/{caps,branding}.
+ */
+function ProvisioningPanel({
+  client,
+  reseller,
+  existingCap,
+  onSaved,
+  onClose,
+}: {
+  client: Org;
+  reseller: Org | null;
+  existingCap: Cap | null;
+  onSaved: () => Promise<void> | void;
+  onClose: () => void;
+}) {
+  // ── Caps state ──
+  const [capValues, setCapValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      SKUS.map((s) => [
+        s,
+        existingCap?.caps?.[s] != null ? String(existingCap.caps[s]) : "",
+      ]),
+    ),
+  );
+  const [capPolicy, setCapPolicy] = useState<Record<string, QuotaPolicy>>(() =>
+    Object.fromEntries(
+      SKUS.map((s) => [s, existingCap?.policy?.[s] ?? "hard"]),
+    ),
+  );
+  const [capSaving, setCapSaving] = useState(false);
+  const [capMsg, setCapMsg] = useState<string | null>(null);
+
+  // ── Branding state (parent reseller) ──
+  const b = reseller?.branding ?? {};
+  const [wlEnabled, setWlEnabled] = useState(b.whiteLabelEnabled ?? false);
+  const [logoUrl, setLogoUrl] = useState(b.logoUrl ?? "");
+  const [primaryColor, setPrimaryColor] = useState(b.primaryColor ?? "#4590e2");
+  const [reportFooter, setReportFooter] = useState(b.reportFooter ?? "");
+  const [cname, setCname] = useState(b.cname ?? "");
+  const [brandSaving, setBrandSaving] = useState(false);
+  const [brandMsg, setBrandMsg] = useState<string | null>(null);
+
+  const inputCx =
+    "w-full rounded-lg border border-[#4590e2]/20 bg-[#0a141f] px-3 py-2 text-sm text-white placeholder:text-[#7a9bb5]/60 focus:outline-none focus:ring-2 focus:ring-[#4590e2]/40 transition";
+
+  const saveCaps = async () => {
+    setCapSaving(true);
+    setCapMsg(null);
+    try {
+      const caps: Record<string, number> = {};
+      const policy: Record<string, QuotaPolicy> = {};
+      for (const s of SKUS) {
+        const v = capValues[s];
+        if (v !== "" && v != null) caps[s] = Math.max(0, Math.floor(Number(v)));
+        policy[s] = capPolicy[s];
+      }
+      const res = await fetch(`/api/admin/orgs/${client.id}/caps`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caps, policy }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d?.error || `HTTP ${res.status}`);
+      }
+      setCapMsg("Saved");
+      await onSaved();
+    } catch (e) {
+      setCapMsg(e instanceof Error ? e.message : "Failed to save caps");
+    } finally {
+      setCapSaving(false);
+    }
+  };
+
+  const saveBranding = async () => {
+    if (!reseller) return;
+    setBrandSaving(true);
+    setBrandMsg(null);
+    try {
+      const res = await fetch(`/api/admin/orgs/${reseller.id}/branding`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          branding: {
+            whiteLabelEnabled: wlEnabled,
+            logoUrl: logoUrl.trim() || undefined,
+            primaryColor: primaryColor.trim() || undefined,
+            reportFooter: reportFooter.trim() || undefined,
+            cname: cname.trim() || undefined,
+          },
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d?.error || `HTTP ${res.status}`);
+      }
+      setBrandMsg("Saved");
+      await onSaved();
+    } catch (e) {
+      setBrandMsg(e instanceof Error ? e.message : "Failed to save branding");
+    } finally {
+      setBrandSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-[#0d1e30] border border-[#4590e2]/30 rounded-xl p-5 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-white font-medium">Provision · {client.name}</h3>
+          <p className="text-xs text-[#7a9bb5] mt-0.5">
+            Client quota caps and reseller white-label settings.
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-xs text-[#7a9bb5] hover:text-white transition-colors"
+        >
+          Close
+        </button>
+      </div>
+
+      {/* ── Quota caps ── */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-white">Quota caps per SKU</p>
+          <button
+            onClick={saveCaps}
+            disabled={capSaving}
+            className="rounded-lg bg-[#4590e2] hover:bg-[#357ac4] disabled:opacity-50 text-white px-4 py-1.5 text-xs transition-colors"
+          >
+            {capSaving ? "Saving…" : "Save caps"}
+          </button>
+        </div>
+        <p className="text-[11px] text-[#7a9bb5]">
+          Leave a cap blank for no ceiling. Hard = block at the ceiling; Soft =
+          allow overage, meter it, and flag for notification.
+        </p>
+        <div className="space-y-2">
+          {SKUS.map((s) => (
+            <div key={s} className="flex items-center gap-3">
+              <span className="text-sm text-[#7a9bb5] w-28 shrink-0">
+                {SKU_LABEL[s]}
+              </span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={capValues[s]}
+                onChange={(e) =>
+                  setCapValues((p) => ({ ...p, [s]: e.target.value }))
+                }
+                placeholder="∞"
+                className={`${inputCx} max-w-[120px]`}
+              />
+              <div className="flex rounded-lg overflow-hidden border border-[#4590e2]/20">
+                {(["hard", "soft"] as QuotaPolicy[]).map((pol) => (
+                  <button
+                    key={pol}
+                    type="button"
+                    onClick={() =>
+                      setCapPolicy((p) => ({ ...p, [s]: pol }))
+                    }
+                    className={`px-3 py-1.5 text-xs capitalize transition-colors ${
+                      capPolicy[s] === pol
+                        ? pol === "hard"
+                          ? "bg-red-500/20 text-red-300"
+                          : "bg-orange-400/20 text-orange-300"
+                        : "bg-[#0a141f] text-[#7a9bb5] hover:text-white"
+                    }`}
+                  >
+                    {pol}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        {capMsg && (
+          <p
+            className={`text-xs ${capMsg === "Saved" ? "text-green-400" : "text-red-400"}`}
+          >
+            {capMsg}
+          </p>
+        )}
+      </div>
+
+      {/* ── Reseller white-label ── */}
+      <div className="space-y-3 border-t border-[#4590e2]/10 pt-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-white">
+              Reseller white-label
+              {reseller && (
+                <span className="text-[#7a9bb5] font-normal">
+                  {" "}
+                  · {reseller.name}
+                </span>
+              )}
+            </p>
+            <p className="text-[11px] text-[#7a9bb5] mt-0.5">
+              Branding applied to this reseller&apos;s client reports + portal.
+            </p>
+          </div>
+          <button
+            onClick={saveBranding}
+            disabled={brandSaving || !reseller}
+            className="rounded-lg bg-[#4590e2] hover:bg-[#357ac4] disabled:opacity-50 text-white px-4 py-1.5 text-xs transition-colors"
+          >
+            {brandSaving ? "Saving…" : "Save branding"}
+          </button>
+        </div>
+
+        {!reseller ? (
+          <p className="text-xs text-[#7a9bb5]">
+            No parent reseller resolved for this client.
+          </p>
+        ) : (
+          <>
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={wlEnabled}
+                onChange={(e) => setWlEnabled(e.target.checked)}
+                className="h-4 w-4 accent-[#4590e2]"
+              />
+              <span className="text-sm text-white">Enable white-label</span>
+            </label>
+            <div className="grid md:grid-cols-2 gap-3">
+              <label className="space-y-1 block">
+                <span className="text-xs text-[#7a9bb5]">Logo URL</span>
+                <input
+                  value={logoUrl}
+                  onChange={(e) => setLogoUrl(e.target.value)}
+                  placeholder="https://…/logo.png"
+                  className={inputCx}
+                />
+              </label>
+              <label className="space-y-1 block">
+                <span className="text-xs text-[#7a9bb5]">Portal subdomain (cname)</span>
+                <input
+                  value={cname}
+                  onChange={(e) => setCname(e.target.value)}
+                  placeholder="acme"
+                  className={inputCx}
+                />
+              </label>
+              <label className="space-y-1 block">
+                <span className="text-xs text-[#7a9bb5]">Primary color</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={
+                      /^#[0-9a-fA-F]{6}$/.test(primaryColor)
+                        ? primaryColor
+                        : "#4590e2"
+                    }
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="h-9 w-11 rounded border border-[#4590e2]/20 bg-[#0a141f] cursor-pointer"
+                  />
+                  <input
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    placeholder="#4590e2"
+                    className={inputCx}
+                  />
+                </div>
+              </label>
+              <label className="space-y-1 block">
+                <span className="text-xs text-[#7a9bb5]">Report footer</span>
+                <input
+                  value={reportFooter}
+                  onChange={(e) => setReportFooter(e.target.value)}
+                  placeholder="Acme Security · confidential"
+                  className={inputCx}
+                />
+              </label>
+            </div>
+            {brandMsg && (
+              <p
+                className={`text-xs ${brandMsg === "Saved" ? "text-green-400" : "text-red-400"}`}
+              >
+                {brandMsg}
+              </p>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
