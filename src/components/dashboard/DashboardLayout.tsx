@@ -15,11 +15,10 @@ import {
   faChevronUp,
   faPlus,
   faList,
-  faBullseye,
-  faCalendarAlt,
   faUserShield,
   faBolt,
   faLayerGroup,
+  faChartLine,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/lib/context/AuthContext";
 import signout from "@/lib/firebase/signout";
@@ -85,21 +84,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const canManageClients =
     role === "supplier_admin" || role === "reseller_admin";
-  const navItems = [
-    { href: "/app/dashboard", label: "Dashboard", icon: faHome },
-    ...(canManageClients
-      ? [{ href: "/app/clients", label: "Clients", icon: faLayerGroup }]
-      : []),
-    { href: "/app/targets", label: "Target Groups", icon: faBullseye },
-    { href: "/app/schedule", label: "Schedule Tests", icon: faCalendarAlt },
-    { href: "/app/pentests", label: "Test History", icon: faList },
-    {
-      href: "/app/ai-pentest-launch",
-      label: "New AI Pentest",
-      icon: faJetFighter,
-    },
-    { href: "/app/buy-credits", label: "Buy AI Credits", icon: faBolt },
-  ];
+  // Lean, Acronis-style nav. Distributors/resellers get the control plane
+  // (Clients grid = home); end clients get a simpler set. Legacy pages (target
+  // groups, schedule, manual tests) are folded in / reachable directly.
+  const navItems = canManageClients
+    ? [
+        { href: "/app/dashboard", label: "Clients", icon: faLayerGroup },
+        { href: "/app/monitoring", label: "Monitoring", icon: faChartLine },
+        { href: "/app/ai-pentest-launch", label: "New Pentest", icon: faJetFighter },
+        { href: "/app/pentests", label: "Reports", icon: faList },
+        { href: "/app/buy-credits", label: "Billing", icon: faBolt },
+        { href: "/app/settings", label: "Settings", icon: faCog },
+      ]
+    : [
+        { href: "/app/dashboard", label: "Overview", icon: faHome },
+        { href: "/app/ai-pentest-launch", label: "New Pentest", icon: faJetFighter },
+        { href: "/app/pentests", label: "Reports", icon: faList },
+        { href: "/app/buy-credits", label: "Billing", icon: faBolt },
+        { href: "/app/settings", label: "Settings", icon: faCog },
+      ];
 
   // Admin pages are consolidated into one /admin console with in-page tabs.
   const adminNavItems = [
