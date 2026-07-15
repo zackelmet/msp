@@ -7,6 +7,50 @@ _Last updated: 2026-07-15_
 > Luis/Compulab meeting. North-star UX teardown is in `docs/product-model.md` (North Star section).
 > This file tracks the P2 Phase-1 build detail below.
 
+## 📌 Session ledger — 2026-07-15 (evening: Acronis portal + metered billing + launch verified)
+
+**The app is now shaped like the Acronis *supplier portal*, selling pentests per IP.** All on `main`, deployed:
+- **Lean Acronis sidebar** (b8965a1, b8a5d74, 9cabe92): control-plane roles get **Platform · Overview · Reports ·
+  Billing**; **Settings / Take a tour / Trust + Safety / Support** moved into the **account dropdown**. `New Pentest`
+  removed from the supplier nav (launch is a per-client action). Client-users keep a simpler nav.
+- **Platform = its own page** (`/app/clients`, b8a5d74): tenant tree (supplier→reseller→client) with drill-down, a
+  per-tenant **Overview panel** (IP quota + New pentest + Set quota), and **"+ New Reseller/Client"** create (89db498;
+  `POST /api/orgs`, subtree-scoped). `/app/dashboard` redirects control-plane roles here. Same UI for supplier &
+  reseller — only the accessible drill depth differs (root grid = top of caller's subtree, e36a7d5).
+- **Overview page** (`/app/monitoring`, b8a5d74) rewritten to real control-plane stats (clients / resellers / IPs
+  consumed / quota) from scoped `/api/orgs` — legacy target-group / scheduled-test content removed.
+- **Nav gating fixes:** platform_admin (Zack) now also gets the control plane (88ef4df); **role cached across page
+  navigations** to kill the old-nav flash (6f8491d). _First load after a hard refresh may still blink once — proper
+  cure is moving `DashboardLayout` into an `/app` route-group layout (not done)._
+- **Metered billing is LIVE** (79a985b): Stripe product `prod_UtHcudkugcC8gg` + graduated **metered** price
+  `price_1TtV2oA2hEQYBBzSJw5Dsyrs` — **$10 / $8 / $6 per IP** (bands 100 / 1k / 1k+), post-paid, `aggregate_usage=sum`,
+  no base fee. Price id in Vercel env `NEXT_PUBLIC_STRIPE_PRICE_AI_PER_IP`. Script `scripts/setupStripePricing.js`
+  (dry-run default). **Billing page** (`/app/buy-credits`, 9c4aeba) rewritten to this model (this-cycle IPs + estimated
+  graduated invoice + rate card).
+- **Docs consolidated 12 → 3** (3190d87): `README.md` (technical hub), `docs/product-model.md` (product/strategy hub —
+  now holds model + north-star + roadmap + Compulab + PRD), `HANDOFF.md` (this ledger). Superseded content flagged
+  historical, not deleted.
+- **✅ Luis launch VERIFIED** (smoke test, not committed): authed AS Luis → `POST /api/ai-pentest-launch` → **HTTP 200,
+  `launched:1`, Make webhook fired (`dispatchFailures:0`)**, credit spent. Test pentest deleted; **Luis back to exactly
+  1 credit** (confirmed). His single distributor account (`supplier_admin @ org_compulab`) launches end-to-end — that
+  house-reseller node is his MSP hat, so one login = distributor + reseller + manages the client (the Acronis way).
+- **Local-dev fix (uncommitted, `.env.local` only):** `firebaseAdmin.ts` reads `FIREBASE_ADMIN_{PROJECT_ID,CLIENT_EMAIL,
+  PRIVATE_KEY}`; `.env.local` only had `FIREBASE_SERVICE_ACCOUNT_KEY`. Derived those three into `.env.local` (gitignored)
+  so the local dev server can verify tokens. Prod was always fine.
+
+**⏭️ Resume tomorrow:**
+1. **Wire the metered subscription + usage reporting** (task #9 tail): subscribe the consolidated buyer (Compulab) to
+   `price_1TtV2oA2hEQYBBzSJw5Dsyrs`; report a usage record per live IP on pentest completion
+   (`subscriptionItems.createUsageRecord`). Ties into #2.
+2. **Real pentest execution** (task #10): make the engine actually run the pentest + callback results to `/api/pentests`
+   (Make.com fires today with `dispatchFailures:0`; the scan/report side is unwired). Strix eval needs a paid model — see
+   `strix-engine` memory.
+3. **`/pricing` public page** — reskin to the per-IP metered model (still shows old manual tiers).
+4. **Cleanups:** sidebar **"Buy Credits" button** still says that + links to the post-paid Billing page → remove/rename
+   (wired to onboarding tour `data-tour="buy-credits-btn"`). Reports/Billing pages could use an Acronis reskin. First-load
+   nav-flash architectural fix (route-group layout). Archive legacy Stripe prices once per-IP flow is wired.
+5. **Roll the restricted Stripe key** (`rk_live_…`) — it appeared in a tool output this session.
+
 ## 📌 Product-model pivot — 2026-07-15 (locked w/ Zack) → see `docs/product-model.md`
 
 **The 5-SKU model collapses to ONE product: an AI pentest, metered per live IP.** Full spec +
