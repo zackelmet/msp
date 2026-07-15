@@ -4,40 +4,30 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faCalendarCheck,
-  faCircleCheck,
+  faUserGroup,
+  faStore,
   faShieldHalved,
-  faLayerGroup,
-  faArrowRight,
+  faGaugeHigh,
 } from "@fortawesome/free-solid-svg-icons";
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
-  approved: "text-blue-400 bg-blue-400/10 border-blue-400/30",
-  running: "text-purple-400 bg-purple-400/10 border-purple-400/30",
-  completed: "text-green-400 bg-green-400/10 border-green-400/30",
-  cancelled: "text-red-400 bg-red-400/10 border-red-400/30",
-};
-
 /**
- * Monitoring — usage + recent pentest activity. The Acronis "Monitoring"
- * section: at-a-glance counts and the latest runs. (Subtree usage rollup for
- * distributors/resellers is a later iteration; this covers the caller's activity.)
+ * Overview — the consolidated control-plane summary for a distributor/reseller:
+ * their subtree size + AI-pentest IP usage, from the scoped /api/orgs data.
+ * (No legacy target-group / scheduled-test stats — those don't exist in the
+ * one-product-per-IP model.)
  */
-export default function MonitoringPage() {
+export default function OverviewPage() {
   const router = useRouter();
-  const [stats, setStats] = useState({
-    targetGroups: 0,
-    scheduledTests: 0,
-    completedTests: 0,
-    activePentests: 0,
-  });
-  const [recent, setRecent] = useState<any[]>([]);
+  const [data, setData] = useState<{
+    orgs: { type: string }[];
+    pools: { consumed?: { ip?: number }; purchased?: { ip?: number } }[];
+    caps: { caps?: { ip?: number } }[];
+  } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -49,37 +39,36 @@ export default function MonitoringPage() {
           router.replace("/login");
           return;
         }
-        const h = { Authorization: `Bearer ${await user.getIdToken()}` };
         try {
-          const [tgRes, stRes] = await Promise.all([
-            fetch("/api/target-groups", { headers: h }),
-            fetch("/api/scheduled-tests", { headers: h }),
-          ]);
-          const [tg, st] = await Promise.all([tgRes.json(), stRes.json()]);
-          const tests: any[] = st.tests || [];
-          setStats({
-            targetGroups: (tg.groups || []).length,
-            scheduledTests: tests.length,
-            completedTests: tests.filter((t) => t.status === "completed").length,
-            activePentests: tests.filter((t) =>
-              ["running", "completed"].includes(t.status),
-            ).length,
+          const res = await fetch("/api/orgs", {
+            headers: { Authorization: `Bearer ${await user.getIdToken()}` },
           });
-          setRecent(tests.slice(0, 8));
-        } catch {
-          /* leave zeros */
+          if (!res.ok) throw new Error(`Failed to load overview (${res.status})`);
+          setData(await res.json());
+        } catch (e) {
+          setErr(e instanceof Error ? e.message : "Failed to load overview");
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       });
       return unsub;
     })();
   }, [router]);
 
+  const orgs = data?.orgs ?? [];
+  const pools = data?.pools ?? [];
+  const caps = data?.caps ?? [];
+  const resellers = orgs.filter((o) => o.type === "reseller").length;
+  const clients = orgs.filter((o) => o.type === "client").length;
+  const consumed = pools[0]?.consumed?.ip ?? 0;
+  const purchased = pools[0]?.purchased?.ip ?? 0;
+  const allocated = caps.reduce((s, c) => s + (c?.caps?.ip ?? 0), 0);
+
   const cards = [
-    { label: "Clients", value: stats.targetGroups, icon: faLayerGroup, color: "text-[#4590e2]", border: "border-[#4590e2]/20" },
-    { label: "Scheduled", value: stats.scheduledTests, icon: faCalendarCheck, color: "text-purple-400", border: "border-purple-500/20" },
-    { label: "Completed", value: stats.completedTests, icon: faCircleCheck, color: "text-green-400", border: "border-green-500/20" },
-    { label: "Active Pentests", value: stats.activePentests, icon: faShieldHalved, color: "text-yellow-400", border: "border-yellow-500/20" },
+    { label: "Clients", value: clients, icon: faUserGroup, color: "text-green-400", border: "border-green-500/20" },
+    { label: "Resellers", value: resellers, icon: faStore, color: "text-purple-400", border: "border-purple-500/20" },
+    { label: "IPs consumed (cycle)", value: consumed, icon: faShieldHalved, color: "text-[#4590e2]", border: "border-[#4590e2]/20" },
+    { label: "IP quota allocated", value: allocated, icon: faGaugeHigh, color: "text-yellow-400", border: "border-yellow-500/20" },
   ];
 
   return (
@@ -88,58 +77,53 @@ export default function MonitoringPage() {
         <div>
           <h1 className="text-2xl font-bold text-white">Overview</h1>
           <p className="text-[#7a9bb5] mt-1 text-sm">
-            Usage and recent pentest activity.
+            Your consolidated AI-pentest usage and organization.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {loading
-            ? [...Array(4)].map((_, i) => (
-                <div key={i} className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-5 animate-pulse h-24" />
-              ))
-            : cards.map((s) => (
-                <div key={s.label} className={`bg-[#0d1e30] border ${s.border} rounded-xl p-5`}>
-                  <FontAwesomeIcon icon={s.icon} className={`w-4 h-4 ${s.color} mb-3`} />
-                  <p className="text-2xl font-bold text-white">{s.value}</p>
-                  <p className="text-[#7a9bb5] text-xs mt-1">{s.label}</p>
-                </div>
-              ))}
-        </div>
-
-        <div className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#4590e2]/10">
-            <h2 className="text-white font-medium text-sm">Recent activity</h2>
-            <Link href="/app/pentests" className="text-[#4590e2] text-xs flex items-center gap-1 hover:text-white">
-              View all <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5" />
-            </Link>
+        {err ? (
+          <div className="bg-[#0d1e30] border border-red-400/30 rounded-xl p-6 text-red-400 text-sm">
+            {err}
           </div>
-          {loading ? (
-            <div className="p-6 space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-10 bg-[#0a141f] rounded-lg animate-pulse" />
-              ))}
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {loading
+              ? [...Array(4)].map((_, i) => (
+                  <div key={i} className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-5 animate-pulse h-24" />
+                ))
+              : cards.map((s) => (
+                  <div key={s.label} className={`bg-[#0d1e30] border ${s.border} rounded-xl p-5`}>
+                    <FontAwesomeIcon icon={s.icon} className={`w-4 h-4 ${s.color} mb-3`} />
+                    <p className="text-2xl font-bold text-white tabular-nums">{s.value}</p>
+                    <p className="text-[#7a9bb5] text-xs mt-1">{s.label}</p>
+                  </div>
+                ))}
+          </div>
+        )}
+
+        {!loading && !err && purchased > 0 && (
+          <div className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-5">
+            <p className="text-xs uppercase tracking-wide text-[#7a9bb5] mb-2">
+              Pool consumption this cycle
+            </p>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-xl font-bold text-white tabular-nums">{consumed}</span>
+              <span className="text-xs text-[#7a9bb5]">/ {purchased} IPs</span>
             </div>
-          ) : recent.length === 0 ? (
-            <p className="px-5 py-8 text-center text-[#7a9bb5] text-sm">No pentest activity yet.</p>
-          ) : (
-            <div className="divide-y divide-[#4590e2]/10">
-              {recent.map((t, i) => (
-                <div key={t.id || i} className="flex items-center gap-3 px-5 py-3">
-                  <span className="text-sm text-white flex-1 truncate">
-                    {t.targetUrl || t.name || t.batchName || "Pentest"}
-                  </span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full border capitalize ${
-                      STATUS_COLORS[t.status] || "text-[#7a9bb5] bg-white/5 border-white/10"
-                    }`}
-                  >
-                    {t.status || "—"}
-                  </span>
-                </div>
-              ))}
+            <div className="h-2 bg-[#0a141f] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#4590e2] rounded-full"
+                style={{ width: `${Math.min(100, purchased ? (consumed / purchased) * 100 : 0)}%` }}
+              />
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {!loading && !err && clients === 0 && resellers === 0 && (
+          <p className="text-[#7a9bb5] text-sm">
+            No clients or resellers yet — add them from the Platform tab.
+          </p>
+        )}
       </div>
     </DashboardLayout>
   );
