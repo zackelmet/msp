@@ -26,13 +26,7 @@ type QuotaPolicy = "soft" | "hard";
 
 // Mirror of SKUS in src/lib/types/quota.ts (kept local to avoid pulling the
 // firebase-admin import in that module into the client bundle).
-const SKUS = [
-  "ai_pentest",
-  "external",
-  "internal",
-  "web_app",
-  "manual",
-] as const;
+const SKUS = ["ip"] as const;
 type Sku = (typeof SKUS)[number];
 
 interface OrgBranding {
@@ -306,11 +300,7 @@ export default function PlatformSection({
 }
 
 const SKU_LABEL: Record<Sku, string> = {
-  ai_pentest: "AI Pentest",
-  external: "External",
-  internal: "Internal",
-  web_app: "Web App",
-  manual: "Manual",
+  ip: "IP",
 };
 
 /**

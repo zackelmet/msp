@@ -16,16 +16,12 @@ import { Timestamp } from "firebase-admin/firestore";
  */
 
 /**
- * Canonical billable units. Superset of the docs buckets (ai_pentest, external,
- * internal, manual) and the legacy `users.credits` keys (web_app, external_ip).
+ * Canonical billable unit. The product collapsed to a SINGLE meter — one live IP
+ * tested by an AI pentest (see docs/product-model.md). Superseded the old 5-SKU
+ * set (ai_pentest/external/internal/web_app/manual). Kept as a one-element set so
+ * the pool/caps/policy record shapes below are unchanged.
  */
-export const SKUS = [
-  "ai_pentest",
-  "external",
-  "internal",
-  "web_app",
-  "manual",
-] as const;
+export const SKUS = ["ip"] as const;
 export type SKU = (typeof SKUS)[number];
 
 /** Per-SKU counts. Missing key === 0. */
