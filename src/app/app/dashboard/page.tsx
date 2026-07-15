@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import PlatformSection from "@/components/admin/sections/PlatformSection";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -34,6 +35,16 @@ export default function DashboardPage() {
   const [stats, setStats] = useState({ targetGroups: 0, scheduledTests: 0, completedTests: 0, totalPentests: 0 });
   const [recent, setRecent] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // Control-plane roles (distributor/reseller) land on the clients grid as home.
+  const [role, setRole] = useState<string | null>(null);
+
+  const getAuthHeaders = async (): Promise<Record<string, string>> => {
+    const { getAuth } = await import("firebase/auth");
+    const app = (await import("@/lib/firebase/firebaseClient")).default;
+    const u = getAuth(app).currentUser;
+    if (!u) return {};
+    return { Authorization: `Bearer ${await u.getIdToken()}` };
+  };
 
   useEffect(() => {
     (async () => {
@@ -46,6 +57,20 @@ export default function DashboardPage() {
         setUserName(user.email?.split("@")[0] || "there");
         const token = await user.getIdToken();
         const h = { Authorization: `Bearer ${token}` };
+
+        // Distributors/resellers get the Acronis clients grid as their home;
+        // skip the per-user pentest-activity stats.
+        try {
+          const meRes = await fetch(`/api/auth/isAdmin?uid=${user.uid}`);
+          const me = await meRes.json();
+          if (me.role === "supplier_admin" || me.role === "reseller_admin") {
+            setRole(me.role);
+            setLoading(false);
+            return;
+          }
+        } catch {
+          /* fall through to the standard dashboard */
+        }
 
         const [tgRes, stRes] = await Promise.all([
           fetch("/api/target-groups", { headers: h }),
@@ -74,6 +99,21 @@ export default function DashboardPage() {
     { label: "Completed Tests", value: stats.completedTests, icon: faCircleCheck,   href: "/app/schedule", color: "text-green-400",  border: "border-green-500/20"  },
     { label: "Active Pentests", value: stats.totalPentests,  icon: faShieldHalved,  href: "/app/pentests", color: "text-yellow-400", border: "border-yellow-500/20" },
   ];
+
+  // Acronis "clients grid = home" for distributors/resellers.
+  if (role === "supplier_admin" || role === "reseller_admin") {
+    return (
+      <DashboardLayout>
+        <div className="p-6 lg:p-8 max-w-5xl mx-auto">
+          <h1 className="text-2xl font-bold text-white mb-1">Clients</h1>
+          <p className="text-[#7a9bb5] mb-6 text-sm">
+            Drill into your resellers and clients, and set their pentest quotas.
+          </p>
+          <PlatformSection apiBase="/api/orgs" getAuthHeaders={getAuthHeaders} />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
