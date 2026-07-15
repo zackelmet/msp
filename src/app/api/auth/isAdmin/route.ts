@@ -14,9 +14,14 @@ export async function GET(req: NextRequest) {
 
   try {
     const userDoc = await admin.firestore().collection("users").doc(uid).get();
-    const isAdmin = userDoc.data()?.isAdmin === true;
+    const data = userDoc.data();
+    const isAdmin = data?.isAdmin === true;
 
-    return NextResponse.json({ isAdmin });
+    return NextResponse.json({
+      isAdmin,
+      role: data?.role ?? null,
+      orgId: data?.orgId ?? null,
+    });
   } catch (error) {
     console.error("Error checking admin status:", error);
     return NextResponse.json({ isAdmin: false }, { status: 500 });

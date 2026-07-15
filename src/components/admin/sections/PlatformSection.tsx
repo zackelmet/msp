@@ -85,7 +85,13 @@ const CHILD_LABEL: Record<OrgType, string> = {
   client: "",
 };
 
-export default function PlatformSection() {
+export default function PlatformSection({
+  apiBase = "/api/admin/orgs",
+  getAuthHeaders,
+}: {
+  apiBase?: string;
+  getAuthHeaders?: () => Promise<Record<string, string>>;
+} = {}) {
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [pools, setPools] = useState<Pool[]>([]);
   const [caps, setCaps] = useState<Cap[]>([]);
@@ -98,7 +104,8 @@ export default function PlatformSection() {
 
   const load = async () => {
     try {
-      const res = await fetch("/api/admin/orgs");
+      const headers = getAuthHeaders ? await getAuthHeaders() : {};
+      const res = await fetch(apiBase, { headers });
       if (!res.ok) throw new Error(`Failed to load orgs (${res.status})`);
       const data = await res.json();
       setOrgs(data.orgs ?? []);
@@ -288,6 +295,8 @@ export default function PlatformSection() {
             client={byId[selectedClientId]}
             reseller={byId[byId[selectedClientId].parentOrgId ?? ""] ?? null}
             existingCap={capByOrg[selectedClientId] ?? null}
+            apiBase={apiBase}
+            getAuthHeaders={getAuthHeaders}
             onSaved={load}
             onClose={() => setSelectedClientId(null)}
           />
@@ -313,12 +322,16 @@ function ProvisioningPanel({
   client,
   reseller,
   existingCap,
+  apiBase,
+  getAuthHeaders,
   onSaved,
   onClose,
 }: {
   client: Org;
   reseller: Org | null;
   existingCap: Cap | null;
+  apiBase: string;
+  getAuthHeaders?: () => Promise<Record<string, string>>;
   onSaved: () => Promise<void> | void;
   onClose: () => void;
 }) {
@@ -363,9 +376,10 @@ function ProvisioningPanel({
         if (v !== "" && v != null) caps[s] = Math.max(0, Math.floor(Number(v)));
         policy[s] = capPolicy[s];
       }
-      const res = await fetch(`/api/admin/orgs/${client.id}/caps`, {
+      const authHeaders = getAuthHeaders ? await getAuthHeaders() : {};
+      const res = await fetch(`${apiBase}/${client.id}/caps`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...authHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({ caps, policy }),
       });
       if (!res.ok) {
@@ -386,9 +400,10 @@ function ProvisioningPanel({
     setBrandSaving(true);
     setBrandMsg(null);
     try {
-      const res = await fetch(`/api/admin/orgs/${reseller.id}/branding`, {
+      const authHeaders = getAuthHeaders ? await getAuthHeaders() : {};
+      const res = await fetch(`${apiBase}/${reseller.id}/branding`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...authHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({
           branding: {
             whiteLabelEnabled: wlEnabled,

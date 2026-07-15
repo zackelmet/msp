@@ -19,6 +19,7 @@ import {
   faCalendarAlt,
   faUserShield,
   faBolt,
+  faLayerGroup,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/lib/context/AuthContext";
 import signout from "@/lib/firebase/signout";
@@ -36,6 +37,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -60,6 +62,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         const resp = await fetch(`/api/auth/isAdmin?uid=${currentUser.uid}`);
         const data = await resp.json();
         setIsAdmin(data.isAdmin === true);
+        setRole(data.role ?? null);
       } catch {
         setIsAdmin(false);
       }
@@ -80,8 +83,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const canManageClients =
+    role === "supplier_admin" || role === "reseller_admin";
   const navItems = [
     { href: "/app/dashboard", label: "Dashboard", icon: faHome },
+    ...(canManageClients
+      ? [{ href: "/app/clients", label: "Clients", icon: faLayerGroup }]
+      : []),
     { href: "/app/targets", label: "Target Groups", icon: faBullseye },
     { href: "/app/schedule", label: "Schedule Tests", icon: faCalendarAlt },
     { href: "/app/pentests", label: "Test History", icon: faList },
