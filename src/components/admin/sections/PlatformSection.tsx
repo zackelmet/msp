@@ -142,11 +142,14 @@ export default function PlatformSection({
     [caps],
   );
 
+  // Root rows = the top of whatever subtree the caller can see: a node whose
+  // parent is NOT in the returned set (supplier for a supplier/admin; the
+  // reseller's own node for a reseller). Same UI, scope differs per role.
   const childrenOf = (parentId: string | null) =>
     orgs
       .filter((o) =>
         parentId === null
-          ? o.type === "supplier" || o.parentOrgId === null
+          ? !byId[o.parentOrgId ?? ""]
           : o.parentOrgId === parentId,
       )
       .sort((a, b) => a.name.localeCompare(b.name));
