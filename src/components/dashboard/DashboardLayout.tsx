@@ -101,13 +101,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         { href: "/app/monitoring", label: "Overview", icon: faChartLine },
         { href: "/app/pentests", label: "Reports", icon: faList },
         { href: "/app/buy-credits", label: "Billing", icon: faBolt },
-        { href: "/app/settings", label: "Settings", icon: faCog },
       ]
     : [
         { href: "/app/dashboard", label: "Overview", icon: faHome },
         { href: "/app/ai-pentest-launch", label: "New Pentest", icon: faJetFighter },
         { href: "/app/pentests", label: "Reports", icon: faList },
-        { href: "/app/settings", label: "Settings", icon: faCog },
       ];
 
   // Admin pages are consolidated into one /admin console with in-page tabs.
@@ -115,10 +113,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { href: "/admin", label: "Admin Console", icon: faUserShield },
   ];
 
-  const bottomItems = [
-    { href: "/support", label: "Support", icon: faLifeRing },
-    { href: "/trust-safety", label: "Trust + Safety", icon: faQuestionCircle },
-  ];
 
   return (
     <div className="min-h-screen bg-[#0a141f] flex overflow-hidden">
@@ -213,31 +207,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Bottom section */}
         <div className="px-4 pb-6 space-y-4">
-          {/* Support links */}
-          <div className="space-y-1">
-            {bottomItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors text-sm"
-              >
-                <FontAwesomeIcon icon={item.icon} className="w-4 h-4" />
-                {item.label}
-              </a>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                setSidebarOpen(false);
-                window.dispatchEvent(new Event(START_TOUR_EVENT));
-              }}
-              className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors text-sm"
-            >
-              <FontAwesomeIcon icon={faCompass} className="w-4 h-4" />
-              Take a tour
-            </button>
-          </div>
-
           {/* Account */}
           <div
             className="relative border-t border-gray-700 pt-4"
@@ -276,6 +245,41 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <FontAwesomeIcon icon={faCog} className="w-4 h-4" />
                     Settings
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAccountMenuOpen(false);
+                      setSidebarOpen(false);
+                      window.dispatchEvent(new Event(START_TOUR_EVENT));
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faCompass} className="w-4 h-4" />
+                    Take a tour
+                  </button>
+                  <Link
+                    href="/trust-safety"
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                    onClick={() => {
+                      setAccountMenuOpen(false);
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faQuestionCircle} className="w-4 h-4" />
+                    Trust + Safety
+                  </Link>
+                  <Link
+                    href="/support"
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                    onClick={() => {
+                      setAccountMenuOpen(false);
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faLifeRing} className="w-4 h-4" />
+                    Support
+                  </Link>
+                  <div className="border-t border-gray-700 my-1" />
                   <button
                     onClick={() => {
                       handleLogout();
