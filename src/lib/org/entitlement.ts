@@ -26,7 +26,7 @@ import { UsageLedgerEntry, UsageKind } from "@/lib/types/usage";
  * for the capped subtree. NOTE: cap checks currently count *consumed* usage,
  * not in-flight reservations — a documented Phase-1 limitation, acceptable
  * because the pool-level reservation still prevents overselling real capacity.
- * Refine once the allocation model is locked with Luis (see docs/api-v1.md).
+ * Refine once the allocation model is locked with Luis (see docs/product-model.md).
  */
 
 const n = (c: SkuCounts | undefined, sku: SKU): number => c?.[sku] ?? 0;

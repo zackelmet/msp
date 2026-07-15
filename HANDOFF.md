@@ -2,9 +2,10 @@
 
 _Last updated: 2026-07-15_
 
-> **See `ROADMAP.md` for the prioritized dev plan** (P1 run-real-pentests → P2 consolidated-buyer
-> platform → P3 Acronis-north-star UX), set after the 2nd Luis/Compulab meeting. North-star UX
-> teardown in `docs/north-star-acronis.md`. This file tracks the P2 Phase-1 build detail below.
+> **See `docs/product-model.md` (Dev Roadmap section) for the prioritized dev plan** (P1
+> run-real-pentests → P2 consolidated-buyer platform → P3 Acronis-north-star UX), set after the 2nd
+> Luis/Compulab meeting. North-star UX teardown is in `docs/product-model.md` (North Star section).
+> This file tracks the P2 Phase-1 build detail below.
 
 ## 📌 Product-model pivot — 2026-07-15 (locked w/ Zack) → see `docs/product-model.md`
 
@@ -143,7 +144,7 @@ supplier → reseller → client        (Luis/Acronis vocab: master → reseller
 - Roles: `platform_admin | supplier_admin | reseller_admin | client_user`.
 - Renames: `tenant`→`client` (`tenantId`→`clientId`), `tenantsMax`→`clientsMax`, `isResellerAdmin`→
   `isPartnerAdmin` (rules). Touched: `types/{org,quota,usage,user,tier}`, `org/{tree,entitlement}`,
-  `scripts/migrateOrgs.js`, `firestore.rules`, `docs/api-v1.md`. **tsc + build clean; nothing wired to
+  `scripts/migrateOrgs.js`, `firestore.rules`, the `/api/v1` spec (now in `README.md`). **tsc + build clean; nothing wired to
   live paths yet** (safe to iterate). Bridge insight for P3 UX: today's **"target group" ≈ a client**.
 
 ## ✅ Control plane (Acronis north-star) — grid + editable provisioning (commits e719439, 8beccae)
@@ -212,12 +213,12 @@ Make.com-driven launch flow.
 - **API-first (hosted)** — versioned `/api/v1` + `mspp_live_` keys; partners hit our endpoints. Nothing shipped.
 - **White-label portal** — per-org branded instances of the hosted app (subdomain/logo), same multi-tenant app.
 - **NOT** a self-hosted app image (revisit only if a hard data-residency requirement surfaces).
-- Proposed endpoint reference: **`docs/api-v1.md`**.
+- Proposed endpoint reference: **`README.md` (`/api/v1` Provisioning API section)**.
 
 ### Driver: Compulab consolidated buying program (2026-07-12)
 Compulab (Luis Costa) wants to run a **consolidated buying program** — a distributor buying pentest
 capacity in bulk and allocating it down to their MSPs and clients. This reshapes the design below.
-Full deal notes + open questions in **`COMPULAB_PARTNERSHIP.md`**. Key impacts:
+Full deal notes + open questions in **`docs/product-model.md` (Compulab Partnership Notes section)**. Key impacts:
 - **N-level org tree** (add a **distributor** level above reseller) — Compulab = distributor, MSPs =
   resellers, end customers = tenants. Model orgs as `{ id, parentOrgId, type }`, not hard-coded 3 levels.
 - **Consumable quota pool**, not just monthly tier limits — `{ purchased, allocated, reserved, consumed }`
@@ -255,7 +256,7 @@ Full deal notes + open questions in **`COMPULAB_PARTNERSHIP.md`**. Key impacts:
 - **Provisioning engine:** **Make.com only** — `/api/pentests` + `/api/ai-pentest-launch` fire a
   Make webhook; Make runs the pentest and PATCHes results back to `/api/pentests` (secret-gated).
   There are **no GCP scanner runners**; `src/lib/gcp/scannerClient.ts` + `/api/scans/**` +
-  `/api/ai-pentest` are dead code slated for removal (ROADMAP P1.1).
+  `/api/ai-pentest` are dead code slated for removal (roadmap P1.1 — `docs/product-model.md`).
 - **Auth helper:** `verifyAuthToken(req)` → userId (`src/lib/firebase/firebaseAdmin.ts`,
   exports `adminDb`, `adminAuth`, `adminStorage`). All API routes use `Authorization: Bearer <firebase-id-token>`.
 - **Relevant deps already installed:** `@google-cloud/tasks` (UNUSED — available for the

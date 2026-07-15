@@ -29,7 +29,7 @@ import { Timestamp } from "firebase-admin/firestore";
  * subtree query is a single `array-contains` and tier/branding/pool resolution
  * walks the (at most 3-deep) ancestor chain without recursive reads.
  *
- * Design rationale: docs/api-v1.md + COMPULAB_PARTNERSHIP.md.
+ * Design rationale: docs/product-model.md + README.md (/api/v1 spec).
  */
 
 export type OrgType = "supplier" | "reseller" | "client";

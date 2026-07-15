@@ -7,7 +7,7 @@ import { Timestamp } from "firebase-admin/firestore";
  * across its whole subtree (resellers + clients). Reseller/client nodes may
  * declare optional per-SKU `caps` (ceilings) on how much of the shared pool
  * their subtree may consume. Entitlement checks resolve the pool at the
- * supplier root and the nearest cap on the path. See docs/api-v1.md.
+ * supplier root and the nearest cap on the path. See docs/product-model.md.
  *
  * Soft vs hard (Luis's Acronis example — "sell this client 2 servers"):
  *   - hard: block at the ceiling — the client simply cannot exceed it.
