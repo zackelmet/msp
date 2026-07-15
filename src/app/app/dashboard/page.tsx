@@ -52,7 +52,11 @@ export default function DashboardPage() {
         try {
           const meRes = await fetch(`/api/auth/isAdmin?uid=${user.uid}`);
           const me = await meRes.json();
-          if (me.role === "supplier_admin" || me.role === "reseller_admin") {
+          if (
+            me.isAdmin ||
+            me.role === "supplier_admin" ||
+            me.role === "reseller_admin"
+          ) {
             router.replace("/app/clients");
             return;
           }

@@ -83,7 +83,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, []);
 
   const canManageClients =
-    role === "supplier_admin" || role === "reseller_admin";
+    isAdmin || role === "supplier_admin" || role === "reseller_admin";
   // Lean, Acronis-style nav. Distributors/resellers get the control plane
   // (Clients grid = home); end clients get a simpler set. Legacy pages (target
   // groups, schedule, manual tests) are folded in / reachable directly.
