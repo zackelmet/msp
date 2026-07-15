@@ -105,7 +105,7 @@ export default function DashboardPage() {
     return (
       <DashboardLayout>
         <div className="p-6 lg:p-8 max-w-5xl mx-auto">
-          <h1 className="text-2xl font-bold text-white mb-1">Clients</h1>
+          <h1 className="text-2xl font-bold text-white mb-1">Platform</h1>
           <p className="text-[#7a9bb5] mb-6 text-sm">
             Drill into your resellers and clients, and set their pentest quotas.
           </p>

@@ -86,7 +86,7 @@ export default function MonitoringPage() {
     <DashboardLayout>
       <div className="p-6 lg:p-8 space-y-8 max-w-5xl mx-auto">
         <div>
-          <h1 className="text-2xl font-bold text-white">Monitoring</h1>
+          <h1 className="text-2xl font-bold text-white">Overview</h1>
           <p className="text-[#7a9bb5] mt-1 text-sm">
             Usage and recent pentest activity.
           </p>

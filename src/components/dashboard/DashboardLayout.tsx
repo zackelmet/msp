@@ -89,8 +89,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // groups, schedule, manual tests) are folded in / reachable directly.
   const navItems = canManageClients
     ? [
-        { href: "/app/dashboard", label: "Clients", icon: faLayerGroup },
-        { href: "/app/monitoring", label: "Monitoring", icon: faChartLine },
+        { href: "/app/dashboard", label: "Platform", icon: faLayerGroup },
+        { href: "/app/monitoring", label: "Overview", icon: faChartLine },
         { href: "/app/ai-pentest-launch", label: "New Pentest", icon: faJetFighter },
         { href: "/app/pentests", label: "Reports", icon: faList },
         { href: "/app/buy-credits", label: "Billing", icon: faBolt },
