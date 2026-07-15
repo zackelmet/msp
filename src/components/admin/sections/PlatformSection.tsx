@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBuilding,
@@ -79,6 +79,13 @@ const CHILD_LABEL: Record<OrgType, string> = {
   client: "",
 };
 
+/** The single child level you can add under each node type. */
+const NEXT_CHILD: Record<OrgType, OrgType | null> = {
+  supplier: "reseller",
+  reseller: "client",
+  client: null,
+};
+
 export default function PlatformSection({
   apiBase = "/api/admin/orgs",
   getAuthHeaders,
@@ -93,8 +100,14 @@ export default function PlatformSection({
   const [error, setError] = useState<string | null>(null);
   // The node we've drilled INTO. null = root (list all suppliers).
   const [currentId, setCurrentId] = useState<string | null>(null);
-  // The client leaf we've opened the provisioning panel for.
+  // The client leaf we've opened the overview for.
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [showProvisioning, setShowProvisioning] = useState(false);
+  // "+ New" create form (contextual to the drill level).
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createBusy, setCreateBusy] = useState(false);
+  const [createErr, setCreateErr] = useState<string | null>(null);
 
   const load = async () => {
     try {
@@ -140,6 +153,42 @@ export default function PlatformSection({
 
   const rows = childrenOf(currentId);
   const current = currentId ? byId[currentId] : null;
+
+  // "+ New": the child level you can add under the node you're inside.
+  const childType: OrgType | null = current
+    ? NEXT_CHILD[current.type ?? "client"]
+    : null;
+  const createChild = async () => {
+    if (!current || !childType || !createName.trim()) return;
+    setCreateBusy(true);
+    setCreateErr(null);
+    try {
+      const headers = {
+        ...(getAuthHeaders ? await getAuthHeaders() : {}),
+        "Content-Type": "application/json",
+      };
+      const res = await fetch(apiBase, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          name: createName.trim(),
+          type: childType,
+          parentOrgId: current.id,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d?.error || `HTTP ${res.status}`);
+      }
+      setCreateName("");
+      setCreateOpen(false);
+      await load();
+    } catch (e) {
+      setCreateErr(e instanceof Error ? e.message : "Failed to create");
+    } finally {
+      setCreateBusy(false);
+    }
+  };
 
   // Breadcrumb: Root → …path… → current.
   const crumbs = useMemo(() => {
@@ -204,6 +253,56 @@ export default function PlatformSection({
         <PoolSummary pool={poolByOrg[current.id]} />
       )}
 
+      {/* + New — contextual create at the current level */}
+      {childType && (
+        <div>
+          {!createOpen ? (
+            <button
+              onClick={() => {
+                setCreateOpen(true);
+                setCreateErr(null);
+              }}
+              className="inline-flex items-center gap-2 rounded-lg bg-[#4590e2] hover:bg-[#357ac4] text-white px-4 py-2 text-sm transition-colors"
+            >
+              + New {childType === "reseller" ? "Reseller" : "Client"}
+            </button>
+          ) : (
+            <div className="bg-[#0d1e30] border border-[#4590e2]/30 rounded-xl p-4 flex flex-wrap items-center gap-3">
+              <input
+                autoFocus
+                value={createName}
+                onChange={(e) => setCreateName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") createChild();
+                }}
+                placeholder={`${childType === "reseller" ? "Reseller" : "Client"} name`}
+                className="flex-1 min-w-[180px] rounded-lg border border-[#4590e2]/20 bg-[#0a141f] px-3 py-2 text-sm text-white placeholder:text-[#7a9bb5]/60 focus:outline-none focus:ring-2 focus:ring-[#4590e2]/40 transition"
+              />
+              <button
+                onClick={createChild}
+                disabled={createBusy || !createName.trim()}
+                className="rounded-lg bg-[#4590e2] hover:bg-[#357ac4] disabled:opacity-50 text-white px-4 py-2 text-sm transition-colors"
+              >
+                {createBusy ? "Creating…" : "Create"}
+              </button>
+              <button
+                onClick={() => {
+                  setCreateOpen(false);
+                  setCreateName("");
+                  setCreateErr(null);
+                }}
+                className="text-xs text-[#7a9bb5] hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              {createErr && (
+                <p className="w-full text-xs text-red-400">{createErr}</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Grid */}
       {rows.length === 0 ? (
         <div className="bg-[#0d1e30] border border-[#4590e2]/15 rounded-xl p-10 text-center">
@@ -232,11 +331,14 @@ export default function PlatformSection({
             return (
               <button
                 key={o.id}
-                onClick={() =>
-                  isLeaf
-                    ? setSelectedClientId(isSelected ? null : o.id)
-                    : setCurrentId(o.id)
-                }
+                onClick={() => {
+                  if (isLeaf) {
+                    setShowProvisioning(false);
+                    setSelectedClientId(isSelected ? null : o.id);
+                  } else {
+                    setCurrentId(o.id);
+                  }
+                }}
                 className={`w-full flex items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-[#4590e2]/5 ${
                   isSelected ? "bg-[#4590e2]/10" : ""
                 }`}
@@ -280,19 +382,33 @@ export default function PlatformSection({
         </div>
       )}
 
-      {/* Provisioning panel for the opened client leaf */}
+      {/* Per-tenant Overview (+ the quota editor on demand) */}
       {selectedClientId &&
         byId[selectedClientId]?.type === "client" &&
         rows.some((r) => r.id === selectedClientId) && (
-          <ProvisioningPanel
-            key={selectedClientId}
+          <OverviewPanel
             client={byId[selectedClientId]}
-            reseller={byId[byId[selectedClientId].parentOrgId ?? ""] ?? null}
-            existingCap={capByOrg[selectedClientId] ?? null}
-            apiBase={apiBase}
-            getAuthHeaders={getAuthHeaders}
-            onSaved={load}
-            onClose={() => setSelectedClientId(null)}
+            cap={capByOrg[selectedClientId] ?? null}
+            showProvisioning={showProvisioning}
+            onConfigure={() => setShowProvisioning(true)}
+            onClose={() => {
+              setSelectedClientId(null);
+              setShowProvisioning(false);
+            }}
+            provisioning={
+              <ProvisioningPanel
+                key={selectedClientId}
+                client={byId[selectedClientId]}
+                reseller={
+                  byId[byId[selectedClientId].parentOrgId ?? ""] ?? null
+                }
+                existingCap={capByOrg[selectedClientId] ?? null}
+                apiBase={apiBase}
+                getAuthHeaders={getAuthHeaders}
+                onSaved={load}
+                onClose={() => setShowProvisioning(false)}
+              />
+            }
           />
         )}
     </div>
@@ -302,6 +418,78 @@ export default function PlatformSection({
 const SKU_LABEL: Record<Sku, string> = {
   ip: "IP",
 };
+
+/**
+ * Per-tenant Overview (Acronis tenant detail): the client's AI-pentest usage +
+ * quota + actions. "Set quota" reveals the provisioning editor inline.
+ */
+function OverviewPanel({
+  client,
+  cap,
+  showProvisioning,
+  onConfigure,
+  onClose,
+  provisioning,
+}: {
+  client: Org;
+  cap: Cap | null;
+  showProvisioning: boolean;
+  onConfigure: () => void;
+  onClose: () => void;
+  provisioning: ReactNode;
+}) {
+  const ipCap = cap?.caps?.ip;
+  const policy = cap?.policy?.ip;
+  return (
+    <div className="bg-[#0d1e30] border border-[#4590e2]/30 rounded-xl p-5 space-y-5">
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-white font-semibold text-lg">{client.name}</h3>
+          <p className="text-xs text-[#7a9bb5] mt-0.5 capitalize">
+            Client · {client.status}
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-xs text-[#7a9bb5] hover:text-white transition-colors"
+        >
+          Close
+        </button>
+      </div>
+
+      <div className="bg-[#0a141f] border border-[#4590e2]/15 rounded-lg p-4">
+        <p className="text-[10px] uppercase tracking-wide text-[#7a9bb5] mb-2">
+          AI Pentest
+        </p>
+        <div className="flex items-baseline gap-2">
+          <span className="text-2xl font-bold text-white tabular-nums">
+            {ipCap != null ? ipCap : "∞"}
+          </span>
+          <span className="text-xs text-[#7a9bb5]">
+            IP cap / cycle{policy ? ` · ${policy}` : " · no cap set"}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <a
+          href="/app/ai-pentest-launch"
+          className="rounded-lg bg-[#4590e2] hover:bg-[#357ac4] text-white px-4 py-2 text-sm transition-colors"
+        >
+          New pentest
+        </a>
+        <button
+          onClick={onConfigure}
+          className="rounded-lg border border-[#4590e2]/30 text-[#c3d5e6] hover:bg-[#4590e2]/10 px-4 py-2 text-sm transition-colors"
+        >
+          {showProvisioning ? "Editing quota…" : "Set quota"}
+        </button>
+      </div>
+
+      {showProvisioning && <div className="pt-1">{provisioning}</div>}
+    </div>
+  );
+}
 
 /**
  * Editable provisioning for a client leaf: per-SKU quota caps (soft/hard) on the
