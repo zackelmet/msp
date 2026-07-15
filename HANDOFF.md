@@ -6,6 +6,22 @@ _Last updated: 2026-07-15_
 > platform → P3 Acronis-north-star UX), set after the 2nd Luis/Compulab meeting. North-star UX
 > teardown in `docs/north-star-acronis.md`. This file tracks the P2 Phase-1 build detail below.
 
+## 📌 Product-model pivot — 2026-07-15 (locked w/ Zack) → see `docs/product-model.md`
+
+**The 5-SKU model collapses to ONE product: an AI pentest, metered per live IP.** Full spec +
+build checklist in **`docs/product-model.md`** (the build contract). Headlines:
+- Bill **only the consolidated buyer**, post-paid monthly, on **actual consumption**. Buyer has **no
+  ceiling** — a **commitment plan tier** sets rate, IPs past the tier threshold are **discounted**, pay actual.
+- **Soft/hard IP caps are downstream spend controls**: hard = **block the whole launch** (+ raise-cap path),
+  soft = run + meter overage. Every run incl. re-tests counts.
+- **Launch + scope pages merge** into one paste-targets "New AI pentest" page (live per-IP scope estimate).
+- MSP launches by default; **per-client self-serve** toggle exposes launch in the white-label portal.
+- Manual pentest = quiet on-request link (no SKU). Future: **downloadable agent** for internal pentests.
+- Acronis-modeled control-plane **mockup built** this session (claude.ai/code artifact, product dark theme).
+
+**In flight (started this session):** `docs/product-model.md` written; capturing the model + kicking off the
+code collapse (`src/lib/types/quota.ts` SKUs → single IP meter, merge launch+scope, reframe landing copy).
+
 ## 📌 Session ledger — 2026-07-15 (engine pivot: PentAGI → Strix)
 
 | Where | What |

@@ -87,20 +87,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { href: "/app/pentests", label: "Test History", icon: faList },
     {
       href: "/app/ai-pentest-launch",
-      label: "Launch AI Pentest",
+      label: "New AI Pentest",
       icon: faJetFighter,
     },
     { href: "/app/buy-credits", label: "Buy AI Credits", icon: faBolt },
-    {
-      href: "/app/manual-pentest",
-      label: "Scope a Pentest",
-      icon: faQuestionCircle,
-    },
-    {
-      href: "/app/launch-pentest",
-      label: "Launch a Manual Test",
-      icon: faJetFighter,
-    },
   ];
 
   // Admin pages are consolidated into one /admin console with in-page tabs.

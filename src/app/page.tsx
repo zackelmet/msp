@@ -243,8 +243,9 @@ export default function Home() {
           </h1>
 
           <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Submit pentest requests, monitor progress in real time, and download
-            your reports — all in one place, with manual pentests led by CEH and OSCP professionals.
+            Launch AI-powered penetration tests against any IP, watch findings
+            surface in real time, and download your report — all in one place.
+            One product, priced per IP. Human-led pentests available on request.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
@@ -314,13 +315,13 @@ export default function Home() {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div>
                 <p className="text-[#4590e2] text-xs font-semibold uppercase tracking-[0.2em] mb-2">
-                  External IP Manual Pentests
+                  AI Penetration Testing · Per IP
                 </p>
                 <h3 className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-chakra-petch)" }}>
-                  Transparent pricing with quote-only scaling
+                  Simple pricing — pay per IP you test
                 </h3>
                 <p className="text-[#7a9bb5] text-sm mt-2 max-w-2xl">
-                  Manual pentests are performed by certified ethical hackers (CEH) and OSCP professionals.
+                  One AI pentest, metered per live IP. Rates drop as your volume grows. Human-led engagements available on request.
                 </p>
               </div>
               <Link
@@ -334,19 +335,19 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-4 mt-6">
               {[
                 {
-                  tier: "1–50 External IPs",
-                  price: "$3,600",
-                  sub: "One-time engagement",
+                  tier: "Pay per IP",
+                  price: "Metered",
+                  sub: "Billed only for live IPs actually tested",
                 },
                 {
-                  tier: "51–100 External IPs",
-                  price: "$4,500",
-                  sub: "One-time engagement",
+                  tier: "Grow into discounts",
+                  price: "Volume",
+                  sub: "Marginal IPs get cheaper past your tier threshold",
                 },
                 {
-                  tier: "101+ External IPs",
-                  price: "Custom Quote",
-                  sub: "Scope with our team",
+                  tier: "For MSPs at scale",
+                  price: "Consolidated",
+                  sub: "One monthly invoice across all your clients",
                 },
               ].map((item) => (
                 <div key={item.tier} className="bg-[#0a141f] border border-[#4590e2]/15 rounded-lg p-4">
@@ -380,7 +381,7 @@ export default function Home() {
             >
               How it works
             </h2>
-            <p className="text-gray-400 text-lg">Three steps from request to report — including manual testing by CEH and OSCP professionals.</p>
+            <p className="text-gray-400 text-lg">Three steps from targets to report — AI-driven, with every finding validated by real proof-of-concept.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-0">
@@ -388,14 +389,14 @@ export default function Home() {
               {
                 step: "01",
                 icon: faClipboardList,
-                title: "Submit a Request",
-                desc: "Log in and submit an AI or manual pentest request. Provide your target, scope, and notes for our team.",
+                title: "Add Your Targets",
+                desc: "Paste your targets — IPs, hostnames, URLs, or CIDR ranges — and launch. No lengthy scoping forms.",
               },
               {
                 step: "02",
                 icon: faShieldHalved,
-                title: "We Test",
-                desc: "Our team conducts your penetration test — AI-automated or manually by CEH-certified ethical hackers and OSCP professionals.",
+                title: "AI Tests Every IP",
+                desc: "Autonomous AI agents enumerate, exploit, and validate findings across every live IP in scope — each confirmed with a real proof-of-concept.",
               },
               {
                 step: "03",
@@ -477,7 +478,7 @@ export default function Home() {
             to learn about our services, view pricing, and get a quote.
           </p>
           <p className="text-[#7a9bb5] text-sm">
-            Manual pentests are performed by certified ethical hackers (CEH) and OSCP professionals.
+            AI penetration testing, billed per IP. Human-led engagements available on request, delivered by CEH- and OSCP-certified professionals.
           </p>
           <a
             href="https://msppentesting.com"
