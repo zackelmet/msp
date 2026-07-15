@@ -29,7 +29,15 @@ of Compulab**, and granted **`credits.ai_pentest: 1`** (live launch path). Folds
 meter. Note: role-based UI gating isn't wired yet (admin console still gates on the legacy `isAdmin` boolean),
 so this is structural data — Luis's portal experience is unchanged until the role gating ships.
 
-**Credit collapse — still staged (the deep one):** two credit systems exist — System A (org quota pools,
+**✅ Role-scoped control plane shipped (2026-07-15, commit d64ed42):** distributors/resellers now get the
+Acronis control plane **in-app at `/app/clients`**, scoped to their own subtree — drill down + set clients'
+quotas without the admin page. `/admin` stays Zack-only. New: `src/lib/org/access.ts` (`getCaller`, Bearer-
+verified), `GET /api/orgs` (subtree-scoped; whole tree for platform_admin), `PUT /api/orgs/[id]/{caps,branding}`
+(strict-descendant / self-or-descendant enforcement), `PlatformSection` reused via `apiBase`+`getAuthHeaders`,
+role-gated "Clients" nav. Verified: `subtree(org_compulab)` isolates Compulab from MSPP; tsc + next build green.
+Test: log in as Luis (`lc@compulab.pt`) → Clients tab → drills only Compulab's subtree.
+
+**Credit collapse (B) — NEXT, still staged (the deep one):** two credit systems exist — System A (org quota pools,
 `types/quota.ts` SKUs; NOT wired to launches) and **System B** (`users.credits.{web_app,external_ip,ai_pentest}`,
 the LIVE Stripe/launch path). Collapsing System B needs a **backfill migration** (mirror
 `scripts/backfillUserCreditSchema.js`: `credits.ip = web_app+external_ip+ai_pentest`) + a rename across
