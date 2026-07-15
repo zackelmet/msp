@@ -34,17 +34,24 @@ up to a single monthly invoice for the consolidated buyer.
 
 ## Commitment levels (the buyer's commercial tier)
 
-- The consolidated buyer has **no ceiling.** Instead they sit on a **plan tier**
-  (Bronze/Silver/Gold-style). The tier is a **commercial rate tier, not a technical limit
-  and not a floor.**
-- **Pay actual, no take-or-pay:** commit to Gold's 500 but use 300 → pay for 300.
-- **Volume threshold + overage discount:** each tier has a monthly IP **volume threshold**;
-  IPs consumed **past the threshold are discounted** (marginal IPs get cheaper — rewards
-  growth, nudges up a tier). Consumption is unlimited; there is no block at the buyer level.
-- **Monthly.** **Price-only** for now (tiers don't gate features/support yet).
-- _Open (does not block UI/data model): whether the base per-IP rate also drops at higher
-  tiers, or the tier is purely where the overage discount begins. Pricing-sheet detail; set
-  the numbers later._
+- The consolidated buyer has **no ceiling.** They sit on a **plan tier** — a commercial rate
+  tier, not a technical limit and not a floor. **Pay actual, no take-or-pay.**
+- **Tiers = monthly IP volume bands; higher volume → lower per-IP rate** (locked 2026-07-15):
+
+  | Tier | Monthly IP volume | Markup over cost | Price / IP |
+  |------|-------------------|------------------|-----------|
+  | Bronze | up to 100 | +150% | cost × 2.5 |
+  | Silver | ~1,000 | +120% | cost × 2.2 |
+  | Gold | ~10,000 | +100% | cost × 2.0 |
+
+  "Markup" = **margin over our per-IP cost**, i.e. `price = cost × (1 + markup)`. Bigger buyers
+  get a cheaper per-IP rate — the volume discount and the nudge up a tier. (This is markup, not
+  gross margin; gross margin can't exceed 100%.)
+- **`cost / IP` = the token cost to run one AI pentest on one IP** — engine + model dependent,
+  and **TBD: must be measured** (run a real pentest on the chosen engine, count tokens × model
+  price). Until then the rate card is a *formula*, not dollars. Pricing the `/pricing` page waits
+  on this number.
+- **Monthly. Price-only** (tiers don't gate features yet).
 
 ## Quotas — spend controls downstream (NOT prepaid buckets)
 
@@ -75,6 +82,20 @@ up to a single monthly invoice for the consolidated buyer.
 - **Per-client self-serve toggle:** when on, that client's end users can launch their own AI
   pentests from the **white-label portal**, within their hard cap. Off = MSP-launched only.
 
+## Roles & surfaces — admin console vs. in-app control plane (locked 2026-07-15)
+
+- **The `/admin` console is platform-only (Zack).** It stays gated on the `isAdmin` boolean —
+  MSPP-internal, cross-tenant (all suppliers). **Not a partner surface.** (Needs its own updates
+  later, separately.)
+- **Distributors (`supplier_admin`) and resellers (`reseller_admin`) get the Acronis control
+  plane IN THEIR OWN PORTAL,** scoped to their own subtree — NOT the admin page. They drill down
+  the clients grid and **set soft/hard IP quotas on their clients themselves.** This is the core
+  Acronis "manage-from-one-level" experience and the **next major UI build**: lift the control
+  plane (today `PlatformSection` under `/admin`) into a role-scoped app surface that shows only
+  the signed-in user's subtree, with quota-setting for their descendants.
+- **Clients (`client_user`)** see their own overview + reports, and can launch only if their
+  reseller enabled per-client self-serve.
+
 ## Manual pentests — quiet, on request
 
 - Human-delivered manual pentests are **not a SKU, not a meter, not a nav item.** They surface
@@ -103,5 +124,14 @@ thin control plane that launches into the deep pentest tooling.
   the client-access toggles (self-serve, manual) and white-label. Buyer summary shows plan
   tier + consumption (no ceiling).
 - **Landing page** — offering copy reframed to the single AI-pentest-per-IP product (drop the
-  multi-scan-type framing); keep existing styling.
-- **Provisioning at the buyer level** — a `planTier` selector (later; not client-provisioning).
+  multi-scan-type framing); keep existing styling. _(done 2026-07-15)_
+- **`users.credits`** — collapse `{web_app, external_ip, ai_pentest}` → a single `ip` credit
+  across signup/bootstrap/checkout/stripe-webhook/pentests/ai-pentest-launch/update-credits/
+  all-users + `UsersSection`. **No backfill migration needed** — there are no real users yet, so
+  this is a **forward schema change** (change the code; the handful of test users can be reset).
+- **Role-scoped control plane (NEXT MAJOR UI BUILD)** — lift `PlatformSection` out of `/admin`
+  into an in-app surface visible to `supplier_admin`/`reseller_admin`, **scoped to the signed-in
+  user's subtree**, where they drill down and set their clients' soft/hard IP caps. The `/admin`
+  console stays Zack-only (`isAdmin`).
+- **`planTier`** on the supplier org (Bronze/Silver/Gold) — drives the rate card; buyer-level
+  selector later.
