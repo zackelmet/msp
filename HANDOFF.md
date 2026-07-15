@@ -1,10 +1,22 @@
 # MSPP Dashboard — Handoff
 
-_Last updated: 2026-07-14_
+_Last updated: 2026-07-15_
 
 > **See `ROADMAP.md` for the prioritized dev plan** (P1 run-real-pentests → P2 consolidated-buyer
 > platform → P3 Acronis-north-star UX), set after the 2nd Luis/Compulab meeting. North-star UX
 > teardown in `docs/north-star-acronis.md`. This file tracks the P2 Phase-1 build detail below.
+
+## 📌 Session ledger — 2026-07-15 (engine pivot: PentAGI → Strix)
+
+| Where | What |
+|-------|------|
+| _(VPS)_ | **PentAGI fully torn down** (containers + volumes + images + files removed). Groq key preserved in `vuln-trends-engine/.env`; autojob-applier PM2 stack untouched. |
+| _(VPS)_ | **Strix installed** as the new candidate engine (`strix` 1.1.0 via pipx; FOSS AI pentester, github.com/usestrix/strix, Apache-2.0). arm64 works via pip (binary installer is x86-only); sandbox image has an arm64 manifest. |
+| _(VPS)_ | **Groq↔Strix wired + 2 bugs fixed** — injected LiteLLM optional deps; added a `.pth`-loaded tool-schema shim (Groq strict-validates tool schemas). Each run emits **`findings.sarif`** (machine-readable → good for `/api/pentests` ingest). |
+| _(VPS)_ | **Eval PAUSED (Zack's call)** on a hard blocker: Groq free `on_demand` tier caps TPM at **8K** (gpt-oss-120b) / 12K (llama-3.3-70b), but Strix's first request is **~29K tokens** → scan aborts before any completion. Needs Groq **Dev tier** or a **frontier key** (Strix's recommended path) to proceed. |
+
+Box is left clean + resumable — runbook in `/home/ubuntu/strix/RESUME-STRIX.md`; details in the
+`strix-engine` memory. Juice Shop test target is stopped (`docker start juiceshop` to resume).
 
 ## 📌 Session ledger — 2026-07-14 (all on `main` unless noted)
 
@@ -24,26 +36,28 @@ Firebase is now fully manageable from the checkout (`FIREBASE_SERVICE_ACCOUNT_KE
 `.env.local`, project `msp-pentesting`). tsc + eslint + `next build` green across all app commits.
 
 ## ⏭️ Tomorrow / next up
-1. **PentAGI eval + hardening** — log in over the SSH tunnel and run a real flow to judge Groq quality;
-   change default admin creds + mint an API token; fix the embedder (add an OpenAI key or local Ollama);
-   consider `llama-3.3-70b-versatile` vs the reasoning-model `gpt-oss-120b`. (Details in the `pentagi-engine`
-   memory + section below.)
-2. **Wire PentAGI into the app** — design a job-submit/callback contract mirroring the Make webhook so a
-   launched pentest can route to PentAGI's `POST /api/v1/flows` and its result flows back to `/api/pentests`.
+1. **Unblock the Strix eval (decision pending)** — pick one: upgrade Groq to Dev tier (pay-go, keeps cheap
+   `gpt-oss-120b`) OR add a frontier key (Claude/GPT — Strix's recommended path, true quality ceiling). Then
+   `docker start juiceshop` + `SCAN_MODE=quick bash /home/ubuntu/strix/run-eval.sh eval_run1` and judge the
+   `findings.sarif` quality. (Full runbook: `/home/ubuntu/strix/RESUME-STRIX.md` + `strix-engine` memory.)
+2. **Wire Strix into the app** — Strix is CLI-only (no REST API), so the contract = a backend worker spawns
+   `strix -n --target … --instruction …` as a job and ingests the run's `findings.sarif`/`run.json` back into
+   `/api/pentests` (mirrors the Make-webhook job pattern). Design once the eval confirms Strix is good enough.
 3. **P1.5** wire-or-retire `/api/launch-pentest` (creates no doc, no callback → results never surface).
 4. **P1.6** (Zack said "next session") env-ify hardcoded Make URL + verify the Make PATCH callback + make
    the launch flow fully autonomous for users.
 5. Optional cleanup: `src/lib/gcp/storageClient.ts` looks dead (no importers) — confirm + remove.
 
-## 🖥️ PentAGI engine — deployed 2026-07-14 (Oracle VPS, EVAL)
-Chosen over Vulnetic. Running on `autojob-vps` (`147.224.173.192`, ubuntu, key
-`/home/zack/Desktop/openclaw/ssh-key-2026-02-02.key`) at `/home/ubuntu/pentagi` — 4 containers
-(pentagi/pgvector/scraper/pgexporter) **bound to 127.0.0.1** (not exposed). LLM = **Groq** via the
-custom OpenAI-compatible provider (`LLM_SERVER_PROVIDER=groq`, model `openai/gpt-oss-120b`, key from the
-box's `~/vuln-trends-engine/.env`). UI/REST/Swagger return 200. **Access:** `ssh -L 8443:localhost:8443
-autojob-vps` → `https://localhost:8443`, login `admin@pentagi.com` / `admin` (change it). Caveats: embedder
-needs a key (no Groq embeddings; vector-memory degraded, non-fatal); `gpt-oss-120b` is a reasoning model.
-Full runbook in the `pentagi-engine` memory. NOT yet wired into the msp launch path.
+## 🖥️ Pentest engine — Strix candidate (Oracle VPS, EVAL PAUSED 2026-07-15)
+**PentAGI was torn down and replaced by Strix** (github.com/usestrix/strix, Apache-2.0) — chosen 2026-07-15.
+On `autojob-vps` (`147.224.173.192`, ubuntu, key `/home/zack/Desktop/openclaw/ssh-key-2026-02-02.key`):
+`strix` 1.1.0 installed via pipx at `/home/ubuntu/.local/bin/strix`; helpers + runbook in `/home/ubuntu/strix/`.
+CLI-only (headless `strix -n`), Docker-sandboxed, LLM via LiteLLM. Two fixes are in place and required:
+injected LiteLLM optional deps + a `.pth`-loaded tool-schema shim (`strix_groq_shim.py`, drops empty
+`required:[]` — Groq strict-validates). Runs emit **`findings.sarif`** + `run.json` (machine-readable).
+**Blocker:** Groq free `on_demand` tier = 8K TPM (gpt-oss-120b) but Strix's first request is ~29K tokens →
+scan can't start. Resume needs a Groq Dev-tier upgrade or a frontier-model key. Full runbook:
+`/home/ubuntu/strix/RESUME-STRIX.md` + the `strix-engine` memory. NOT yet wired into the msp launch path.
 
 ## ✅ P1 progress (2026-07-14 session)
 - **P1.2 — pentest auth hardened (commit bd3ec9e).** `/api/pentests` POST+GET and `/api/pentests/[id]`
