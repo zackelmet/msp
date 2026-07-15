@@ -22,6 +22,20 @@ build checklist in **`docs/product-model.md`** (the build contract). Headlines:
 **In flight (started this session):** `docs/product-model.md` written; capturing the model + kicking off the
 code collapse (`src/lib/types/quota.ts` SKUs → single IP meter, merge launch+scope, reframe landing copy).
 
+**Partner onboarded — Compulab / Luis (prod, 2026-07-15):** `scripts/setupCompulab.js` (idempotent, dry-run
+default) created the Compulab org tree `org_compulab` (supplier/distributor) → `org_compulab_house` (reseller)
+→ `org_compulab_client`, promoted Luis (`lc@compulab.pt`, uid `vHxug1…`) from MSPP client → **supplier_admin
+of Compulab**, and granted **`credits.ai_pentest: 1`** (live launch path). Folds cleanly into the future `ip`
+meter. Note: role-based UI gating isn't wired yet (admin console still gates on the legacy `isAdmin` boolean),
+so this is structural data — Luis's portal experience is unchanged until the role gating ships.
+
+**Credit collapse — still staged (the deep one):** two credit systems exist — System A (org quota pools,
+`types/quota.ts` SKUs; NOT wired to launches) and **System B** (`users.credits.{web_app,external_ip,ai_pentest}`,
+the LIVE Stripe/launch path). Collapsing System B needs a **backfill migration** (mirror
+`scripts/backfillUserCreditSchema.js`: `credits.ip = web_app+external_ip+ai_pentest`) + a rename across
+signup/bootstrap/checkout/stripe-webhook/pentests/ai-pentest-launch/update-credits/all-users. Do NOT rush it —
+it's the money path. `/pricing` rework waits on real per-IP tier numbers.
+
 ## 📌 Session ledger — 2026-07-15 (engine pivot: PentAGI → Strix)
 
 | Where | What |
