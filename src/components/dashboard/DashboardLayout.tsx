@@ -32,11 +32,17 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+// Persist role/isAdmin across DashboardLayout remounts (each /app page mounts its
+// own layout), so the correct nav renders immediately on navigation instead of
+// flashing the default client nav until the async role fetch resolves.
+let cachedIsAdmin = false;
+let cachedRole: string | null = null;
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [role, setRole] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(cachedIsAdmin);
+  const [role, setRole] = useState<string | null>(cachedRole);
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -60,8 +66,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       try {
         const resp = await fetch(`/api/auth/isAdmin?uid=${currentUser.uid}`);
         const data = await resp.json();
-        setIsAdmin(data.isAdmin === true);
-        setRole(data.role ?? null);
+        cachedIsAdmin = data.isAdmin === true;
+        cachedRole = data.role ?? null;
+        setIsAdmin(cachedIsAdmin);
+        setRole(cachedRole);
       } catch {
         setIsAdmin(false);
       }
