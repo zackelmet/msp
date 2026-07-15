@@ -37,7 +37,18 @@ verified), `GET /api/orgs` (subtree-scoped; whole tree for platform_admin), `PUT
 role-gated "Clients" nav. Verified: `subtree(org_compulab)` isolates Compulab from MSPP; tsc + next build green.
 Test: log in as Luis (`lc@compulab.pt`) → Clients tab → drills only Compulab's subtree.
 
-**Credit collapse (B) — NEXT, still staged (the deep one):** two credit systems exist — System A (org quota pools,
+**✅ More shipped 2026-07-15:** (a) **SKU quota collapse** — `types/quota.ts` `SKUS`→`["ip"]`, PlatformSection
+provisioning now one IP cap (commit 4f5f1a5); (b) **legacy launch pages retired** → redirect to
+`/app/ai-pentest-launch` (9b45bb5); (c) **clients grid = home** — supplier_admin/reseller_admin land on the
+scoped control plane at `/app/dashboard` (Acronis, commit bc257b0). Strix eval done (Gemini free tier; quick
+≈$0.085/target, deep needs paid tier — see `strix-engine` memory). Luis email **drafted + held** in the
+"MSP Pentesting Form - Compulab" thread (Gmail draft, not sent) — awaiting a more Acronis-like dashboard first.
+
+**⏭️ Dashboard→Acronis (in progress, Zack chose "clients-grid-as-home first"):** item 1 (grid-as-home) DONE;
+NEXT = **per-tenant Overview page** (drill into a client → IP usage + recent pentests + manage/launch), then
+nav/shell realign + color-as-status. This is what gates telling Luis to actually use it.
+
+**Credit collapse (B) — still staged (the deep one; Stripe recurring deferred until Strix cost data):** two credit systems exist — System A (org quota pools,
 `types/quota.ts` SKUs; NOT wired to launches) and **System B** (`users.credits.{web_app,external_ip,ai_pentest}`,
 the LIVE Stripe/launch path). Collapsing System B needs a **backfill migration** (mirror
 `scripts/backfillUserCreditSchema.js`: `credits.ip = web_app+external_ip+ai_pentest`) + a rename across
