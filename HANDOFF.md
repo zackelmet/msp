@@ -50,7 +50,11 @@ spend) until Zack provisions them. Acronis is top-down/invite-only; we chose ope
   `zack@msppentesting.com`. **✅ Resend CONFIGURED (2026-07-16):** `RESEND_API_KEY` (reused from the AIP app),
   `EMAIL_FROM=MSP Pentesting <onboarding@resend.dev>` (generic sender — no verified domain), `OPS_EMAIL=zack@msppentesting.com`
   set in Vercel **prod + dev** and `.env.local`. Live send verified (HTTP 200). This also activates the previously-dark
-  manual-order emails. Redeploy `1825697` picks up the env.
+  manual-order emails. **Green prod deploy = `ee812e6` (msp-4pzyf8dpe).**
+- **⚠️ Build-verify lesson:** `tsc --noEmit` does NOT run ESLint; `next build` does. The onboarding banner shipped with
+  raw apostrophes in JSX → `react/no-unescaped-entities` failed every deploy from `b791870`→`b4702e1` (prod stayed
+  pinned to the last green Stripe-key build, so billing was unaffected). Fixed in `ee812e6`. **Verify UI/page changes
+  with `next build`, not just `tsc`.**
 - **Distributor upsell** — `DistributorUpsellBanner` (dismissible, per-browser) shows to `selfEnrolled` reseller_admins:
   "want your own billing as a distributor? email zack@msppentesting.com". `/api/auth/isAdmin` now returns `selfEnrolled`.
 - **To activate a parked reseller:** grant credits / set quota in `/admin`. **To promote to a distributor** (their own
