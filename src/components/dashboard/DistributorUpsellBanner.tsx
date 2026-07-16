@@ -34,7 +34,7 @@ export default function DistributorUpsellBanner({ show }: { show: boolean }) {
         <FontAwesomeIcon icon={faStore} />
       </div>
       <div className="flex-1 text-sm">
-        <p className="text-white font-semibold">You're set up as a reseller.</p>
+        <p className="text-white font-semibold">You&apos;re set up as a reseller.</p>
         <p className="text-[#7a9bb5] mt-0.5">
           Want your own billing and a bigger commitment tier as a{" "}
           <strong className="text-[#a9c6dd]">distributor</strong>? Email{" "}
@@ -44,7 +44,7 @@ export default function DistributorUpsellBanner({ show }: { show: boolean }) {
           >
             {ZACK_EMAIL}
           </a>{" "}
-          and we'll set you up.
+          and we&apos;ll set you up.
         </p>
       </div>
       <button
