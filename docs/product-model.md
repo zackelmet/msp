@@ -32,6 +32,32 @@ up to a single monthly invoice for the consolidated buyer.
 - Billing is **pure actual consumption**, settled **monthly, post-paid**. Sum the live IPs
   consumed across the buyer's entire subtree → one invoice.
 
+### Payment posture — TWO-TIER credit-risk model (intended direction, 2026-07-16)
+
+Post-paid means we deliver a month of service, invoice, then wait out net terms before we could
+cut a delinquent buyer off — **~60 days of exposure** (up to a month of consumption + up to 30 days
+to settle). Net terms are a **privilege granted to vetted partners**, not the default. Two tiers,
+decided at the **approve-a-partner** step:
+
+- **Tier 1 — vetted distributors (e.g. Compulab):** `send_invoice`, **net-30**, invoice emailed
+  automatically at cycle end (no auto-charge — they pay the hosted invoice). This is the channel
+  norm (Pax8 / Ingram / Acronis extend net-30 to underwritten resellers). Risk is bounded by:
+  their **hard IP cap = their credit limit**, an optional **Stripe billing threshold** (invoice
+  mid-cycle once usage crosses $X, capping exposure by *dollars* not *time*), and **auto-suspend on
+  non-payment**. **Status: LIVE for Compulab** (`sub_1TtoCwA2hEQYBBzSjggtptIM`, send-invoice/net-30).
+- **Tier 2 — self-serve resellers (the auto-enrolled, parked accounts):** `charge_automatically`
+  with a **card/ACH on file** (collected via Stripe Checkout SetupIntent at activation), a **low
+  hard cap**, and billing thresholds. **No net terms until they earn it** (graduate to Tier 1 after
+  a track record). Removes the "will they pay" — payment auto-collects.
+
+**What's Stripe-config vs. what's a build:** Tier-1 invoice mechanics are done (API). Billing
+thresholds are a per-subscription API add (not yet applied). Tier-2 is a **runtime feature to
+build** — customer + Checkout card collection + `charge_automatically` sub + a `invoice.payment_failed`
+→ suspend (cap→0) webhook — and it's **naturally coupled to the credits→org-cap gate switch** (a
+carded self-serve reseller still can't launch until the cap is the gate). Dunning retry schedule /
+"email invoices" are **Stripe Dashboard** settings (Billing → Revenue Recovery), owner-set.
+**Onboarding/deposit fee:** optional, treat as a commitment signal, not primary risk mitigation.
+
 ## Commitment levels (the buyer's commercial tier)
 
 - The consolidated buyer has **no ceiling.** They sit on a **plan tier** — a commercial rate
