@@ -47,17 +47,17 @@ spend) until Zack provisions them. Acronis is top-down/invite-only; we chose ope
   and stamps the user `role:reseller_admin`, `orgPath:[org_msp, org_reseller_<uid>]`, `selfEnrolled:true`. Idempotent
   (early-returns if the user doc exists). **Verified end-to-end** on a dev server; test docs cleaned up. `tsc` clean.
 - **Resend alert to Zack on every signup** — `newSignupOpsEmail` via `src/lib/email/send.ts`, sent to `OPS_EMAIL` else
-  `zack@msppentesting.com`. **⚠️ Env-gated NO-OP until Resend is configured in Vercel** — set **`RESEND_API_KEY`**,
-  **`EMAIL_FROM`** (verified sender), and **`OPS_EMAIL=zack@msppentesting.com`**. (Currently unset in Vercel → the
-  existing manual-order emails also no-op today.)
+  `zack@msppentesting.com`. **✅ Resend CONFIGURED (2026-07-16):** `RESEND_API_KEY` (reused from the AIP app),
+  `EMAIL_FROM=MSP Pentesting <onboarding@resend.dev>` (generic sender — no verified domain), `OPS_EMAIL=zack@msppentesting.com`
+  set in Vercel **prod + dev** and `.env.local`. Live send verified (HTTP 200). This also activates the previously-dark
+  manual-order emails. Redeploy `1825697` picks up the env.
 - **Distributor upsell** — `DistributorUpsellBanner` (dismissible, per-browser) shows to `selfEnrolled` reseller_admins:
   "want your own billing as a distributor? email zack@msppentesting.com". `/api/auth/isAdmin` now returns `selfEnrolled`.
 - **To activate a parked reseller:** grant credits / set quota in `/admin`. **To promote to a distributor** (their own
   supplier root), that's still a manual re-parent — no UI yet (the intended path for the email upsell).
 
 **⏭️ Resume (2026-07-16):**
-1. **Configure Resend in Vercel** (`RESEND_API_KEY`, `EMAIL_FROM`, `OPS_EMAIL`) so signup + manual-order emails send.
-2. **First real completion is the true test** — on the next completed pentest under Compulab, confirm a usage record
+1. **First real completion is the true test** — on the next completed pentest under Compulab, confirm a usage record
    lands on `si_UtbP95aNPnD40E` (Stripe → subscription → usage) and the pentest doc gets `usageReported:true`.
 3. **Distributor-promotion flow** — a UI/script to lift a parked reseller into its own supplier tree (today: manual).
 4. Remaining from 2026-07-15: real pentest execution (scan/report side unwired), `/pricing` reskin, "Buy Credits"
