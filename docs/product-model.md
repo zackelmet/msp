@@ -65,6 +65,14 @@ up to a single monthly invoice for the consolidated buyer.
     and notify.
 - **Parent-cap invariant:** a child's hard cap can't exceed the parent's remaining capacity.
 
+> **⚠️ NOTE (2026-07-16) — launch gate will move from credits → org cap.** Today the AI-pentest
+> launch path still gates on the legacy per-user `users.credits.ai_pentest`, while metering (the
+> real post-paid model) fires independently on completion. These two systems are **unreconciled** —
+> once completions are wired, a user would spend a credit AND be metered. **Intended fix (deferred):
+> drop the per-user credit gate for AI pentests and gate the launch on the org's remaining hard cap**,
+> making the meter the single source of truth (see build checklist "collapse `users.credits`"). Left
+> as-is for now (no real usage yet; Compulab has 1 granted credit, 0 metered usage).
+
 ## Launch + scope — one page
 
 - The separate **manual-launch** page and **scoping** page **collapse into one** "New AI
