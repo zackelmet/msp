@@ -1,11 +1,41 @@
 # MSPP Dashboard — Handoff
 
-_Last updated: 2026-07-15_
+_Last updated: 2026-07-16_
 
 > **See `docs/product-model.md` (Dev Roadmap section) for the prioritized dev plan** (P1
 > run-real-pentests → P2 consolidated-buyer platform → P3 Acronis-north-star UX), set after the 2nd
 > Luis/Compulab meeting. North-star UX teardown is in `docs/product-model.md` (North Star section).
 > This file tracks the P2 Phase-1 build detail below.
+
+## 📌 Session ledger — 2026-07-16 (metered usage reporting wired end-to-end)
+
+**Completed pentests now meter the consolidated buyer.** Code shipped (NOT yet committed to `main` — see
+"resume" — and the LIVE Stripe subscription is NOT yet created):
+- **`OrgBilling` type** (`src/lib/types/org.ts`) gains `stripeSubscriptionId` / `stripeSubscriptionItemId` /
+  `stripePriceId` — the supplier node's metered subscription handle.
+- **Usage helper** (`src/lib/stripe/reportUsage.ts`): `reportPentestUsage(pentestId, userId, quantity)` resolves
+  `user.orgPath[0]` → supplier → `billing.stripeSubscriptionItemId`, then `subscriptionItems.createUsageRecord`
+  (`action:increment`, idempotencyKey `pentest-usage:<id>`). No-ops + logs if the buyer isn't subscribed — never
+  fails the callback. Attribution verified: Luis's user doc has `orgPath:["org_compulab"]`.
+- **Completion callback** (`/api/pentests` PATCH): on a genuinely `completed` pentest (not failed) and not already
+  metered, reports usage (qty = `billableIps` or 1 — CIDRs already expand to one doc per host at launch) and sets a
+  `usageReported`/`usageReportedAt`/`usageQuantity` doc flag. Double guard against double-billing (doc flag + Stripe
+  idempotency key). Stripe/attribution errors are caught and logged, callback still 200s.
+- **Provisioning script** `scripts/subscribeCompulab.js` (dry-run default, `--commit` for LIVE): ensures a Stripe
+  customer for `org_compulab`, creates a **send-invoice / net-30 metered subscription** to the per-IP price
+  (`price_1TtV2oA2hEQYBBzSJw5Dsyrs`, resolved by lookup_key `ai_pentest_per_ip_metered_v1`), stores customer/sub/item
+  ids on the org billing. Idempotent. **Dry-run passes.** `tsc --noEmit` clean.
+
+**⏭️ Resume (2026-07-16):**
+1. **Commit + push** the above to `main` (`--no-verify`).
+2. **Run `node scripts/subscribeCompulab.js --commit`** to create the LIVE subscription for Compulab (a real
+   recurring subscription for the partner — deliberately left for Zack). After that, completions meter automatically.
+   NOTE: the restricted Stripe key must have **Customers + Subscriptions + Usage Records write** scopes (it already
+   has Products/Prices). Tie into the key rotation below.
+3. **Rotate the leaked `rk_live_…` restricted key** (STILL OUTSTANDING from 2026-07-15) — create a new restricted key
+   in the Stripe dashboard with the scopes above, update `.env.local:18` + Vercel env `STRIPE_SECRET_KEY`, revoke old.
+4. Remaining from 2026-07-15: real pentest execution (scan/report side unwired), `/pricing` reskin, "Buy Credits"
+   button rename, first-load nav-flash fix.
 
 ## 📌 Session ledger — 2026-07-15 (evening: Acronis portal + metered billing + launch verified)
 

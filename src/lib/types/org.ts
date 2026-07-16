@@ -59,6 +59,16 @@ export interface OrgBilling {
   stripeCustomerId?: string;
   /** Net terms in days for consolidated invoicing (e.g. 30). */
   netTerms?: number;
+  /**
+   * Metered per-IP subscription for a consolidated buyer (supplier). Set when the
+   * buyer is subscribed to the per-IP price; usage records are reported against
+   * `stripeSubscriptionItemId` on pentest completion. Only meaningful on the
+   * supplier node (the tree's single billed party).
+   */
+  stripeSubscriptionId?: string;
+  stripeSubscriptionItemId?: string;
+  /** The per-IP metered price the subscription item is billed at. */
+  stripePriceId?: string;
 }
 
 export interface OrgDocument {
