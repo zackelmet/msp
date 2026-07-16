@@ -26,14 +26,21 @@ _Last updated: 2026-07-16_
   (`price_1TtV2oA2hEQYBBzSJw5Dsyrs`, resolved by lookup_key `ai_pentest_per_ip_metered_v1`), stores customer/sub/item
   ids on the org billing. Idempotent. **Dry-run passes.** `tsc --noEmit` clean.
 
+**⚠️ Subscription commit — PARTIAL (2026-07-16):** ran `subscribeCompulab.js --commit`. Stripe **customer created**
+(`cus_UtbCy4uE44aRUW`, persisted to `org_compulab.billing.stripeCustomerId`) but the **subscription FAILED**: the
+restricted key `rk_live_…` lacks **`subscription_write`** scope. So `org_compulab` has a customer but **no
+subscription item yet** → completions currently no-op the metering (logged, callback still 200s). Script now persists
+the customer id immediately so a re-run reuses `cus_UtbCy4uE44aRUW` (no duplicate).
+
 **⏭️ Resume (2026-07-16):**
-1. **Commit + push** the above to `main` (`--no-verify`).
-2. **Run `node scripts/subscribeCompulab.js --commit`** to create the LIVE subscription for Compulab (a real
-   recurring subscription for the partner — deliberately left for Zack). After that, completions meter automatically.
-   NOTE: the restricted Stripe key must have **Customers + Subscriptions + Usage Records write** scopes (it already
-   has Products/Prices). Tie into the key rotation below.
-3. **Rotate the leaked `rk_live_…` restricted key** (STILL OUTSTANDING from 2026-07-15) — create a new restricted key
-   in the Stripe dashboard with the scopes above, update `.env.local:18` + Vercel env `STRIPE_SECRET_KEY`, revoke old.
+1. **Add scopes to the Stripe key** — the current restricted key needs **Subscriptions Write** (+ **Usage Records
+   Write** for runtime metering, + it already has Products/Prices; add **Customers Write** too). Either edit the
+   current key OR fold into the rotation below. Edit page linked in the failed run output.
+2. **Re-run `node scripts/subscribeCompulab.js --commit`** — reuses the existing customer, creates the metered
+   subscription, stores the item id. After that, completions meter automatically.
+3. **Rotate the leaked `rk_live_…` restricted key** (OUTSTANDING from 2026-07-15; Zack chose to DEFER as a later task
+   2026-07-16) — new restricted key w/ the scopes above, update `.env.local:18` + Vercel env `STRIPE_SECRET_KEY`,
+   revoke old. Doing this WITH the right scopes also unblocks #1/#2 in one shot.
 4. Remaining from 2026-07-15: real pentest execution (scan/report side unwired), `/pricing` reskin, "Buy Credits"
    button rename, first-load nav-flash fix.
 

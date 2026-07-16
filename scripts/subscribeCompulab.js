@@ -99,6 +99,12 @@ async function main() {
       });
       customerId = customer.id;
       log("  →", customerId);
+      // Persist immediately so a later failure (e.g. missing Subscriptions
+      // Write scope) doesn't orphan the customer + duplicate it on re-run.
+      await orgRef.update({
+        "billing.stripeCustomerId": customerId,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
     }
   }
 
