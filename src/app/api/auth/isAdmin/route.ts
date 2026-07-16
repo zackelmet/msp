@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
       isAdmin,
       role: data?.role ?? null,
       orgId: data?.orgId ?? null,
+      selfEnrolled: data?.selfEnrolled === true,
     });
   } catch (error) {
     console.error("Error checking admin status:", error);

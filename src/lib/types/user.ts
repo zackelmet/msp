@@ -30,6 +30,12 @@ export interface UserDocument {
   orgId?: string;
   orgPath?: string[];
   role?: UserRole;
+  /**
+   * True when the user self-registered via public signup (auto-enrolled as a
+   * reseller under MSPP, parked). Drives the in-portal distributor-upsell prompt.
+   * Absent for the MSPP house reseller and script-onboarded partners.
+   */
+  selfEnrolled?: boolean;
 
   // Pentest credits
   credits: {

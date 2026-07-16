@@ -102,6 +102,29 @@ export function manualOrderCustomerEmail(opts: {
   };
 }
 
+/** Internal alert so Zack knows a new partner self-registered (auto-enrolled as a reseller). */
+export function newSignupOpsEmail(opts: {
+  email: string;
+  name?: string;
+  resellerOrgId: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `🆕 New signup: ${opts.name || opts.email}`,
+    html: brandWrap(`
+      <h2 style="margin:0 0 12px;font-size:18px">New partner signup</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:14px">
+        <tr><td style="padding:4px 0;color:#5a6b7b">Email</td><td style="padding:4px 0"><strong>${opts.email}</strong></td></tr>
+        <tr><td style="padding:4px 0;color:#5a6b7b">Name</td><td style="padding:4px 0">${opts.name || "—"}</td></tr>
+        <tr><td style="padding:4px 0;color:#5a6b7b">Reseller org</td><td style="padding:4px 0">${opts.resellerOrgId}</td></tr>
+      </table>
+      <p style="margin:14px 0 0;line-height:1.5">
+        Auto-enrolled as a <strong>reseller under MSP Pentesting</strong> and parked
+        (no credits → can't launch). Provision their quota/tier in <strong>/admin</strong>
+        to activate, or promote to a distributor (own supplier) if they reach out.
+      </p>`),
+  };
+}
+
 /** Internal alert so the team knows a paid engagement needs scoping/kickoff. */
 export function manualOrderOpsEmail(opts: {
   customerEmail: string;

@@ -27,6 +27,7 @@ import OnboardingTour, {
   START_TOUR_EVENT,
 } from "@/components/onboarding/OnboardingTour";
 import { faCompass } from "@fortawesome/free-solid-svg-icons";
+import DistributorUpsellBanner from "@/components/dashboard/DistributorUpsellBanner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -37,12 +38,14 @@ interface DashboardLayoutProps {
 // flashing the default client nav until the async role fetch resolves.
 let cachedIsAdmin = false;
 let cachedRole: string | null = null;
+let cachedSelfEnrolled = false;
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(cachedIsAdmin);
   const [role, setRole] = useState<string | null>(cachedRole);
+  const [selfEnrolled, setSelfEnrolled] = useState(cachedSelfEnrolled);
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -68,8 +71,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         const data = await resp.json();
         cachedIsAdmin = data.isAdmin === true;
         cachedRole = data.role ?? null;
+        cachedSelfEnrolled = data.selfEnrolled === true;
         setIsAdmin(cachedIsAdmin);
         setRole(cachedRole);
+        setSelfEnrolled(cachedSelfEnrolled);
       } catch {
         setIsAdmin(false);
       }
@@ -340,6 +345,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Page content */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto">
+          <DistributorUpsellBanner
+            show={selfEnrolled && role === "reseller_admin"}
+          />
           {children}
         </main>
       </div>
