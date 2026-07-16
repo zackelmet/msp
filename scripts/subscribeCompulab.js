@@ -26,6 +26,9 @@ const COMMIT = process.argv.slice(2).includes("--commit");
 const SUPPLIER_ORG_ID = "org_compulab";
 const PRICE_LOOKUP = "ai_pentest_per_ip_metered_v1";
 const NET_TERMS_DAYS = 30;
+// send_invoice subscriptions require an email on the customer to deliver the
+// invoice. This is the consolidated buyer's billing contact (Luis / Compulab).
+const BILLING_EMAIL = "lc@compulab.pt";
 
 function initAdmin() {
   if (admin.apps.length) return;
@@ -94,6 +97,7 @@ async function main() {
     if (COMMIT) {
       const customer = await stripe.customers.create({
         name: org.name || "Compulab",
+        email: BILLING_EMAIL,
         description: `Consolidated buyer — ${SUPPLIER_ORG_ID}`,
         metadata: { orgId: SUPPLIER_ORG_ID, role: "supplier" },
       });
