@@ -22,8 +22,13 @@ consolidated buyer). See `docs/product-model.md` "Payment posture" for the full 
   card, else 409). This is how a buyer graduates Tier 2 → Tier 1.
 - **Dunning:** `invoice.payment_failed`→`billing.suspended=true`, `invoice.paid`→false. **NOT enforced at launch
   yet** (launch is still credit-gated — enforce with the credits→cap switch).
-- **⚠️ Owner action:** enable **`invoice.payment_failed`** + **`invoice.paid`** on the live Stripe webhook endpoint
-  (checkout.session.completed already on). Without them, suspend/activation hooks won't fire.
+- **✅ Prod webhook CREATED + verified (2026-07-17).** The live Stripe account had **NO webhook endpoint at all**
+  (the `whsec_` in env was orphaned → every webhook flow, incl. `checkout.session.completed` for credit purchases /
+  manual orders, was dark in prod). Created endpoint **`we_1Tu8bNA2hEQYBBzSpIjemFE2`** at
+  `https://msp-puce.vercel.app/api/stripe-webhook` with `checkout.session.completed` + `invoice.payment_failed` +
+  `invoice.paid` + `payment_intent.*`. Rotated `STRIPE_WEBHOOK_SECRET` (Vercel prod+dev + `.env.local`), redeployed,
+  and **verified a signed event returns HTTP 200** end-to-end. (Needed adding Webhook-Endpoints-Write to the
+  restricted key.)
 - **Compulab path:** currently send_invoice/net-30, **no card**. Luis adds a card on the Billing page → the flow
   flips his existing sub to auto-charge (Tier 2). Left for Luis. Customer `cus_UtbCy4uE44aRUW`.
 
