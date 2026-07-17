@@ -7,6 +7,26 @@ _Last updated: 2026-07-16_
 > Luis/Compulab meeting. North-star UX teardown is in `docs/product-model.md` (North Star section).
 > This file tracks the P2 Phase-1 build detail below.
 
+## 📌 Session ledger — 2026-07-17 (two-tier payment model shipped)
+
+**Tier-2 card-on-file billing + tier-up + dunning are LIVE in code** (commit `4ba12f0`; verified with a full
+`next build` + a live setup-session structural test). Payment tiers apply to **supplier** nodes only (the billed
+consolidated buyer). See `docs/product-model.md` "Payment posture" for the full spec.
+- **Tier 2 activation:** `POST /api/billing/setup-session` (supplier_admin/admin) → Stripe Checkout `mode:setup`
+  card collection → webhook `org_billing_setup` attaches the card as default PM and puts the metered sub on
+  `charge_automatically` (creates it if none). `billing.paymentTier='auto'`. Billing page (`/app/buy-credits`)
+  shows an **"Add payment method"** card to supplier admins not yet on auto, + card-on-file / suspended banners.
+  Backed by `GET /api/billing/status`.
+- **"Move up a tier":** `PUT /api/admin/orgs/[id]/payment-tier {tier:'net30'|'auto'}` (platform_admin) flips the
+  sub's `collection_method` — `net30`=send_invoice/net-30 (Tier 1, vetted), `auto`=charge_automatically (needs a
+  card, else 409). This is how a buyer graduates Tier 2 → Tier 1.
+- **Dunning:** `invoice.payment_failed`→`billing.suspended=true`, `invoice.paid`→false. **NOT enforced at launch
+  yet** (launch is still credit-gated — enforce with the credits→cap switch).
+- **⚠️ Owner action:** enable **`invoice.payment_failed`** + **`invoice.paid`** on the live Stripe webhook endpoint
+  (checkout.session.completed already on). Without them, suspend/activation hooks won't fire.
+- **Compulab path:** currently send_invoice/net-30, **no card**. Luis adds a card on the Billing page → the flow
+  flips his existing sub to auto-charge (Tier 2). Left for Luis. Customer `cus_UtbCy4uE44aRUW`.
+
 ## 📌 Session ledger — 2026-07-16 (metered usage reporting wired end-to-end)
 
 **Completed pentests now meter the consolidated buyer.** Code shipped (NOT yet committed to `main` — see
