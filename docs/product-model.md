@@ -50,13 +50,24 @@ decided at the **approve-a-partner** step:
   hard cap**, and billing thresholds. **No net terms until they earn it** (graduate to Tier 1 after
   a track record). Removes the "will they pay" — payment auto-collects.
 
-**What's Stripe-config vs. what's a build:** Tier-1 invoice mechanics are done (API). Billing
-thresholds are a per-subscription API add (not yet applied). Tier-2 is a **runtime feature to
-build** — customer + Checkout card collection + `charge_automatically` sub + a `invoice.payment_failed`
-→ suspend (cap→0) webhook — and it's **naturally coupled to the credits→org-cap gate switch** (a
-carded self-serve reseller still can't launch until the cap is the gate). Dunning retry schedule /
-"email invoices" are **Stripe Dashboard** settings (Billing → Revenue Recovery), owner-set.
-**Onboarding/deposit fee:** optional, treat as a commitment signal, not primary risk mitigation.
+**Status — SHIPPED 2026-07-16/17:**
+- **Tier-2 activation flow (BUILT).** `POST /api/billing/setup-session` (supplier_admin/admin) → Stripe
+  Checkout `mode:setup` card collection → webhook (`org_billing_setup` flow) attaches the card as default
+  PM and puts the buyer's metered sub on `charge_automatically` (creating it if none). Billing page
+  (`/app/buy-credits`) shows an **"Add payment method"** card to supplier admins not yet on auto-charge,
+  and a card-on-file / suspended banner. `billing.paymentTier` = `"auto"|"net30"`.
+- **"Move up a tier" (BUILT).** `PUT /api/admin/orgs/[id]/payment-tier { tier }` (platform_admin) flips the
+  sub's `collection_method`: `net30` = send_invoice+net-30 (Tier 1, for vetted distributors), `auto` =
+  charge_automatically (Tier 2, requires a card → 409 if none). This is how a buyer graduates Tier 2 → Tier 1.
+- **Dunning (BUILT).** `invoice.payment_failed` → `billing.suspended=true`; `invoice.paid` → `false`.
+  ⚠️ **NOT yet enforced at launch** (launch is still credit-gated — enforce when the credits→cap switch lands).
+- **⚠️ Stripe Dashboard prerequisites (owner):** the live webhook endpoint must have **`checkout.session.completed`**
+  (already on — credit flow uses it), **`invoice.payment_failed`**, and **`invoice.paid`** enabled, or the
+  suspend/activation hooks won't fire. Dunning retry schedule / "email invoices" are Dashboard settings.
+- **Not yet applied:** billing thresholds (per-sub API add); onboarding/deposit fee (optional, commitment
+  signal not risk mitigation).
+- **Compulab:** currently has a send_invoice/net-30 sub with **no card**. To put them on Tier 2, Luis adds a
+  card via the Billing page → the flow flips his existing sub to `charge_automatically`. Left for Luis to do.
 
 ## Commitment levels (the buyer's commercial tier)
 

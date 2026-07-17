@@ -6,7 +6,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faReceipt, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+import {
+  faReceipt,
+  faInfoCircle,
+  faCreditCard,
+  faCircleCheck,
+  faTriangleExclamation,
+} from "@fortawesome/free-solid-svg-icons";
 
 /**
  * Billing — post-paid, metered, per live IP tested. Mirrors the live Stripe
@@ -37,6 +43,13 @@ export default function BillingPage() {
   const [consumed, setConsumed] = useState<number>(0);
   const [hasPool, setHasPool] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [billingStatus, setBillingStatus] = useState<{
+    isSupplier: boolean;
+    activated?: boolean;
+    paymentTier?: "auto" | "net30" | null;
+    suspended?: boolean;
+  } | null>(null);
+  const [activating, setActivating] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -49,17 +62,21 @@ export default function BillingPage() {
           return;
         }
         try {
-          const res = await fetch("/api/orgs", {
-            headers: { Authorization: `Bearer ${await user.getIdToken()}` },
-          });
-          if (res.ok) {
-            const d = await res.json();
+          const token = await user.getIdToken();
+          const auth = { Authorization: `Bearer ${token}` };
+          const [orgsRes, billRes] = await Promise.all([
+            fetch("/api/orgs", { headers: auth }),
+            fetch("/api/billing/status", { headers: auth }),
+          ]);
+          if (orgsRes.ok) {
+            const d = await orgsRes.json();
             const pool = (d.pools || [])[0];
             if (pool) {
               setHasPool(true);
               setConsumed(pool?.consumed?.ip ?? 0);
             }
           }
+          if (billRes.ok) setBillingStatus(await billRes.json());
         } catch {
           /* ignore */
         }
@@ -71,6 +88,41 @@ export default function BillingPage() {
 
   const bill = useMemo(() => estimateBill(consumed), [consumed]);
 
+  const startBillingSetup = async () => {
+    setActivating(true);
+    try {
+      const { getAuth } = await import("firebase/auth");
+      const app = (await import("@/lib/firebase/firebaseClient")).default;
+      const user = getAuth(app).currentUser;
+      if (!user) {
+        router.replace("/login");
+        return;
+      }
+      const res = await fetch("/api/billing/setup-session", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${await user.getIdToken()}`,
+          "Content-Type": "application/json",
+        },
+        body: "{}",
+      });
+      const d = await res.json();
+      if (res.ok && d.url) {
+        window.location.href = d.url; // → Stripe Checkout (card collection)
+      } else {
+        alert(d.error || "Could not start billing setup");
+        setActivating(false);
+      }
+    } catch {
+      alert("Could not start billing setup");
+      setActivating(false);
+    }
+  };
+
+  // Show the card-on-file CTA to a supplier admin who isn't yet on auto-charge.
+  const showActivateCard =
+    billingStatus?.isSupplier && billingStatus.paymentTier !== "auto";
+
   return (
     <DashboardLayout>
       <div className="p-6 lg:p-8 space-y-8 max-w-4xl mx-auto">
@@ -81,6 +133,57 @@ export default function BillingPage() {
             organization, per live IP tested. No upfront purchase.
           </p>
         </div>
+
+        {/* Payment method / suspension banner */}
+        {!loading && billingStatus?.suspended && (
+          <div className="flex items-start gap-3 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm">
+            <FontAwesomeIcon
+              icon={faTriangleExclamation}
+              className="mt-0.5 h-4 w-4 shrink-0 text-red-400"
+            />
+            <p className="text-red-200">
+              A recent invoice payment failed. Please update your payment method to
+              avoid interruption.
+            </p>
+          </div>
+        )}
+        {!loading && showActivateCard && (
+          <div className="rounded-xl border border-[#4590e2]/30 bg-[#0d1e30] p-6">
+            <div className="flex items-start gap-3">
+              <FontAwesomeIcon
+                icon={faCreditCard}
+                className="mt-0.5 h-5 w-5 shrink-0 text-[#4590e2]"
+              />
+              <div className="flex-1">
+                <h2 className="text-base font-semibold text-white">
+                  Add a payment method to activate billing
+                </h2>
+                <p className="mt-1 text-sm text-[#7a9bb5]">
+                  Put a card on file so your monthly usage auto-charges. No charge now
+                  — you&apos;re billed at month-end on actual consumption.
+                </p>
+                <button
+                  onClick={startBillingSetup}
+                  disabled={activating}
+                  className="mt-4 rounded-lg bg-[#4590e2] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#3a7fc9] disabled:opacity-60"
+                >
+                  {activating ? "Redirecting…" : "Add payment method"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {!loading && billingStatus?.paymentTier === "auto" && (
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">
+            <FontAwesomeIcon
+              icon={faCircleCheck}
+              className="h-4 w-4 shrink-0 text-emerald-400"
+            />
+            <p className="text-emerald-100">
+              Card on file — monthly usage auto-charges.
+            </p>
+          </div>
+        )}
 
         {/* This cycle */}
         <div className="bg-[#0d1e30] border border-[#4590e2]/20 rounded-xl p-6">

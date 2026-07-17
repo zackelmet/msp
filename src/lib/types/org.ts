@@ -69,6 +69,17 @@ export interface OrgBilling {
   stripeSubscriptionItemId?: string;
   /** The per-IP metered price the subscription item is billed at. */
   stripePriceId?: string;
+  /**
+   * Credit-risk tier for a consolidated buyer (supplier). Governs how the metered
+   * subscription collects (see docs/product-model.md "Payment posture"):
+   * - "auto"  → Tier 2: charge_automatically against a card/ACH on file. The default
+   *             for a new/unvetted buyer — payment auto-collects, no net-terms risk.
+   * - "net30" → Tier 1: send_invoice, net terms. A privilege granted to vetted
+   *             distributors (the "move up a tier" action flips this).
+   */
+  paymentTier?: "auto" | "net30";
+  /** True after an invoice payment failed (dunning). Cleared when a payment succeeds. */
+  suspended?: boolean;
 }
 
 export interface OrgDocument {

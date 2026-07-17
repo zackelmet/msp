@@ -79,6 +79,20 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      case 'invoice.payment_failed': {
+        if (await isDuplicateEvent(event.id)) break;
+        const invoice = event.data.object as Stripe.Invoice;
+        await setOrgSuspendedByCustomer(invoice.customer as string, true);
+        break;
+      }
+
+      case 'invoice.paid': {
+        if (await isDuplicateEvent(event.id)) break;
+        const invoice = event.data.object as Stripe.Invoice;
+        await setOrgSuspendedByCustomer(invoice.customer as string, false);
+        break;
+      }
+
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log('Payment succeeded:', paymentIntent.id);
@@ -105,8 +119,20 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// The metered per-IP price a Tier-2 supplier subscription is created against when
+// the buyer has no subscription yet.
+const AI_PER_IP_PRICE_FALLBACK = 'price_1TtV2oA2hEQYBBzSJw5Dsyrs';
+
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   console.log('Checkout session completed:', session.id);
+
+  // Tier-2 billing activation for a consolidated buyer (supplier): a mode:setup
+  // session that collected a card. Attach it + put the metered sub on
+  // charge_automatically. Handled first — these carry no userId/credit metadata.
+  if (session.metadata?.flow === 'org_billing_setup') {
+    await handleOrgBillingSetup(session);
+    return;
+  }
 
   const userId = session.metadata?.userId;
   const pentestType = session.metadata?.pentestType; // 'web_app' | 'external_ip' | 'ai_pentest'
@@ -197,6 +223,107 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       console.error('Error updating subscription:', error);
     }
   }
+}
+
+/**
+ * Tier-2 activation: a supplier finished the card-collection Checkout. Set the card
+ * as the customer + subscription default payment method and switch to (or create)
+ * a charge_automatically metered subscription. Idempotent via the event guard.
+ */
+async function handleOrgBillingSetup(session: Stripe.Checkout.Session) {
+  const orgId = session.metadata?.orgId;
+  const customerId = session.customer as string | null;
+  if (!orgId || !customerId) {
+    console.error('org_billing_setup: missing orgId/customer', { orgId, customerId });
+    return;
+  }
+
+  // The card lives on the SetupIntent the Checkout session created.
+  const setupIntentId = session.setup_intent as string | null;
+  if (!setupIntentId) {
+    console.error('org_billing_setup: no setup_intent on session', session.id);
+    return;
+  }
+  const si = await stripe.setupIntents.retrieve(setupIntentId);
+  const paymentMethod = si.payment_method as string | null;
+  if (!paymentMethod) {
+    console.error('org_billing_setup: no payment_method on setup_intent', setupIntentId);
+    return;
+  }
+
+  // Default the card for future invoices.
+  await stripe.customers.update(customerId, {
+    invoice_settings: { default_payment_method: paymentMethod },
+  });
+
+  const orgRef = adminDb.collection('orgs').doc(orgId);
+  const org = (await orgRef.get()).data() || {};
+  const billing = org.billing || {};
+
+  let subscriptionId: string | undefined = billing.stripeSubscriptionId;
+  let subscriptionItemId: string | undefined = billing.stripeSubscriptionItemId;
+
+  if (subscriptionId) {
+    // Existing subscription (e.g. Compulab's send_invoice sub) → flip it to
+    // auto-charge against the new card.
+    const sub = await stripe.subscriptions.update(subscriptionId, {
+      default_payment_method: paymentMethod,
+      collection_method: 'charge_automatically',
+    });
+    subscriptionItemId = sub.items.data[0]?.id ?? subscriptionItemId;
+  } else {
+    // No subscription yet → create the metered one on auto-charge.
+    const priceId = billing.stripePriceId || AI_PER_IP_PRICE_FALLBACK;
+    const sub = await stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: priceId }],
+      collection_method: 'charge_automatically',
+      default_payment_method: paymentMethod,
+      metadata: { orgId, sku: 'ai_pentest_per_ip' },
+    });
+    subscriptionId = sub.id;
+    subscriptionItemId = sub.items.data[0]?.id;
+    billing.stripePriceId = priceId;
+  }
+
+  await orgRef.set(
+    {
+      billing: {
+        stripeCustomerId: customerId,
+        stripeSubscriptionId: subscriptionId,
+        stripeSubscriptionItemId: subscriptionItemId,
+        stripePriceId: billing.stripePriceId || AI_PER_IP_PRICE_FALLBACK,
+        paymentTier: 'auto',
+        suspended: false,
+      },
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true },
+  );
+  console.log(`Tier-2 activated for ${orgId}: sub ${subscriptionId}, item ${subscriptionItemId}`);
+}
+
+/**
+ * Dunning: flip a supplier org's suspended flag from an invoice event. Resolves the
+ * org by its stored Stripe customer id.
+ */
+async function setOrgSuspendedByCustomer(customerId: string, suspended: boolean) {
+  if (!customerId) return;
+  const snap = await adminDb
+    .collection('orgs')
+    .where('billing.stripeCustomerId', '==', customerId)
+    .limit(1)
+    .get();
+  if (snap.empty) {
+    console.warn(`invoice event: no org for customer ${customerId}`);
+    return;
+  }
+  const doc = snap.docs[0];
+  await doc.ref.set(
+    { billing: { suspended }, updatedAt: FieldValue.serverTimestamp() },
+    { merge: true },
+  );
+  console.log(`Org ${doc.id} billing.suspended = ${suspended} (customer ${customerId})`);
 }
 
 /**
