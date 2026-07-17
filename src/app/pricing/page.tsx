@@ -1,285 +1,186 @@
-"use client";
+import Link from "next/link";
+import type { Metadata } from "next";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/lib/context/AuthContext";
-import { loadStripe } from "@stripe/stripe-js";
-import toast from "react-hot-toast";
+export const metadata: Metadata = {
+  title: "Pricing — MSP Pentesting",
+  description:
+    "AI penetration testing billed per live IP. Self-serve pay-as-you-go, or volume pricing for distributors and MSPs at scale.",
+};
 
-// Tell Next.js this page should be dynamically rendered
-export const runtime = "edge"; // This prevents static generation
+/**
+ * Public pricing — one product (AI pentest, per live IP) in two tiers:
+ *  - Self-serve (Tier 2): the entry rate, shown + self-serve sign-up.
+ *  - Distributor / volume (Tier 1): volume discounts + net terms, form-gated.
+ * Human-led (manual) pentests are a quiet on-request option (→ contact sales).
+ */
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+const check = (
+  <svg
+    className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0 mt-0.5"
+    fill="currentColor"
+    viewBox="0 0 20 20"
+    aria-hidden="true"
+  >
+    <path
+      fillRule="evenodd"
+      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+      clipRule="evenodd"
+    />
+  </svg>
 );
 
-interface PricingTier {
-  id: string;
-  name: string;
-  price?: number;
-  priceText?: string;
-  priceId?: string;
-  description: string;
-  features: string[];
-  popular?: boolean;
-  type: "one-time" | "subscription";
-  cta: string;
-  quoteOnly?: boolean;
-}
+const SELF_SERVE_FEATURES = [
+  "AI penetration test, metered per live IP",
+  "Pay only for the IPs you actually test",
+  "Post-paid monthly invoice — no upfront commitment",
+  "Card on file, auto-charged at month-end",
+  "Re-tests included in the same per-IP rate",
+  "Findings + downloadable reports in your dashboard",
+];
 
-const MANUAL_PENTEST_TIERS: PricingTier[] = [
-  {
-    id: "external_ip_1_50",
-    name: "External IP Manual Pentest (1-50)",
-    price: 3600,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_EXTERNAL_IP_1_50 || "",
-    description:
-      "Manual testing by CEH and OSCP professionals for up to 50 external IPs",
-    type: "one-time",
-    cta: "Buy 1-50 Package",
-    features: [
-      "1-50 external IPs in scope",
-      "CEH-certified ethical hackers",
-      "OSCP professionals",
-      "Executive summary + technical findings",
-      "Final report delivered within 5 business days after test completion",
-      "Remediation recommendations",
-      "Dedicated scoping confirmation before kickoff",
-    ],
-  },
-  {
-    id: "external_ip_51_100",
-    name: "External IP Manual Pentest (51-100)",
-    price: 4500,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_EXTERNAL_IP_51_100 || "",
-    description: "Expanded external attack-surface testing for 51-100 IPs",
-    type: "one-time",
-    cta: "Buy 51-100 Package",
-    popular: true,
-    features: [
-      "51-100 external IPs in scope",
-      "CEH-certified ethical hackers",
-      "OSCP professionals",
-      "Executive summary + technical findings",
-      "Final report delivered within 5 business days after test completion",
-      "Remediation recommendations",
-      "Dedicated scoping confirmation before kickoff",
-    ],
-  },
-  {
-    id: "external_ip_101_plus_base",
-    name: "External IP Manual Pentest (101+)",
-    priceText: "Custom Quote",
-    description:
-      "Large environments require custom scoping and quote-based pricing",
-    type: "one-time",
-    cta: "Get Custom Quote",
-    quoteOnly: true,
-    features: [
-      "101+ external IPs",
-      "Custom engagement plan",
-      "CEH-certified ethical hackers",
-      "OSCP professionals",
-      "Final report delivered within 5 business days after test completion",
-      "Tailored reporting and remediation roadmap",
-    ],
-  },
+const DISTRIBUTOR_FEATURES = [
+  "Everything in self-serve, plus:",
+  "Volume pricing — rate drops to $8 then $6 / IP as you scale",
+  "Net-30 consolidated billing — one invoice across all clients",
+  "Multi-tenant org tree — resellers and end clients",
+  "White-label reports and client portal",
+  "Dedicated onboarding and support",
 ];
 
 export default function PricingPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { currentUser: user } = useAuth();
-  const [loading, setLoading] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Check for canceled checkout
-    if (searchParams.get("canceled")) {
-      toast.error("Checkout canceled");
-    }
-  }, [searchParams]);
-
-  const handleCheckout = async (tier: PricingTier) => {
-    if (!user) {
-      router.push("/login?redirect=/pricing");
-      return;
-    }
-
-    if (tier.quoteOnly) {
-      router.push("/app/manual-pentest");
-      return;
-    }
-
-    setLoading(tier.id);
-
-    try {
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.uid,
-          email: user.email,
-          productType: tier.type,
-          manualPackageId: tier.id,
-          // After payment, send the customer to scope their engagement so the
-          // paid order (recorded by the webhook) can actually be fulfilled.
-          successUrl: `/app/request-pentest?paid=1&package=${tier.id}&session={CHECKOUT_SESSION_ID}`,
-          metadata: {
-            pentestType: "manual_external_ip",
-            manualTier: tier.id,
-          },
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create checkout session");
-      }
-
-      // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error: any) {
-      console.error("Checkout error:", error);
-      toast.error(error.message || "Failed to start checkout");
-      setLoading(null);
-    }
-  };
-
-  const renderTierCard = (tier: PricingTier) => (
-    <div
-      key={tier.id}
-      className={`relative rounded-lg border ${
-        tier.popular
-          ? "border-blue-500 shadow-xl scale-105"
-          : "border-gray-200 shadow-lg"
-      } bg-white p-8 flex flex-col`}
-    >
-      {tier.popular && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-          Most Popular
-        </div>
-      )}
-
-      <div className="mb-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">{tier.name}</h3>
-        <p className="text-gray-600 text-sm mb-4">{tier.description}</p>
-        <div className="flex items-baseline">
-          <span className="text-5xl font-extrabold text-gray-900">
-            {tier.priceText || `$${(tier.price || 0).toLocaleString()}`}
-          </span>
-          {tier.type === "subscription" && (
-            <span className="ml-2 text-gray-600">/month</span>
-          )}
-        </div>
-      </div>
-
-      <ul className="space-y-3 mb-8 flex-grow">
-        {tier.features.map((feature, idx) => (
-          <li key={idx} className="flex items-start">
-            <svg
-              className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-gray-700 text-sm">{feature}</span>
-          </li>
-        ))}
-      </ul>
-
-      <button
-        onClick={() => handleCheckout(tier)}
-        disabled={loading === tier.id}
-        className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
-          tier.popular
-            ? "bg-blue-600 hover:bg-blue-700 text-white"
-            : "bg-gray-800 hover:bg-gray-900 text-white"
-        } disabled:opacity-50 disabled:cursor-not-allowed`}
-      >
-        {loading === tier.id ? "Loading..." : tier.cta}
-      </button>
-    </div>
-  );
-
   return (
-    <div className="min-h-screen bg-[#0a141f] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#0a141f] py-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-extrabold text-white mb-4">
-            Manual Pentest Pricing
+        <div className="text-center mb-14">
+          <p className="text-[#4590e2] text-xs font-semibold uppercase tracking-[0.2em] mb-3">
+            AI Penetration Testing · Per IP
+          </p>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-4">
+            Simple pricing — pay per IP you test
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            External IP manual testing packages delivered by CEH-certified
-            ethical hackers and OSCP professionals.
+          <p className="text-lg text-[#7a9bb5] max-w-2xl mx-auto">
+            One product: an AI pentest, billed only for the live IPs it tests.
+            Start self-serve, or talk to us for volume pricing and consolidated
+            billing at scale.
           </p>
         </div>
 
-        {/* Manual Pentests Section */}
-        <div className="mb-20">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Manual Penetration Testing
-            </h2>
-            <p className="text-gray-600">
-              External IP manual assessments by CEH-certified ethical hackers
-              and OSCP professionals
+        {/* Two tiers */}
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto items-stretch">
+          {/* Self-serve */}
+          <div className="rounded-2xl border border-[#4590e2]/20 bg-[#0d1e30] p-8 flex flex-col">
+            <h3 className="text-xl font-bold text-white">Self-serve</h3>
+            <p className="mt-1 text-sm text-[#7a9bb5]">
+              Pay-as-you-go for teams testing their own environment.
             </p>
-            <p className="text-sm text-gray-500 mt-2">
-              SLA: final report delivered within 5 business days after test
-              completion.
-            </p>
+            <div className="mt-6 flex items-baseline">
+              <span className="text-5xl font-extrabold text-white">$10</span>
+              <span className="ml-2 text-[#7a9bb5]">/ live IP · month</span>
+            </div>
+            <ul className="mt-8 space-y-3 flex-grow">
+              {SELF_SERVE_FEATURES.map((f) => (
+                <li key={f} className="flex items-start">
+                  {check}
+                  <span className="text-sm text-gray-200">{f}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/login?redirect=/app"
+              className="mt-8 w-full inline-flex items-center justify-center rounded-lg bg-[#4590e2] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#3a7bc8]"
+            >
+              Get started
+            </Link>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {MANUAL_PENTEST_TIERS.map(renderTierCard)}
+
+          {/* Distributor / volume — form-gated */}
+          <div className="relative rounded-2xl border border-[#4590e2] bg-[#0d1e30] p-8 flex flex-col shadow-xl">
+            <div className="absolute -top-3 left-8 rounded-full bg-[#4590e2] px-3 py-1 text-xs font-semibold text-white">
+              For MSPs &amp; distributors
+            </div>
+            <h3 className="text-xl font-bold text-white">Distributor / Volume</h3>
+            <p className="mt-1 text-sm text-[#7a9bb5]">
+              Volume pricing and net terms for resellers and MSPs at scale.
+            </p>
+            <div className="mt-6 flex items-baseline">
+              <span className="text-5xl font-extrabold text-white">Custom</span>
+              <span className="ml-2 text-[#7a9bb5]">volume pricing</span>
+            </div>
+            <ul className="mt-8 space-y-3 flex-grow">
+              {DISTRIBUTOR_FEATURES.map((f, i) => (
+                <li key={f} className="flex items-start">
+                  {i === 0 ? (
+                    <span className="text-sm font-medium text-[#7a9bb5]">
+                      {f}
+                    </span>
+                  ) : (
+                    <>
+                      {check}
+                      <span className="text-sm text-gray-200">{f}</span>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/contact-sales"
+              className="mt-8 w-full inline-flex items-center justify-center rounded-lg border border-[#4590e2] bg-transparent px-6 py-3 font-semibold text-white transition-colors hover:bg-[#4590e2]/10"
+            >
+              Contact sales
+            </Link>
           </div>
         </div>
 
-        {/* FAQ Section */}
+        {/* Human-led / manual — quiet on-request */}
+        <div className="mt-10 max-w-4xl mx-auto rounded-xl border border-[#4590e2]/15 bg-[#0d1e30]/50 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <p className="text-sm text-[#7a9bb5]">
+            Need a <span className="text-white font-medium">human-led</span>{" "}
+            engagement? Manual pentests by CEH- and OSCP-certified professionals
+            are available on request.
+          </p>
+          <Link
+            href="/contact-sales"
+            className="shrink-0 text-sm font-semibold text-[#4590e2] hover:underline"
+          >
+            Talk to us →
+          </Link>
+        </div>
+
+        {/* FAQ */}
         <div className="max-w-3xl mx-auto mt-20">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
-            Frequently Asked Questions
+          <h2 className="text-2xl font-bold text-white text-center mb-8">
+            Frequently asked questions
           </h2>
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                What&apos;s the difference between AI and manual pentests?
-              </h3>
-              <p className="text-gray-600">
-                AI pentests use automated scanning tools to quickly identify
-                common vulnerabilities. Manual pentests involve human experts
-                who perform deep analysis, test business logic, and find complex
-                security issues that automated tools might miss.
-              </p>
-            </div>
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                How long does a manual pentest take?
-              </h3>
-              <p className="text-gray-600">
-                Basic engagements typically take 2 weeks, while advanced
-                pentests require 4-6 weeks depending on scope and complexity.
-                We&apos;ll provide a detailed timeline during consultation.
-              </p>
-            </div>
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Can I cancel my AI pentest subscription?
-              </h3>
-              <p className="text-gray-600">
-                Yes, you can cancel your subscription anytime from your account
-                dashboard. You&apos;ll retain access until the end of your
-                current billing period.
-              </p>
-            </div>
+          <div className="space-y-4">
+            {[
+              {
+                q: "What counts as a “live IP”?",
+                a: "Each distinct IP, host, or URL an AI pentest actually tests. Ranges (CIDRs) expand to their live hosts. You're billed only for what's tested — re-tests included.",
+              },
+              {
+                q: "When am I charged?",
+                a: "Post-paid, monthly. Usage accrues as you run pentests and is invoiced at month-end on actual consumption. Self-serve accounts auto-charge a card on file; distributors can be set up with net terms.",
+              },
+              {
+                q: "How do the volume discounts work?",
+                a: "Pricing is graduated: the first 100 IPs/month bill at $10, the next band at $8, and higher volume at $6. Larger buyers get a lower effective rate automatically.",
+              },
+              {
+                q: "Do you offer human-led (manual) pentests?",
+                a: "Yes — manual engagements by CEH- and OSCP-certified professionals are available on request. Contact sales to scope one.",
+              },
+            ].map((item) => (
+              <div
+                key={item.q}
+                className="rounded-xl border border-[#4590e2]/15 bg-[#0d1e30] p-6"
+              >
+                <h3 className="text-base font-semibold text-white mb-2">
+                  {item.q}
+                </h3>
+                <p className="text-sm text-[#7a9bb5]">{item.a}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
