@@ -23,6 +23,17 @@ webhook Firestore writes, metering, control plane) was **dark in production**. S
   default case; the signup flow was tested against a LOCAL dev server. Those admin-backed paths only actually work
   in prod as of this fix.
 
+**Granular prepaid buy-credits for self-serve resellers** (commit `0a363a4`): a self-enrolled reseller (role
+`reseller_admin` + `selfEnrolled`, under MSPP) now sees a **prepaid "Buy pentest credits"** view on
+`/app/buy-credits` (branched from the metered view) — enter **any** quantity (e.g. 26), see graduated pricing +
+breakdown, → `POST /api/checkout` (`ai_pentest`) → Stripe Checkout; the webhook grants `credits.ai_pentest`.
+Suppliers keep the metered view. **Verified in prod:** a checkout for 26 IPs prices to **$260** (26×$10) with
+`quantity:26` metadata. This is the self-serve **prepaid** path, parallel to the distributor **metered/post-paid**
+path. NOTE the two systems are still unreconciled for distributors (launch deducts a credit AND meters) — self-serve
+resellers are clean (MSPP has no metered sub, so their completions don't meter). Credits→cap reconciliation still
+pending. **Also:** aligned `AI_PENTEST_BRACKETS` from stale $100/$60/$35/$25 → **$10/$8/$6 (bands 100/1000)** to
+match the public `/pricing` page + locked rate card (was a 10× mismatch).
+
 **Pricing page reskinned to the two-tier model** (commit `991f40e`): `/pricing` now shows the self-serve tier
 ($10 / live IP, "Get started" → signup) and a form-gated Distributor/Volume tier ("Contact sales" → new
 `/contact-sales` page → `POST /api/leads`, which stores a `leads` doc + emails Zack via Resend). Manual pentests
