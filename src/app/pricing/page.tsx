@@ -30,11 +30,10 @@ const check = (
 );
 
 const SELF_SERVE_FEATURES = [
-  "AI penetration test, metered per live IP",
-  "Pay only for the IPs you actually test",
-  "Post-paid monthly invoice — no upfront commitment",
-  "Card on file, auto-charged at month-end",
-  "Re-tests included in the same per-IP rate",
+  "AI penetration test, $20 per live IP",
+  "Buy IP credits in any amount — no subscription",
+  "Credits never expire; one credit = one live IP tested",
+  "Graduated pricing — cheaper per IP as you buy more",
   "Findings + downloadable reports in your dashboard",
 ];
 
@@ -72,11 +71,11 @@ export default function PricingPage() {
           <div className="rounded-2xl border border-[#4590e2]/20 bg-[#0d1e30] p-8 flex flex-col">
             <h3 className="text-xl font-bold text-white">Self-serve</h3>
             <p className="mt-1 text-sm text-[#7a9bb5]">
-              Pay-as-you-go for teams testing their own environment.
+              Prepaid credits — buy what you need, no subscription.
             </p>
             <div className="mt-6 flex items-baseline">
-              <span className="text-5xl font-extrabold text-white">$10</span>
-              <span className="ml-2 text-[#7a9bb5]">/ live IP · month</span>
+              <span className="text-5xl font-extrabold text-white">$20</span>
+              <span className="ml-2 text-[#7a9bb5]">/ live IP</span>
             </div>
             <ul className="mt-8 space-y-3 flex-grow">
               {SELF_SERVE_FEATURES.map((f) => (
@@ -160,11 +159,11 @@ export default function PricingPage() {
               },
               {
                 q: "When am I charged?",
-                a: "Post-paid, monthly. Usage accrues as you run pentests and is invoiced at month-end on actual consumption. Self-serve accounts auto-charge a card on file; distributors can be set up with net terms.",
+                a: "Self-serve is prepaid — you buy IP credits upfront and spend them as you launch pentests (they don't expire). Distributors are billed post-paid, monthly, on consolidated consumption across their whole subtree, with net terms available.",
               },
               {
                 q: "How do the volume discounts work?",
-                a: "Pricing is graduated: the first 100 IPs/month bill at $10, the next band at $8, and higher volume at $6. Larger buyers get a lower effective rate automatically.",
+                a: "Self-serve is graduated: the first 100 IPs at $20, the next band at $18, and 1,000+ at $12 — bigger purchases get a lower effective rate. Distributors and MSPs at scale get substantially lower volume rates (down to $6/IP) on consolidated billing — contact sales.",
               },
               {
                 q: "Do you offer human-led (manual) pentests?",
