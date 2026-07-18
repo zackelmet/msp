@@ -7,6 +7,28 @@ _Last updated: 2026-07-16_
 > Luis/Compulab meeting. North-star UX teardown is in `docs/product-model.md` (North Star section).
 > This file tracks the P2 Phase-1 build detail below.
 
+## 📌 Session ledger — 2026-07-18 (pricing reskin + CRITICAL: Firebase was never credentialed in prod)
+
+**🔴 Root-cause fix: prod Vercel had ZERO Firebase env vars** — no `NEXT_PUBLIC_FIREBASE_*`, no `FIREBASE_ADMIN_*`
+(confirmed via `vercel env pull`: 36 vars, none Firebase). The keys provided 2026-07-14 went into `.env.local`
+(local only), never Vercel. So in prod the Admin SDK fell back to `applicationDefault()` and **every Firestore
+write + auth-token verification threw** — the entire admin-backed API (signup auto-enroll, billing endpoints,
+webhook Firestore writes, metering, control plane) was **dark in production**. Surfaced as a 500 on `/api/leads`.
+- **Fixed:** set all 9 Firebase vars in Vercel production from `.env.local` (6 `NEXT_PUBLIC_FIREBASE_*` client +
+  `FIREBASE_ADMIN_PROJECT_ID/CLIENT_EMAIL/PRIVATE_KEY`), redeployed (`faffe6b`). **Verified end-to-end:** a real
+  `/api/leads` POST now returns 200 and the doc lands in prod Firestore (test doc cleaned up).
+- ⚠️ **Preview/development Vercel envs still lack Firebase** — only production was set. Add them if preview deploys
+  are ever used (workflow is push-to-main, so not urgent).
+- Reframes earlier "prod-verified" claims this session: the webhook signature test passed only via its log-only
+  default case; the signup flow was tested against a LOCAL dev server. Those admin-backed paths only actually work
+  in prod as of this fix.
+
+**Pricing page reskinned to the two-tier model** (commit `991f40e`): `/pricing` now shows the self-serve tier
+($10 / live IP, "Get started" → signup) and a form-gated Distributor/Volume tier ("Contact sales" → new
+`/contact-sales` page → `POST /api/leads`, which stores a `leads` doc + emails Zack via Resend). Manual pentests
+demoted to a quiet on-request link. Pricing page is now statically prerendered (dropped edge runtime). `next build`
+clean; both pages verified live.
+
 ## 📌 Session ledger — 2026-07-17 (two-tier payment model shipped)
 
 **Tier-2 card-on-file billing + tier-up + dunning are LIVE in code** (commit `4ba12f0`; verified with a full
