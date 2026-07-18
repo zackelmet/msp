@@ -13,6 +13,7 @@ import {
   faCircleCheck,
   faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
+import BuyCreditsPanel from "@/components/billing/BuyCreditsPanel";
 
 /**
  * Billing — post-paid, metered, per live IP tested. Mirrors the live Stripe
@@ -50,10 +51,17 @@ export default function BillingPage() {
     suspended?: boolean;
   } | null>(null);
   const [activating, setActivating] = useState(false);
+  // Self-serve resellers (self-signed-up under MSPP) get the prepaid buy-credits
+  // view instead of the metered/post-paid view.
+  const [selfServe, setSelfServe] = useState(false);
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
+  const [uid, setUid] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       const { getAuth, onAuthStateChanged } = await import("firebase/auth");
+      const { getFirestore, doc, getDoc } = await import("firebase/firestore");
       const app = (await import("@/lib/firebase/firebaseClient")).default;
       const auth = getAuth(app);
       const unsub = onAuthStateChanged(auth, async (user) => {
@@ -61,22 +69,35 @@ export default function BillingPage() {
           router.replace("/login");
           return;
         }
+        setUid(user.uid);
+        setEmail(user.email);
         try {
-          const token = await user.getIdToken();
-          const auth = { Authorization: `Bearer ${token}` };
-          const [orgsRes, billRes] = await Promise.all([
-            fetch("/api/orgs", { headers: auth }),
-            fetch("/api/billing/status", { headers: auth }),
-          ]);
-          if (orgsRes.ok) {
-            const d = await orgsRes.json();
-            const pool = (d.pools || [])[0];
-            if (pool) {
-              setHasPool(true);
-              setConsumed(pool?.consumed?.ip ?? 0);
+          // The user doc drives the view: a self-enrolled reseller buys prepaid
+          // credits; everyone else sees the metered/post-paid billing view.
+          const snap = await getDoc(doc(getFirestore(app), "users", user.uid));
+          const u = snap.data() || {};
+          const isSelfServe =
+            u.role === "reseller_admin" && u.selfEnrolled === true;
+          setSelfServe(isSelfServe);
+          setCreditBalance(u?.credits?.ai_pentest ?? 0);
+
+          if (!isSelfServe) {
+            const token = await user.getIdToken();
+            const authHeader = { Authorization: `Bearer ${token}` };
+            const [orgsRes, billRes] = await Promise.all([
+              fetch("/api/orgs", { headers: authHeader }),
+              fetch("/api/billing/status", { headers: authHeader }),
+            ]);
+            if (orgsRes.ok) {
+              const d = await orgsRes.json();
+              const pool = (d.pools || [])[0];
+              if (pool) {
+                setHasPool(true);
+                setConsumed(pool?.consumed?.ip ?? 0);
+              }
             }
+            if (billRes.ok) setBillingStatus(await billRes.json());
           }
-          if (billRes.ok) setBillingStatus(await billRes.json());
         } catch {
           /* ignore */
         }
@@ -87,6 +108,17 @@ export default function BillingPage() {
   }, [router]);
 
   const bill = useMemo(() => estimateBill(consumed), [consumed]);
+
+  // Self-serve resellers → prepaid buy-credits view.
+  if (!loading && selfServe && uid) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 lg:p-8 max-w-3xl mx-auto">
+          <BuyCreditsPanel userId={uid} email={email} balance={creditBalance} />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const startBillingSetup = async () => {
     setActivating(true);
