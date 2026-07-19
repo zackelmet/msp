@@ -7,6 +7,23 @@ _Last updated: 2026-07-16_
 > Luis/Compulab meeting. North-star UX teardown is in `docs/product-model.md` (North Star section).
 > This file tracks the P2 Phase-1 build detail below.
 
+## 📌 Session ledger — 2026-07-19 (distributor elevation + self-serve pricing $20/$18/$12)
+
+**Reseller → Distributor elevation (platform_admin only).** `POST /api/admin/orgs/elevate {userId}` creates the
+user's own supplier tree (supplier → house reseller → default client, Compulab-style), promotes them to
+`supplier_admin`, and deactivates their old self-enrolled reseller node (kept `status:inactive` for audit,
+`replacedBySupplierOrgId` pointer). Credits preserved (legacy). **UI:** Admin console → **Users** tab → "Make
+distributor" button on `reseller_admin` rows + a "Distributor" badge on `supplier_admin`s; `all-users` now returns
+`role`/`orgId`/`selfEnrolled`. Verified the transform against throwaway docs. **After elevation, billing is
+activated separately** (Tier-2 card via Billing page, or net-30 via payment-tier endpoint), and the distributor can
+enroll resellers/clients via the Platform page (already live).
+- **Connor promoted to `platform_admin`** (`isAdmin:true`) — so Zack + Connor can elevate. Others stay client_user.
+- **Compulab IS already a distributor** (`org_compulab` supplier, Luis = supplier_admin) — set up directly, not elevated.
+- **Self-serve pricing → $20/$18/$12** (2× the distributor $10/$8/$6 base, as MSPP's reseller markup): `AI_PENTEST_BRACKETS`
+  + public `/pricing` self-serve tier + FAQ. Distributors keep the $6-base metered rate.
+- **⏭️ Still pending — credits→cap:** distributors + their subtree still launch on `credits.ai_pentest` (should launch
+  on the metered cap instead — "distributors don't need credits" isn't true in code yet).
+
 ## 📌 Session ledger — 2026-07-18 (pricing reskin + CRITICAL: Firebase was never credentialed in prod)
 
 **🔴 Root-cause fix: prod Vercel had ZERO Firebase env vars** — no `NEXT_PUBLIC_FIREBASE_*`, no `FIREBASE_ADMIN_*`
