@@ -7,6 +7,7 @@ import {
   faSearch,
   faSave,
   faUserShield,
+  faBuilding,
 } from "@fortawesome/free-solid-svg-icons";
 
 /**
@@ -20,9 +21,41 @@ export default function UsersSection() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [elevating, setElevating] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
   const [creditEdits, setCreditEdits] = useState<
     Record<string, Record<string, number>>
   >({});
+
+  // Elevate a self-serve reseller into a distributor (their own supplier tree).
+  const makeDistributor = async (uid: string, email: string) => {
+    if (
+      !confirm(
+        `Make ${email} a distributor? This creates their own supplier tree and moves them to supplier_admin. They'll then activate billing (card or net-30).`,
+      )
+    )
+      return;
+    setElevating(uid);
+    setNote(null);
+    try {
+      const res = await fetch("/api/admin/orgs/elevate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: uid }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Elevation failed");
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === uid ? { ...u, role: "supplier_admin", orgId: d.supplierOrgId } : u,
+        ),
+      );
+      setNote(`✓ ${email} is now a distributor (${d.supplierOrgId}). Activate their billing next.`);
+    } catch (e: any) {
+      setNote(`✗ ${e.message || "Elevation failed"}`);
+    }
+    setElevating(null);
+  };
 
   useEffect(() => {
     (async () => {
@@ -91,6 +124,12 @@ export default function UsersSection() {
         />
       </div>
 
+      {note && (
+        <div className="rounded-lg border border-[#4590e2]/25 bg-[#4590e2]/10 px-4 py-2.5 text-sm text-[#a9c6dd]">
+          {note}
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
@@ -158,6 +197,22 @@ export default function UsersSection() {
                         />
                         {saving === u.id ? "…" : "Save"}
                       </button>
+                    )}
+                    {u.role === "reseller_admin" && (
+                      <button
+                        onClick={() => makeDistributor(u.id, u.email)}
+                        disabled={elevating === u.id}
+                        title="Create their own supplier tree and promote to distributor"
+                        className="flex items-center gap-1.5 px-2.5 py-1 border border-[#4590e2]/40 text-[#a9c6dd] hover:bg-[#4590e2]/10 text-xs rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <FontAwesomeIcon icon={faBuilding} className="w-2.5 h-2.5" />
+                        {elevating === u.id ? "Elevating…" : "Make distributor"}
+                      </button>
+                    )}
+                    {u.role === "supplier_admin" && (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-[11px] font-medium">
+                        Distributor
+                      </span>
                     )}
                   </div>
                 </div>

@@ -61,8 +61,11 @@ export async function GET(req: NextRequest) {
     return {
       id: doc.id,
       email: d.email ?? "",
-      displayName: d.displayName ?? "",
+      displayName: d.displayName ?? d.name ?? "",
       isAdmin: d.isAdmin ?? false,
+      role: d.role ?? null,
+      orgId: d.orgId ?? null,
+      selfEnrolled: d.selfEnrolled === true,
       externalIp1To50Credits,
       externalIp51To100Credits,
       createdAt: d.createdAt?.toDate?.()?.toISOString() ?? null,
