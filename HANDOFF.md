@@ -7,6 +7,32 @@ _Last updated: 2026-07-16_
 > Luis/Compulab meeting. North-star UX teardown is in `docs/product-model.md` (North Star section).
 > This file tracks the P2 Phase-1 build detail below.
 
+## 📌 Session ledger — 2026-07-19 (full-product review + fixes, then re-review)
+
+**Multi-agent review of the whole product/flows/landing → 20 findings → all fixed → re-reviewed.** Commits
+`11dea8d` (main batch) + `2b4ec7b` (re-review follow-ups). CI green, 45/45 tests, deployed.
+- **Security (critical):**
+  - **Admin auth was a forgeable client-set `uid` cookie** → replaced with a verified httpOnly **Firebase session
+    cookie** across all `/api/admin/*` + `/admin` page + `/api/reports/download` (the last was an IDOR missed in pass 1).
+    New: `src/lib/firebase/adminSession.ts` (`getVerifiedUid`), `POST/DELETE /api/auth/session`; `AuthContext` mints it
+    on login. Existing admins get the cookie on their next page load (no re-login needed; possible one bounce to
+    /app/dashboard). Verified end-to-end (mint→verify→uid; forged rejected).
+  - **User docs were client-writable** (could self-grant credits / self-promote to admin / hijack org) → `firestore.rules`
+    now field-allowlists owner writes; privileged fields are Admin-SDK-only. **Deployed** (firebase CLI).
+- **Billing (high):** metering now gated on `billingMode==='metered'` (kills credit+meter double-bill); launches blocked
+  when supplier `billing.suspended`; `/api/billing/status.metered` returned for any role so downstream distributor users
+  aren't wrongly credit-gated.
+- **Onboarding (critical):** signup auto-enroll was DEAD (LoginForm calls `/api/users/bootstrap`, not the `signup` route)
+  → merged auto-enroll into `bootstrap`; deleted dead `signup` route.
+- **Caps:** now check every ancestor in `orgPath` (a reseller cap binds its clients). Race under concurrency is
+  documented best-effort (non-monetary).
+- **UX/other:** reseller "New Pentest" nav link; pricing "Get started" → valid returnUrl; landing copy → prepaid;
+  listener-leak fixes; contact-sales a11y labels; elevation guards (downstream orgs, OrgStatus `inactive`, credits
+  preserved); domain/comment cleanups.
+- **⏭️ Known-remaining (low, from re-review, NOT fixed):** `/api/users/bootstrap` + `/api/auth/isAdmin` still trust a
+  client-supplied `uid` (no token verify) — junk-doc creation / info disclosure only, no escalation; harden by verifying
+  an ID token (needs a LoginForm change). `/api/admin/upload-report` manual completion doesn't meter. Cap concurrency race.
+
 ## 📌 Session ledger — 2026-07-19 (distributor elevation + self-serve pricing $20/$18/$12)
 
 **Reseller → Distributor elevation (platform_admin only).** `POST /api/admin/orgs/elevate {userId}` creates the
