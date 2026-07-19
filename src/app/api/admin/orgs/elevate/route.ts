@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getVerifiedUid } from "@/lib/firebase/adminSession";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 import { COLLECTIONS } from "@/lib/org/collections";
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 }
 
 async function handle(req: NextRequest) {
-  const callerUid = cookies().get("uid")?.value;
+  const callerUid = await getVerifiedUid();
   if (!(await isAdminUid(callerUid))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
@@ -65,6 +65,29 @@ async function handle(req: NextRequest) {
       { status: 409 },
     );
   }
+
+  // Refuse if their current reseller node has downstream orgs — elevating would
+  // orphan them (they'd keep the old orgPath while the node is deactivated).
+  // Self-serve resellers normally have none; migrate them first if they do.
+  if (u.orgId) {
+    const children = await adminDb
+      .collection(COLLECTIONS.orgs)
+      .where("parentOrgId", "==", u.orgId)
+      .limit(1)
+      .get();
+    if (!children.empty) {
+      return NextResponse.json(
+        {
+          error:
+            "This reseller has downstream orgs — reparent/migrate them before elevating to a distributor.",
+        },
+        { status: 409 },
+      );
+    }
+  }
+  // NOTE: any leftover prepaid `credits.ai_pentest` is intentionally preserved (it
+  // may be paid balance) but is unused once billing is metered — a manual
+  // reconciliation, not something to silently destroy here.
 
   const displayName = u.name || u.displayName || u.email || userId;
   const base = slugify(displayName) || "distributor";

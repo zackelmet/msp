@@ -58,36 +58,51 @@ async function consumedThisCycle(orgId: string): Promise<number> {
 }
 
 /**
- * Check a prospective launch of `needed` IPs by `orgId` against its IP cap.
- * No cap on the node → allowed (unlimited). Hard cap exceeded → blocked. Soft
- * cap exceeded → allowed with `overage`.
+ * Check a prospective launch of `needed` IPs against every cap on the launcher's
+ * path — so a cap set on a reseller binds when one of its clients launches, not
+ * just a cap on the launcher's own node. A hard cap exceeded ANYWHERE up the path
+ * blocks; a soft cap exceeded allows + flags `overage`. Nodes with no cap are
+ * skipped (unlimited), so the buyer/supplier root (which has no cap) is a no-op.
+ *
+ * NOTE (best-effort under concurrency): consumption is counted before the launch
+ * transaction, so two simultaneous launches can each pass and slightly overshoot a
+ * hard cap. This is enforcement-integrity only — the buyer is still billed on real
+ * metered consumption regardless — a fully atomic version needs a per-org counter.
  */
 export async function checkLaunchCap(
-  orgId: string | null | undefined,
+  orgPath: string[] | null | undefined,
   needed: number,
 ): Promise<LaunchCapCheck> {
   const base = { needed, overage: false };
-  if (!orgId) {
+  const path = Array.isArray(orgPath) ? orgPath.filter(Boolean) : [];
+  if (!path.length) {
     return { ...base, allowed: true, policy: null, cap: null, consumed: 0, reason: "no_org" };
   }
 
-  const capDoc = await adminDb.collection(COLLECTIONS.orgCaps).doc(orgId).get();
-  const data = capDoc.data();
-  const cap: number | undefined = data?.caps?.ip;
-  const policy: "hard" | "soft" = data?.policy?.ip === "soft" ? "soft" : "hard";
-
-  if (cap == null || cap < 0) {
-    return { ...base, allowed: true, policy: null, cap: null, consumed: 0, reason: "no_cap" };
+  let softBinding: { cap: number; consumed: number } | null = null;
+  for (const orgId of path) {
+    const data = (await adminDb.collection(COLLECTIONS.orgCaps).doc(orgId).get()).data();
+    const cap: number | undefined = data?.caps?.ip;
+    if (cap == null || cap < 0) continue; // no cap on this node
+    const policy: "hard" | "soft" = data?.policy?.ip === "soft" ? "soft" : "hard";
+    const consumed = await consumedThisCycle(orgId);
+    if (consumed + needed <= cap) continue; // within this node's cap
+    if (policy === "hard") {
+      return { ...base, allowed: false, policy, cap, consumed, reason: "hard_cap_exceeded" };
+    }
+    softBinding = { cap, consumed }; // soft overage — keep scanning for a harder cap
   }
 
-  const consumed = await consumedThisCycle(orgId);
-  const exceeded = consumed + needed > cap;
-
-  if (!exceeded) {
-    return { ...base, allowed: true, policy, cap, consumed, reason: "ok" };
+  if (softBinding) {
+    return {
+      ...base,
+      allowed: true,
+      policy: "soft",
+      cap: softBinding.cap,
+      consumed: softBinding.consumed,
+      overage: true,
+      reason: "soft_overage",
+    };
   }
-  if (policy === "soft") {
-    return { ...base, allowed: true, policy, cap, consumed, overage: true, reason: "soft_overage" };
-  }
-  return { ...base, allowed: false, policy, cap, consumed, reason: "hard_cap_exceeded" };
+  return { ...base, allowed: true, policy: null, cap: null, consumed: 0, reason: "ok" };
 }

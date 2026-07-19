@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { getVerifiedUid } from "@/lib/firebase/adminSession";
 import { redirect } from "next/navigation";
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 import AdminConsole from "@/components/admin/AdminConsole";
@@ -12,7 +12,7 @@ async function isAdminUid(uid: string | undefined): Promise<boolean> {
 }
 
 export default async function AdminPage() {
-  const uid = cookies().get("uid")?.value;
+  const uid = await getVerifiedUid();
   if (!(await isAdminUid(uid))) redirect("/app/dashboard");
 
   return (

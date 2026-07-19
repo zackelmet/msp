@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getVerifiedUid } from "@/lib/firebase/adminSession";
 import Stripe from "stripe";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
@@ -29,7 +29,7 @@ const NET_TERMS_DAYS = 30;
  * See docs/product-model.md "Payment posture".
  */
 export async function PUT(req: NextRequest, context: { params: { id: string } }) {
-  const uid = cookies().get("uid")?.value;
+  const uid = await getVerifiedUid();
   if (!(await isAdminUid(uid))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }

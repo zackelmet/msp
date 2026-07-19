@@ -13,12 +13,12 @@ export const metadata = {
   title: "Trust + Safety Center — MSP Pentesting",
   description:
     "Our commitment to ethical penetration testing, data security, and responsible disclosure.",
-  metadataBase: new URL("https://msppentesting.vercel.app"),
+  metadataBase: new URL("https://msppentesting.com"),
   openGraph: {
     title: "Trust + Safety Center — MSP Pentesting",
     description:
       "Our commitment to ethical penetration testing, data security, and responsible disclosure.",
-    url: "https://msppentesting.vercel.app/trust-safety",
+    url: "https://msppentesting.com/trust-safety",
     siteName: "MSP Pentesting",
   },
 };

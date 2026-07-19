@@ -81,9 +81,10 @@ export default function ContactSalesPage() {
               aria-hidden="true"
             />
             <div className="grid sm:grid-cols-2 gap-4">
-              <input name="name" placeholder="Name" className={field} />
+              <input name="name" aria-label="Name" placeholder="Name" className={field} />
               <input
                 name="company"
+                aria-label="Company"
                 placeholder="Company"
                 className={field}
               />
@@ -92,17 +93,20 @@ export default function ContactSalesPage() {
               name="email"
               type="email"
               required
+              aria-label="Work email"
               placeholder="Work email *"
               className={field}
             />
             <input
               name="ipEstimate"
+              aria-label="Approximate IPs per month"
               placeholder="Approx. IPs / month (e.g. 500)"
               className={field}
             />
             <textarea
               name="message"
               rows={4}
+              aria-label="What are you looking to do?"
               placeholder="What are you looking to do?"
               className={field}
             />

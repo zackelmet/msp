@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getVerifiedUid } from "@/lib/firebase/adminSession";
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 import { COLLECTIONS } from "@/lib/org/collections";
 
@@ -18,7 +18,7 @@ async function isAdminUid(uid: string | undefined): Promise<boolean> {
  * drill-down from `parentOrgId` / `path`. Empty until migrateOrgs has run.
  */
 export async function GET(_req: NextRequest) {
-  const uid = cookies().get("uid")?.value;
+  const uid = await getVerifiedUid();
   if (!(await isAdminUid(uid))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }

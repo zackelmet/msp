@@ -34,7 +34,7 @@ import { Timestamp } from "firebase-admin/firestore";
 
 export type OrgType = "supplier" | "reseller" | "client";
 
-export type OrgStatus = "active" | "suspended";
+export type OrgStatus = "active" | "suspended" | "inactive";
 
 /** How an org node is billed. Inherited nodes resolve up the tree. */
 export type BillingMode = "consolidated" | "direct" | "inherited";

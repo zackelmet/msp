@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getVerifiedUid } from "@/lib/firebase/adminSession";
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ async function isAdminUid(uid: string | undefined): Promise<boolean> {
 }
 
 export async function GET(req: NextRequest) {
-  const uid = cookies().get("uid")?.value;
+  const uid = await getVerifiedUid();
   if (!(await isAdminUid(uid))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }

@@ -104,6 +104,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     ? [
         { href: "/app/clients", label: "Platform", icon: faLayerGroup },
         { href: "/app/monitoring", label: "Overview", icon: faChartLine },
+        // Self-serve resellers buy credits and launch directly, so they need a
+        // launch link. Suppliers/distributors launch per-client from the Platform
+        // page, so it's omitted for them.
+        ...(role === "reseller_admin"
+          ? [
+              {
+                href: "/app/ai-pentest-launch",
+                label: "New Pentest",
+                icon: faJetFighter,
+              },
+            ]
+          : []),
         { href: "/app/pentests", label: "Reports", icon: faList },
         { href: "/app/buy-credits", label: "Billing", icon: faBolt },
       ]

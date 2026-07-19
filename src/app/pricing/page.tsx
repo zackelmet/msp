@@ -39,7 +39,7 @@ const SELF_SERVE_FEATURES = [
 
 const DISTRIBUTOR_FEATURES = [
   "Everything in self-serve, plus:",
-  "Volume pricing — rate drops to $8 then $6 / IP as you scale",
+  "Lower metered base — $10 → $8 → $6 / IP as you scale",
   "Net-30 consolidated billing — one invoice across all clients",
   "Multi-tenant org tree — resellers and end clients",
   "White-label reports and client portal",
@@ -86,7 +86,7 @@ export default function PricingPage() {
               ))}
             </ul>
             <Link
-              href="/login?redirect=/app"
+              href="/login?returnUrl=/app/dashboard"
               className="mt-8 w-full inline-flex items-center justify-center rounded-lg bg-[#4590e2] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#3a7bc8]"
             >
               Get started

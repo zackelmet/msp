@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getVerifiedUid } from "@/lib/firebase/adminSession";
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 import { buildReportPdf } from "@/lib/report-engine/pdf-template";
 import { getReportSignedUrl, saveReportPdf } from "@/lib/report-engine/storage";
@@ -128,7 +128,7 @@ function parseBranding(raw: any): ReportBranding | undefined {
 
 export async function POST(request: NextRequest) {
   try {
-    const uid = cookies().get("uid")?.value;
+    const uid = await getVerifiedUid();
     if (!(await isAdminUid(uid))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

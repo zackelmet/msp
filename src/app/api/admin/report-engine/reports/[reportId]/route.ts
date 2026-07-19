@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getVerifiedUid } from "@/lib/firebase/adminSession";
 import { adminDb } from "@/lib/firebase/firebaseAdmin";
 import {
   downloadReportPdf,
@@ -18,7 +18,7 @@ export async function GET(
   _request: NextRequest,
   context: { params: { reportId: string } },
 ) {
-  const uid = cookies().get("uid")?.value;
+  const uid = await getVerifiedUid();
   if (!uid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

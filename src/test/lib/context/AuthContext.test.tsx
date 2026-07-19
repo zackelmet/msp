@@ -35,6 +35,11 @@ describe("AuthContext", () => {
 
     mockUsePathname.mockReturnValue("/");
     mockUseRouter.mockReturnValue({ push: jest.fn() });
+
+    // AuthContext mints a server session cookie via fetch on login — stub it.
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue({ ok: true, json: async () => ({}) }) as any;
   });
 
   afterEach(() => {
@@ -73,6 +78,7 @@ describe("AuthContext", () => {
       uid: "123",
       emailVerified: true,
       providerData: [{ providerId: "password" }],
+      getIdToken: jest.fn().mockResolvedValue("test-token"),
     } as unknown as User;
     const mockClaims = { role: "user" };
 
@@ -133,6 +139,7 @@ describe("AuthContext", () => {
       uid: "123",
       emailVerified: true,
       providerData: [{ providerId: "password" }],
+      getIdToken: jest.fn().mockResolvedValue("test-token"),
     } as unknown as User;
     mockAuthService.onAuthStateChanged.mockImplementation((callback) => {
       callback(mockUser);

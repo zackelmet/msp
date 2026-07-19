@@ -321,7 +321,7 @@ export default function Home() {
                   Simple pricing — pay per IP you test
                 </h3>
                 <p className="text-[#7a9bb5] text-sm mt-2 max-w-2xl">
-                  One AI pentest, metered per live IP. Rates drop as your volume grows. Human-led engagements available on request.
+                  One AI pentest, priced per live IP. Buy prepaid credits — no subscription, they never expire. Volume discounts and consolidated billing for MSPs at scale. Human-led engagements on request.
                 </p>
               </div>
               <Link
@@ -335,19 +335,19 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-4 mt-6">
               {[
                 {
-                  tier: "Pay per IP",
-                  price: "Metered",
-                  sub: "Billed only for live IPs actually tested",
+                  tier: "Prepaid, per IP",
+                  price: "$20 / IP",
+                  sub: "Buy IP credits — no subscription, never expire",
                 },
                 {
                   tier: "Grow into discounts",
                   price: "Volume",
-                  sub: "Marginal IPs get cheaper past your tier threshold",
+                  sub: "Cheaper per IP the more you buy",
                 },
                 {
                   tier: "For MSPs at scale",
-                  price: "Consolidated",
-                  sub: "One monthly invoice across all your clients",
+                  price: "Distributor",
+                  sub: "Lower metered rates + consolidated billing — talk to sales",
                 },
               ].map((item) => (
                 <div key={item.tier} className="bg-[#0a141f] border border-[#4590e2]/15 rounded-lg p-4">

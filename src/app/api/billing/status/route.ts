@@ -30,7 +30,9 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     isSupplier: true,
     orgId: supplierOrgId,
-    activated: !!b.stripeSubscriptionId,
+    // Use the SAME signal the launch gate + metering use (`stripeSubscriptionItemId`),
+    // so "activated" can't disagree with whether launches actually meter.
+    activated: !!b.stripeSubscriptionItemId,
     // null until a card is on file (Tier 2) or net terms are granted (Tier 1).
     paymentTier: b.paymentTier ?? null,
     suspended: b.suspended === true,

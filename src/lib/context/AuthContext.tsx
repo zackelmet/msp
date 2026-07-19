@@ -49,9 +49,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         const claims = await authService.getUserClaims(user);
         setUserClaims(claims);
         DefaultCookieManager.addAuthCookie(user.uid);
+        // Mint the httpOnly, server-verified session cookie the /admin surface
+        // trusts (the plain uid cookie above is NOT a security token).
+        try {
+          const idToken = await user.getIdToken();
+          await fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken }),
+          });
+        } catch (e) {
+          console.error("session cookie sync failed", e);
+        }
       } else {
         setUserClaims(null);
         DefaultCookieManager.removeAuthCookie();
+        fetch("/api/auth/session", { method: "DELETE" }).catch(() => {});
       }
     });
 

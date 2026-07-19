@@ -59,12 +59,13 @@ export default function BillingPage() {
   const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
+    let unsub: (() => void) | undefined;
     (async () => {
       const { getAuth, onAuthStateChanged } = await import("firebase/auth");
       const { getFirestore, doc, getDoc } = await import("firebase/firestore");
       const app = (await import("@/lib/firebase/firebaseClient")).default;
       const auth = getAuth(app);
-      const unsub = onAuthStateChanged(auth, async (user) => {
+      unsub = onAuthStateChanged(auth, async (user) => {
         if (!user) {
           router.replace("/login");
           return;
@@ -103,8 +104,8 @@ export default function BillingPage() {
         }
         setLoading(false);
       });
-      return unsub;
     })();
+    return () => unsub?.();
   }, [router]);
 
   const bill = useMemo(() => estimateBill(consumed), [consumed]);
