@@ -27,9 +27,14 @@ enroll resellers/clients via the Platform page (already live).
   Fixes the double-count. Launch page shows "Billed per IP · monthly" for metered launchers and doesn't gate on credit
   balance. A distributor without billing activated gets an "activate billing" nudge. **Luis verified metered** (launches
   credit-free). Docs stamped `billingMode`/`billableIps`. Assumes MSPP has no metered sub (noted in code).
-- **⏭️ Still pending — downstream CAP enforcement:** the buyer (distributor) itself has no ceiling; hard/soft IP caps
-  are spend controls a distributor sets on its *downstream clients* (the quota/orgCaps system, still not wired to the
-  live launch path). Enforce when distributors have downstream client-users launching.
+- **✅ Downstream CAP enforcement DONE.** `src/lib/org/launchCap.ts` `checkLaunchCap(orgId, needed)` reads the org's
+  `orgCaps.caps.ip` + `policy.ip` and counts this-cycle consumption from the subtree's pentests (`orgPath`
+  array-contains, `billableIps` summed, non-failed). Wired into the metered launch path: **hard cap → 403 block the
+  whole launch** ("raise the cap"); **soft cap → allow + `capOverage` flag** (billable). Buyer/supplier has no cap →
+  distributors' own launches never blocked (**Luis verified unaffected**). Launches stamp `orgId`/`orgPath`. Caps are
+  set by the distributor via the Platform page "Set quota" (`/api/orgs/[id]/caps`). Verified hard/soft/no-cap logic
+  against seeded data. Only fires on the metered path; self-serve credit launches unchanged. (This is the simple
+  metered cap — independent of the old prepaid pool/entitlement system, which stays unused.)
 
 ## 📌 Session ledger — 2026-07-18 (pricing reskin + CRITICAL: Firebase was never credentialed in prod)
 
