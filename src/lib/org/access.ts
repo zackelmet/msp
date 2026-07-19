@@ -3,10 +3,11 @@ import { adminDb, verifyAuthToken } from "@/lib/firebase/firebaseAdmin";
 /**
  * Caller identity + role scoping for the in-app control plane.
  *
- * Unlike the /admin endpoints (which trust the `uid` cookie), these resolve the
- * caller from a verified Firebase ID token, then read their org/role from the
- * user doc. Supplier/reseller admins manage only their own subtree; the platform
- * admin (Zack, isAdmin) manages the whole tree.
+ * These resolve the caller from a verified Firebase ID token (Bearer header),
+ * then read their org/role from the user doc. Supplier/reseller admins manage
+ * only their own subtree; the platform admin (Zack, isAdmin) manages the whole
+ * tree. (The /admin endpoints verify a Firebase session cookie via
+ * `getVerifiedUid` — both paths are server-verified, neither trusts a raw cookie.)
  */
 
 export type OrgRole =

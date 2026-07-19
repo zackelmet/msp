@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getVerifiedUid } from "@/lib/firebase/adminSession";
 import { adminDb, adminStorage } from "@/lib/firebase/firebaseAdmin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const uid = cookies().get("uid")?.value;
+  // Verified session identity — NOT the forgeable client-set uid cookie (this
+  // route hands out signed report URLs, so a forged uid would be report IDOR).
+  const uid = await getVerifiedUid();
   if (!uid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

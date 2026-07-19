@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCaller } from "@/lib/org/access";
 import { getOrg } from "@/lib/org/tree";
+import { OrgBilling } from "@/lib/types/org";
 
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/billing/status — the caller's supplier billing posture, for the Billing
- * page. Only a supplier_admin (or platform_admin) manages a payment method; billing
- * lives on the supplier root (`orgPath[0]`). Everyone else `isSupplier: false`.
+ * GET /api/billing/status — the caller's billing posture.
+ *
+ * `metered`/`suspended` reflect the caller's SUPPLIER root (`orgPath[0]`) and are
+ * returned for ANY role, because the launch page uses `metered` to decide whether
+ * to gate on credits — and every user in a distributor's subtree launches metered,
+ * not just the supplier_admin. The supplier-management fields (`isSupplier`,
+ * `activated`, `paymentTier`) are only meaningful for a supplier_admin managing
+ * the payment method.
  */
 export async function GET(req: NextRequest) {
   const caller = await getCaller(req);
@@ -15,26 +21,21 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const supplierOrgId = caller.orgPath?.[0] ?? null;
+  const supplier = supplierOrgId ? await getOrg(supplierOrgId) : null;
+  const b: Partial<OrgBilling> =
+    supplier?.type === "supplier" ? supplier.billing || {} : {};
+
+  // Same signal the launch gate + metering use, for any role.
+  const metered = !!b.stripeSubscriptionItemId;
   const isSupplierAdmin = caller.role === "supplier_admin" || caller.isAdmin;
-  const supplierOrgId = isSupplierAdmin ? caller.orgPath?.[0] ?? caller.orgId : null;
-  if (!supplierOrgId) {
-    return NextResponse.json({ isSupplier: false });
-  }
 
-  const org = await getOrg(supplierOrgId);
-  if (!org || org.type !== "supplier") {
-    return NextResponse.json({ isSupplier: false });
-  }
-
-  const b = org.billing || {};
   return NextResponse.json({
-    isSupplier: true,
-    orgId: supplierOrgId,
-    // Use the SAME signal the launch gate + metering use (`stripeSubscriptionItemId`),
-    // so "activated" can't disagree with whether launches actually meter.
-    activated: !!b.stripeSubscriptionItemId,
-    // null until a card is on file (Tier 2) or net terms are granted (Tier 1).
-    paymentTier: b.paymentTier ?? null,
+    metered,
     suspended: b.suspended === true,
+    isSupplier: isSupplierAdmin && supplier?.type === "supplier",
+    orgId: supplierOrgId,
+    activated: metered,
+    paymentTier: b.paymentTier ?? null,
   });
 }
