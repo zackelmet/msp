@@ -1,8 +1,5 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth } from "@/lib/context/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faClipboardList,
@@ -177,7 +174,6 @@ function HexIcon({ children }: { children: React.ReactNode }) {
 }
 
 export default function Home() {
-  const { currentUser, isLoadingAuth } = useAuth();
 
   return (
     <main className="min-h-screen bg-[#0a141f] text-white overflow-x-hidden">
@@ -248,52 +244,39 @@ export default function Home() {
             One product, priced per IP. Human-led pentests available on request.
           </p>
 
+          {/* Marketing CTAs — identical for everyone (public page, no auth-based
+              swap, no load flash). Authed users hitting /login are redirected to
+              their dashboard by AuthContext, so "Log In" still works for them. */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            {!isLoadingAuth && !currentUser ? (
-              <>
-                <Link
-                  href="/login"
-                  className="relative px-10 py-4 text-white font-bold text-lg overflow-hidden group"
-                  style={{ fontFamily: "var(--font-chakra-petch)" }}
-                >
-                  {/* glowing border button */}
-                  <span className="absolute inset-0 border border-[#4590e2]/60 group-hover:border-[#4590e2] transition-colors" />
-                  <span className="absolute inset-0 bg-[#4590e2]/10 group-hover:bg-[#4590e2]/20 transition-colors" />
-                  {/* edge-cut corners */}
-                  <span className="absolute top-0 right-0 w-3 h-3 bg-[#0a141f] rotate-45 translate-x-1.5 -translate-y-1.5" />
-                  <span className="absolute bottom-0 left-0 w-3 h-3 bg-[#0a141f] rotate-45 -translate-x-1.5 translate-y-1.5" />
-                  <span className="relative z-10">Log In to Your Portal</span>
-                </Link>
-                <a
-                  href="/pricing"
-                  className="px-10 py-4 bg-[#4590e2]/10 hover:bg-[#4590e2]/20 border border-[#4590e2]/35 hover:border-[#4590e2]/60 text-white font-semibold transition-colors text-lg"
-                  style={{ fontFamily: "var(--font-chakra-petch)" }}
-                >
-                  View Pricing
-                </a>
-                <a
-                  href="https://msppentesting.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-10 py-4 bg-white/5 hover:bg-white/10 border border-white/20 hover:border-white/40 text-white font-semibold transition-colors text-lg"
-                  style={{ fontFamily: "var(--font-chakra-petch)" }}
-                >
-                  Not a client yet? →
-                </a>
-              </>
-            ) : !isLoadingAuth && currentUser ? (
-              <Link
-                href="/app/dashboard"
-                className="relative px-10 py-4 text-white font-bold text-lg overflow-hidden group"
-                style={{ fontFamily: "var(--font-chakra-petch)" }}
-              >
-                <span className="absolute inset-0 border border-[#4590e2]/60 group-hover:border-[#4590e2] transition-colors" />
-                <span className="absolute inset-0 bg-[#4590e2]/10 group-hover:bg-[#4590e2]/20 transition-colors" />
-                <span className="absolute top-0 right-0 w-3 h-3 bg-[#0a141f] rotate-45 translate-x-1.5 -translate-y-1.5" />
-                <span className="absolute bottom-0 left-0 w-3 h-3 bg-[#0a141f] rotate-45 -translate-x-1.5 translate-y-1.5" />
-                <span className="relative z-10">Go to Dashboard →</span>
-              </Link>
-            ) : null}
+            <Link
+              href="/login"
+              className="relative px-10 py-4 text-white font-bold text-lg overflow-hidden group"
+              style={{ fontFamily: "var(--font-chakra-petch)" }}
+            >
+              {/* glowing border button */}
+              <span className="absolute inset-0 border border-[#4590e2]/60 group-hover:border-[#4590e2] transition-colors" />
+              <span className="absolute inset-0 bg-[#4590e2]/10 group-hover:bg-[#4590e2]/20 transition-colors" />
+              {/* edge-cut corners */}
+              <span className="absolute top-0 right-0 w-3 h-3 bg-[#0a141f] rotate-45 translate-x-1.5 -translate-y-1.5" />
+              <span className="absolute bottom-0 left-0 w-3 h-3 bg-[#0a141f] rotate-45 -translate-x-1.5 translate-y-1.5" />
+              <span className="relative z-10">Log In to Your Portal</span>
+            </Link>
+            <a
+              href="/pricing"
+              className="px-10 py-4 bg-[#4590e2]/10 hover:bg-[#4590e2]/20 border border-[#4590e2]/35 hover:border-[#4590e2]/60 text-white font-semibold transition-colors text-lg"
+              style={{ fontFamily: "var(--font-chakra-petch)" }}
+            >
+              View Pricing
+            </a>
+            <a
+              href="https://msppentesting.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-10 py-4 bg-white/5 hover:bg-white/10 border border-white/20 hover:border-white/40 text-white font-semibold transition-colors text-lg"
+              style={{ fontFamily: "var(--font-chakra-petch)" }}
+            >
+              Not a client yet? →
+            </a>
           </div>
 
           {/* Horizontal rule with blue glow */}
