@@ -21,8 +21,15 @@ enroll resellers/clients via the Platform page (already live).
 - **Compulab IS already a distributor** (`org_compulab` supplier, Luis = supplier_admin) — set up directly, not elevated.
 - **Self-serve pricing → $20/$18/$12** (2× the distributor $10/$8/$6 base, as MSPP's reseller markup): `AI_PENTEST_BRACKETS`
   + public `/pricing` self-serve tier + FAQ. Distributors keep the $6-base metered rate.
-- **⏭️ Still pending — credits→cap:** distributors + their subtree still launch on `credits.ai_pentest` (should launch
-  on the metered cap instead — "distributors don't need credits" isn't true in code yet).
+- **✅ Credits→metered launch gate DONE.** `/api/ai-pentest-launch` now branches on the launcher's supplier billing:
+  metered supplier (distributor — supplier has a `stripeSubscriptionItemId`, e.g. Compulab) launches on CONSUMPTION,
+  **no credits spent**, meters on completion; everyone else (self-serve under MSPP, no sub) stays on prepaid credits.
+  Fixes the double-count. Launch page shows "Billed per IP · monthly" for metered launchers and doesn't gate on credit
+  balance. A distributor without billing activated gets an "activate billing" nudge. **Luis verified metered** (launches
+  credit-free). Docs stamped `billingMode`/`billableIps`. Assumes MSPP has no metered sub (noted in code).
+- **⏭️ Still pending — downstream CAP enforcement:** the buyer (distributor) itself has no ceiling; hard/soft IP caps
+  are spend controls a distributor sets on its *downstream clients* (the quota/orgCaps system, still not wired to the
+  live launch path). Enforce when distributors have downstream client-users launching.
 
 ## 📌 Session ledger — 2026-07-18 (pricing reskin + CRITICAL: Firebase was never credentialed in prod)
 
