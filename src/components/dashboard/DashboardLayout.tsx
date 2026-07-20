@@ -97,33 +97,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const canManageClients =
     isAdmin || role === "supplier_admin" || role === "reseller_admin";
-  // Lean, Acronis-style nav. Distributors/resellers get the control plane
-  // (Clients grid = home); end clients get a simpler set. Legacy pages (target
-  // groups, schedule, manual tests) are folded in / reachable directly.
-  const navItems = canManageClients
+  // Nav by role. RESELLERS (the core self-serve persona) get a buy-and-launch set
+  // with a clear "Buy IPs". DISTRIBUTORS/platform-admins get the Acronis control
+  // plane (tenant tree + consolidated billing). End clients don't log in.
+  const isReseller = role === "reseller_admin";
+  const navItems = isReseller
     ? [
-        { href: "/app/clients", label: "Platform", icon: faLayerGroup },
-        { href: "/app/monitoring", label: "Overview", icon: faChartLine },
-        // Self-serve resellers buy credits and launch directly, so they need a
-        // launch link. Suppliers/distributors launch per-client from the Platform
-        // page, so it's omitted for them.
-        ...(role === "reseller_admin"
-          ? [
-              {
-                href: "/app/ai-pentest-launch",
-                label: "New Pentest",
-                icon: faJetFighter,
-              },
-            ]
-          : []),
-        { href: "/app/pentests", label: "Reports", icon: faList },
-        { href: "/app/buy-credits", label: "Billing", icon: faBolt },
-      ]
-    : [
         { href: "/app/dashboard", label: "Overview", icon: faHome },
         { href: "/app/ai-pentest-launch", label: "New Pentest", icon: faJetFighter },
         { href: "/app/pentests", label: "Reports", icon: faList },
-      ];
+        { href: "/app/buy-credits", label: "Buy IPs", icon: faBolt },
+        { href: "/app/clients", label: "Clients", icon: faLayerGroup },
+      ]
+    : canManageClients
+      ? [
+          { href: "/app/clients", label: "Platform", icon: faLayerGroup },
+          { href: "/app/monitoring", label: "Overview", icon: faChartLine },
+          { href: "/app/pentests", label: "Reports", icon: faList },
+          { href: "/app/buy-credits", label: "Billing", icon: faBolt },
+        ]
+      : [
+          { href: "/app/dashboard", label: "Overview", icon: faHome },
+          { href: "/app/ai-pentest-launch", label: "New Pentest", icon: faJetFighter },
+          { href: "/app/pentests", label: "Reports", icon: faList },
+        ];
 
   // Admin pages are consolidated into one /admin console with in-page tabs.
   const adminNavItems = [

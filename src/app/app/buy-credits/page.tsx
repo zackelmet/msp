@@ -73,12 +73,13 @@ export default function BillingPage() {
         setUid(user.uid);
         setEmail(user.email);
         try {
-          // The user doc drives the view: a self-enrolled reseller buys prepaid
-          // credits; everyone else sees the metered/post-paid billing view.
+          // The user doc drives the view: a RESELLER buys prepaid IP credits;
+          // a distributor (supplier_admin) sees the metered/post-paid view.
+          // (Every reseller is on the credit path today; a reseller sitting under
+          // a metered distributor would instead roll up — a future refinement.)
           const snap = await getDoc(doc(getFirestore(app), "users", user.uid));
           const u = snap.data() || {};
-          const isSelfServe =
-            u.role === "reseller_admin" && u.selfEnrolled === true;
+          const isSelfServe = u.role === "reseller_admin";
           setSelfServe(isSelfServe);
           setCreditBalance(u?.credits?.ai_pentest ?? 0);
 
