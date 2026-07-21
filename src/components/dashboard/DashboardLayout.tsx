@@ -19,6 +19,7 @@ import {
   faBolt,
   faLayerGroup,
   faChartLine,
+  faPalette,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/lib/context/AuthContext";
 import signout from "@/lib/firebase/signout";
@@ -28,6 +29,7 @@ import OnboardingTour, {
 } from "@/components/onboarding/OnboardingTour";
 import { faCompass } from "@fortawesome/free-solid-svg-icons";
 import DistributorUpsellBanner from "@/components/dashboard/DistributorUpsellBanner";
+import { useTenantBranding } from "@/lib/tenant";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -46,6 +48,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isAdmin, setIsAdmin] = useState(cachedIsAdmin);
   const [role, setRole] = useState<string | null>(cachedRole);
   const [selfEnrolled, setSelfEnrolled] = useState(cachedSelfEnrolled);
+  // White-label: when on a distributor's subdomain (or ?tenant= override), show
+  // their logo/name instead of MSP Pentesting.
+  const { tenant } = useTenantBranding();
+  const brandName = tenant?.name || "MSP Pentesting";
+  const brandLogoUrl = tenant?.logoUrl || null;
+  const brandHome = tenant ? "/app/dashboard" : "https://dashboard.msppentesting.com";
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -114,6 +122,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           { href: "/app/clients", label: "Platform", icon: faLayerGroup },
           { href: "/app/monitoring", label: "Overview", icon: faChartLine },
           { href: "/app/pentests", label: "Reports", icon: faList },
+          { href: "/app/branding", label: "Branding", icon: faPalette },
           { href: "/app/buy-credits", label: "Billing", icon: faBolt },
         ]
       : [
@@ -149,22 +158,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         {/* Logo */}
         <div className="p-6 border-b border-[#4590e2]">
-          <a
-            href="https://dashboard.msppentesting.com"
-            className="flex items-center gap-3"
-          >
-            <Image
-              src="/msp pentesting logo (1) (3) (1).png"
-              alt="MSP Pentesting"
-              width={44}
-              height={44}
-              className="w-11 h-11 flex-shrink-0"
-            />
+          <a href={brandHome} className="flex items-center gap-3">
+            {brandLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={brandLogoUrl}
+                alt={brandName}
+                className="w-11 h-11 flex-shrink-0 object-contain"
+              />
+            ) : (
+              <Image
+                src="/msp pentesting logo (1) (3) (1).png"
+                alt={brandName}
+                width={44}
+                height={44}
+                className="w-11 h-11 flex-shrink-0"
+              />
+            )}
             <span
               className="text-white font-semibold text-base tracking-wide leading-tight"
               style={{ fontFamily: "var(--font-chakra-petch)" }}
             >
-              MSP Pentesting
+              {brandName}
             </span>
           </a>
         </div>
@@ -331,22 +346,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <FontAwesomeIcon icon={faBars} className="w-6 h-6" />
           </button>
-          <a
-            href="https://dashboard.msppentesting.com"
-            className="flex items-center gap-2"
-          >
-            <Image
-              src="/msp pentesting logo (1) (3) (1).png"
-              alt="MSP Pentesting"
-              width={32}
-              height={32}
-              className="w-8 h-8"
-            />
+          <a href={brandHome} className="flex items-center gap-2">
+            {brandLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={brandLogoUrl} alt={brandName} className="w-8 h-8 object-contain" />
+            ) : (
+              <Image
+                src="/msp pentesting logo (1) (3) (1).png"
+                alt={brandName}
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+            )}
             <span
               className="font-semibold text-white text-sm"
               style={{ fontFamily: "var(--font-chakra-petch)" }}
             >
-              MSP Pentesting
+              {brandName}
             </span>
           </a>
           <div className="w-10" /> {/* Spacer for centering */}

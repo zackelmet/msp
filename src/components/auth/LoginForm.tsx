@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle, faWindows } from "@fortawesome/free-brands-svg-icons";
 // Lazy-load react-hot-toast and Firebase auth at runtime to avoid DOM access during server prerender
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTenantBranding } from "@/lib/tenant";
 
 enum FormMode {
   Login,
@@ -24,6 +25,10 @@ export default function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get("returnUrl") || "/app/dashboard";
+  // White-label: on a distributor's subdomain, brand the login with their name/logo.
+  const { tenant } = useTenantBranding();
+  const brandName = tenant?.name || "MSP Pentesting";
+  const brandLogoUrl = tenant?.logoUrl || null;
 
   const handleGoogleAuth = async () => {
     try {
@@ -200,11 +205,19 @@ export default function AuthForm() {
         <div className="flex flex-col lg:flex-row gap-12 items-center">
           {/* Left: copy */}
           <div className="flex-1 space-y-5 text-center lg:text-left">
+            {brandLogoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={brandLogoUrl}
+                alt={brandName}
+                className="h-12 object-contain mx-auto lg:mx-0"
+              />
+            )}
             <div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#4590e2]/10 border border-[#4590e2]/30 text-[#4590e2] text-sm font-semibold"
               style={{ fontFamily: "var(--font-chakra-petch)" }}
             >
-              MSP PENTESTING CLIENT PORTAL
+              {brandName.toUpperCase()} PORTAL
             </div>
             <h1
               className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight"
