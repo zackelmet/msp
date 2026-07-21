@@ -156,7 +156,7 @@ export default function EditTargetGroupPage() {
 
           {error && <p className="text-sm text-red-400">{error}</p>}
 
-          <button type="submit" disabled={saving} className="w-full py-3 bg-[#4590e2] hover:bg-[#3a7bc8] disabled:opacity-50 text-white font-semibold rounded-lg text-sm transition-colors">
+          <button type="submit" disabled={saving} className="w-full py-3 bg-[var(--brand)] hover:bg-[#3a7bc8] disabled:opacity-50 text-white font-semibold rounded-lg text-sm transition-colors">
             {saving ? "Saving..." : "Save Changes"}
           </button>
         </form>

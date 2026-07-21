@@ -138,7 +138,7 @@ function ReportMockup() {
       </div>
 
       {/* Floating badge — CONFIDENTIAL */}
-      <div className="absolute -top-3 -right-3 bg-[#4590e2] text-white text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-lg shadow-[#4590e2]/30">
+      <div className="absolute -top-3 -right-3 bg-[var(--brand)] text-white text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-lg shadow-[#4590e2]/30">
         White-Labeled
       </div>
     </div>
@@ -309,7 +309,7 @@ export default function Home() {
               </div>
               <Link
                 href="/pricing"
-                className="shrink-0 inline-flex items-center justify-center px-6 py-3 bg-[#4590e2] hover:bg-[#3a7bc8] text-white font-semibold rounded-lg transition-colors"
+                className="shrink-0 inline-flex items-center justify-center px-6 py-3 bg-[var(--brand)] hover:bg-[#3a7bc8] text-white font-semibold rounded-lg transition-colors"
               >
                 View Full Pricing
               </Link>

@@ -203,7 +203,7 @@ export default function SupportPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-3.5 bg-[#4590e2] hover:bg-[#3a7bc8] text-white font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 bg-[var(--brand)] hover:bg-[#3a7bc8] text-white font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? "Sending…" : "Send Message"}
               </button>

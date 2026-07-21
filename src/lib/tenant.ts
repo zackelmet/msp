@@ -53,7 +53,13 @@ export function useTenantBranding(): {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!alive) return;
-        setTenant(d?.tenant ?? null);
+        const t = d?.tenant ?? null;
+        setTenant(t);
+        // Theme the UI with the tenant's brand color (elements using var(--brand)
+        // pick it up; falls back to the default blue set in globals.css).
+        if (t?.primaryColor) {
+          document.documentElement.style.setProperty("--brand", t.primaryColor);
+        }
         setLoading(false);
       })
       .catch(() => alive && setLoading(false));

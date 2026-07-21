@@ -65,7 +65,7 @@ export default function TargetsPage() {
           </div>
           <Link
             href="/app/targets/new"
-            className="flex items-center gap-2 px-4 py-2 bg-[#4590e2] hover:bg-[#3a7bc8] text-white text-sm font-semibold rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--brand)] hover:bg-[#3a7bc8] text-white text-sm font-semibold rounded-lg transition-colors"
           >
             <FontAwesomeIcon icon={faPlus} className="w-3 h-3" />
             New Group
@@ -90,7 +90,7 @@ export default function TargetsPage() {
               </p>
               <Link
                 href="/app/targets/new"
-                className="mt-5 px-5 py-2.5 bg-[#4590e2] hover:bg-[#3a7bc8] text-white text-sm font-semibold rounded-lg transition-colors"
+                className="mt-5 px-5 py-2.5 bg-[var(--brand)] hover:bg-[#3a7bc8] text-white text-sm font-semibold rounded-lg transition-colors"
               >
                 Create your first group
               </Link>

@@ -199,7 +199,7 @@ export default function BillingPage() {
                 <button
                   onClick={startBillingSetup}
                   disabled={activating}
-                  className="mt-4 rounded-lg bg-[#4590e2] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#3a7fc9] disabled:opacity-60"
+                  className="mt-4 rounded-lg bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#3a7fc9] disabled:opacity-60"
                 >
                   {activating ? "Redirecting…" : "Add payment method"}
                 </button>

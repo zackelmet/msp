@@ -265,7 +265,7 @@ export default function PlatformSection({
                 setCreateOpen(true);
                 setCreateErr(null);
               }}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#4590e2] hover:bg-[#357ac4] text-white px-4 py-2 text-sm transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg bg-[var(--brand)] hover:bg-[#357ac4] text-white px-4 py-2 text-sm transition-colors"
             >
               + New {childType === "reseller" ? "Reseller" : "Client"}
             </button>
@@ -284,7 +284,7 @@ export default function PlatformSection({
               <button
                 onClick={createChild}
                 disabled={createBusy || !createName.trim()}
-                className="rounded-lg bg-[#4590e2] hover:bg-[#357ac4] disabled:opacity-50 text-white px-4 py-2 text-sm transition-colors"
+                className="rounded-lg bg-[var(--brand)] hover:bg-[#357ac4] disabled:opacity-50 text-white px-4 py-2 text-sm transition-colors"
               >
                 {createBusy ? "Creating…" : "Create"}
               </button>
@@ -477,7 +477,7 @@ function OverviewPanel({
       <div className="flex flex-wrap gap-2">
         <a
           href="/app/ai-pentest-launch"
-          className="rounded-lg bg-[#4590e2] hover:bg-[#357ac4] text-white px-4 py-2 text-sm transition-colors"
+          className="rounded-lg bg-[var(--brand)] hover:bg-[#357ac4] text-white px-4 py-2 text-sm transition-colors"
         >
           New pentest
         </a>
@@ -632,7 +632,7 @@ function ProvisioningPanel({
           <button
             onClick={saveCaps}
             disabled={capSaving}
-            className="rounded-lg bg-[#4590e2] hover:bg-[#357ac4] disabled:opacity-50 text-white px-4 py-1.5 text-xs transition-colors"
+            className="rounded-lg bg-[var(--brand)] hover:bg-[#357ac4] disabled:opacity-50 text-white px-4 py-1.5 text-xs transition-colors"
           >
             {capSaving ? "Saving…" : "Save caps"}
           </button>
@@ -710,7 +710,7 @@ function ProvisioningPanel({
           <button
             onClick={saveBranding}
             disabled={brandSaving || !reseller}
-            className="rounded-lg bg-[#4590e2] hover:bg-[#357ac4] disabled:opacity-50 text-white px-4 py-1.5 text-xs transition-colors"
+            className="rounded-lg bg-[var(--brand)] hover:bg-[#357ac4] disabled:opacity-50 text-white px-4 py-1.5 text-xs transition-colors"
           >
             {brandSaving ? "Saving…" : "Save branding"}
           </button>
@@ -828,7 +828,7 @@ function PoolSummary({ pool }: { pool: Pool }) {
               </div>
               <div className="h-1.5 bg-[#0a141f] rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full ${over ? "bg-orange-400" : "bg-[#4590e2]"}`}
+                  className={`h-full rounded-full ${over ? "bg-orange-400" : "bg-[var(--brand)]"}`}
                   style={{ width: `${pct}%` }}
                 />
               </div>

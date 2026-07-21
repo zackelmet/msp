@@ -103,7 +103,7 @@ function StepIndicator({ step }: { step: number }) {
           key={n}
           className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${
             n === step
-              ? "bg-[#4590e2] border-[#4590e2] text-white"
+              ? "bg-[var(--brand)] border-[#4590e2] text-white"
               : n < step
                 ? "bg-[#4590e2]/20 border-[#4590e2]/40 text-[#4590e2]"
                 : "bg-white/5 border-white/10 text-gray-500"
@@ -414,7 +414,7 @@ export default function AdminDashboard() {
             <button
               onClick={handleFetchPentests}
               disabled={!email.trim()}
-              className="flex items-center gap-2 px-6 py-2.5 bg-[#4590e2] hover:bg-[#3a7bc8] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-sm transition-colors"
+              className="flex items-center gap-2 px-6 py-2.5 bg-[var(--brand)] hover:bg-[#3a7bc8] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-sm transition-colors"
             >
               Next <FontAwesomeIcon icon={faArrowRight} />
             </button>
@@ -480,7 +480,7 @@ export default function AdminDashboard() {
               <button
                 onClick={() => setStep(3)}
                 disabled={!selectedPentest}
-                className="flex items-center gap-2 px-6 py-2.5 bg-[#4590e2] hover:bg-[#3a7bc8] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-sm transition-colors"
+                className="flex items-center gap-2 px-6 py-2.5 bg-[var(--brand)] hover:bg-[#3a7bc8] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-sm transition-colors"
               >
                 Next <FontAwesomeIcon icon={faArrowRight} />
               </button>
@@ -554,7 +554,7 @@ export default function AdminDashboard() {
               <button
                 onClick={handleUpload}
                 disabled={!file || uploading}
-                className="flex items-center gap-2 px-6 py-2.5 bg-[#4590e2] hover:bg-[#3a7bc8] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-sm transition-colors"
+                className="flex items-center gap-2 px-6 py-2.5 bg-[var(--brand)] hover:bg-[#3a7bc8] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-sm transition-colors"
               >
                 {uploading ? (
                   <>
@@ -595,7 +595,7 @@ export default function AdminDashboard() {
             </div>
             <button
               onClick={resetWizard}
-              className="px-8 py-3 bg-[#4590e2] hover:bg-[#3a7bc8] text-white font-semibold rounded-xl text-sm transition-colors"
+              className="px-8 py-3 bg-[var(--brand)] hover:bg-[#3a7bc8] text-white font-semibold rounded-xl text-sm transition-colors"
             >
               Upload Another Report
             </button>

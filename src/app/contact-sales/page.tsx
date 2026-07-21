@@ -116,7 +116,7 @@ export default function ContactSalesPage() {
             <button
               type="submit"
               disabled={status === "sending"}
-              className="w-full rounded-lg bg-[#4590e2] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#3a7bc8] disabled:opacity-60"
+              className="w-full rounded-lg bg-[var(--brand)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#3a7bc8] disabled:opacity-60"
             >
               {status === "sending" ? "Sending…" : "Request pricing"}
             </button>

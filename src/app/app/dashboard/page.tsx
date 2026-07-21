@@ -154,7 +154,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/app/buy-credits"
-            className="shrink-0 flex items-center gap-2 px-4 py-2 bg-[#4590e2] hover:bg-[#3a7bc8] text-white text-sm font-semibold rounded-lg transition-colors"
+            className="shrink-0 flex items-center gap-2 px-4 py-2 bg-[var(--brand)] hover:bg-[#3a7bc8] text-white text-sm font-semibold rounded-lg transition-colors"
           >
             <FontAwesomeIcon icon={faShoppingCart} className="w-3 h-3" />
             Buy IPs

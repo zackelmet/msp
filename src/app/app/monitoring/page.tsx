@@ -112,7 +112,7 @@ export default function OverviewPage() {
             </div>
             <div className="h-2 bg-[#0a141f] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#4590e2] rounded-full"
+                className="h-full bg-[var(--brand)] rounded-full"
                 style={{ width: `${Math.min(100, purchased ? (consumed / purchased) * 100 : 0)}%` }}
               />
             </div>

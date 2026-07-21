@@ -134,7 +134,7 @@ export default function BuyCreditsPanel({
           <button
             onClick={buy}
             disabled={!valid || loading}
-            className="rounded-lg bg-[#4590e2] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#3a7bc8] disabled:opacity-60"
+            className="rounded-lg bg-[var(--brand)] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#3a7bc8] disabled:opacity-60"
           >
             {loading ? "Redirecting…" : `Buy ${pricing.quantity} credits`}
           </button>

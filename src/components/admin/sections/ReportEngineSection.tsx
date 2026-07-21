@@ -269,7 +269,7 @@ export default function ReportEngineSection() {
             type="submit"
             form="report-engine-form"
             disabled={submitting}
-            className="rounded-lg bg-[#4590e2] hover:bg-[#357ac4] disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2.5 text-sm font-medium transition-colors whitespace-nowrap"
+            className="rounded-lg bg-[var(--brand)] hover:bg-[#357ac4] disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2.5 text-sm font-medium transition-colors whitespace-nowrap"
           >
             {submitting ? "Generating…" : "Generate Report"}
           </button>
@@ -291,7 +291,7 @@ export default function ReportEngineSection() {
             <a
               href={generatedReportUrl}
               download={downloadFileName || "report.pdf"}
-              className="px-4 py-2 rounded-md bg-[#4590e2] text-white hover:bg-[#357ac4] transition-colors"
+              className="px-4 py-2 rounded-md bg-[var(--brand)] text-white hover:bg-[#357ac4] transition-colors"
             >
               Download Report
             </a>
@@ -479,7 +479,7 @@ export default function ReportEngineSection() {
               <button
                 type="button"
                 onClick={addFinding}
-                className="rounded-lg bg-[#4590e2] hover:bg-[#357ac4] text-white px-4 py-2 text-sm transition-colors"
+                className="rounded-lg bg-[var(--brand)] hover:bg-[#357ac4] text-white px-4 py-2 text-sm transition-colors"
               >
                 Add Finding
               </button>

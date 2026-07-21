@@ -172,7 +172,7 @@ export default function BrandingPage() {
             <button
               onClick={save}
               disabled={saving || !orgId}
-              className="flex items-center gap-2 rounded-lg bg-[#4590e2] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a7bc8] disabled:opacity-60"
+              className="flex items-center gap-2 rounded-lg bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a7bc8] disabled:opacity-60"
             >
               <FontAwesomeIcon icon={faCircleCheck} className="w-3.5 h-3.5" />
               {saving ? "Saving…" : "Save branding"}

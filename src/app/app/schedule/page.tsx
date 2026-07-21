@@ -184,7 +184,7 @@ function SchedulePageInner() {
             <button
               type="submit"
               disabled={submitting || groups.length === 0}
-              className="w-full py-2.5 bg-[#4590e2] hover:bg-[#3a7bc8] disabled:opacity-50 text-white font-semibold rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-[var(--brand)] hover:bg-[#3a7bc8] disabled:opacity-50 text-white font-semibold rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
             >
               <FontAwesomeIcon icon={faPlus} className="w-3 h-3" />
               {submitting ? "Scheduling..." : "Schedule Test"}

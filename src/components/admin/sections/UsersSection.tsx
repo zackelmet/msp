@@ -189,7 +189,7 @@ export default function UsersSection() {
                       <button
                         onClick={() => saveCredits(u.id)}
                         disabled={saving === u.id}
-                        className="flex items-center gap-1 px-2 py-1 bg-[#4590e2] hover:bg-[#3a7bc8] text-white text-xs rounded-lg transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1 px-2 py-1 bg-[var(--brand)] hover:bg-[#3a7bc8] text-white text-xs rounded-lg transition-colors disabled:opacity-50"
                       >
                         <FontAwesomeIcon
                           icon={faSave}

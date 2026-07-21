@@ -7,6 +7,8 @@
 :root {
   --primary-bg: #0a141f;
   --primary-accent: #4590e2;
+  /* White-label brand color; overridden per-tenant by useTenantBranding. */
+  --brand: #4590e2;
   --text-primary: #ffffff;
 }
 

@@ -146,7 +146,7 @@ export default function TrustSafetyPage() {
           </p>
           <Link
             href="/support"
-            className="inline-block px-6 py-3 bg-[#4590e2] hover:bg-[#3a7bc8] text-white font-semibold rounded-lg transition-colors"
+            className="inline-block px-6 py-3 bg-[var(--brand)] hover:bg-[#3a7bc8] text-white font-semibold rounded-lg transition-colors"
           >
             Contact Support
           </Link>

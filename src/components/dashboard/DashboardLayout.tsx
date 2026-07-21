@@ -20,6 +20,7 @@ import {
   faLayerGroup,
   faChartLine,
   faPalette,
+  faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/lib/context/AuthContext";
 import signout from "@/lib/firebase/signout";
@@ -122,6 +123,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           { href: "/app/clients", label: "Platform", icon: faLayerGroup },
           { href: "/app/monitoring", label: "Overview", icon: faChartLine },
           { href: "/app/pentests", label: "Reports", icon: faList },
+          { href: "/app/team", label: "Team", icon: faUsers },
           { href: "/app/branding", label: "Branding", icon: faPalette },
           { href: "/app/buy-credits", label: "Billing", icon: faBolt },
         ]
@@ -245,7 +247,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               onClick={() => setAccountMenuOpen(!accountMenuOpen)}
               className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-[#4590e2] text-white font-bold flex items-center justify-center text-sm">
+              <div className="w-8 h-8 rounded-full bg-[var(--brand)] text-white font-bold flex items-center justify-center text-sm">
                 {getInitials(currentUser?.email)}
               </div>
               <div className="flex-1 overflow-hidden text-left">
@@ -328,7 +330,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <Link
             href="/app/buy-credits"
             data-tour="buy-credits-btn"
-            className="block w-full px-4 py-3 bg-[#4590e2] text-white font-semibold rounded-lg text-center hover:bg-[#3a7bc8] transition-colors"
+            className="block w-full px-4 py-3 bg-[var(--brand)] text-white font-semibold rounded-lg text-center hover:bg-[#3a7bc8] transition-colors"
           >
             Buy Credits
             <FontAwesomeIcon icon={faPlus} className="ml-2" />
