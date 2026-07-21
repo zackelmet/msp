@@ -30,10 +30,10 @@ const check = (
 );
 
 const SELF_SERVE_FEATURES = [
-  "AI penetration test, $20 per live IP",
+  "AI penetration test, from $20 per live IP",
+  "Graduated pricing — $20 → $18 → $12 / IP as you scale",
   "Buy IP credits in any amount — no subscription",
   "Credits never expire; one credit = one live IP tested",
-  "Graduated pricing — cheaper per IP as you buy more",
   "Findings + downloadable reports in your dashboard",
 ];
 
@@ -74,6 +74,7 @@ export default function PricingPage() {
               Prepaid credits — buy what you need, no subscription.
             </p>
             <div className="mt-6 flex items-baseline">
+              <span className="mr-1.5 text-lg font-medium text-[#7a9bb5]">from</span>
               <span className="text-5xl font-extrabold text-white">$20</span>
               <span className="ml-2 text-[#7a9bb5]">/ live IP</span>
             </div>

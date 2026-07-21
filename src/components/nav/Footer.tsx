@@ -1,4 +1,4 @@
-import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
+import { faLinkedin, faXTwitter } from "@fortawesome/free-brands-svg-icons";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
@@ -32,31 +32,24 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-3 text-[var(--text-muted)]">
+            <div className="flex items-center gap-4 text-[var(--text-muted)]">
               <Link
                 href="https://x.com/MspPentesting"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-[var(--primary)] transition"
+                className="hover:text-[#4590e2] transition-colors"
                 aria-label="X (formerly Twitter)"
               >
-                <span className="inline-flex items-center justify-center p-1 rounded-md bg-[rgba(255,255,255,0.30)]">
-                  <Image
-                    src="/Twitter-X--Streamline-Bootstrap.svg"
-                    alt="X"
-                    width={20}
-                    height={20}
-                    className="h-5 w-5"
-                  />
-                </span>
+                <FontAwesomeIcon icon={faXTwitter} className="text-xl w-5 h-5" />
               </Link>
               <Link
                 href="https://www.linkedin.com/company/msp-pentesting/posts/?feedView=all"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-[var(--primary)] transition"
+                className="hover:text-[#4590e2] transition-colors"
+                aria-label="LinkedIn"
               >
-                <FontAwesomeIcon icon={faLinkedin} className="text-xl" />
+                <FontAwesomeIcon icon={faLinkedin} className="text-xl w-5 h-5" />
               </Link>
             </div>
           </div>
