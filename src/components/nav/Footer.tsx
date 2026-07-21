@@ -59,31 +59,31 @@ export default function Footer() {
           <div className="flex items-center gap-0 divide-x divide-gray-600">
             <Link
               href="/blog"
-              className="hover:text-[var(--primary)] transition px-4"
+              className="hover:text-[#4590e2] transition-colors px-4"
             >
               Blog
             </Link>
             <Link
               href="/pricing"
-              className="hover:text-[var(--primary)] transition px-4"
+              className="hover:text-[#4590e2] transition-colors px-4"
             >
               Pricing
             </Link>
             <Link
               href="/docs/api"
-              className="hover:text-[var(--primary)] transition px-4"
+              className="hover:text-[#4590e2] transition-colors px-4"
             >
               API
             </Link>
             <Link
               href="/trust-safety"
-              className="hover:text-[var(--primary)] transition px-4"
+              className="hover:text-[#4590e2] transition-colors px-4"
             >
               Trust + Safety
             </Link>
             <Link
               href="/support"
-              className="hover:text-[var(--primary)] transition px-4"
+              className="hover:text-[#4590e2] transition-colors px-4"
             >
               Support
             </Link>
