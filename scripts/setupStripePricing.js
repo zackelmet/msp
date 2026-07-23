@@ -3,9 +3,9 @@
  * Per-IP AI-pentest METERED billing (post-paid, monthly, graduated).
  *
  * Creates one Product + one metered recurring Price with graduated tiers:
- *   1-100 IPs   $10.00 / IP
- *   101-1000    $8.00  / IP
- *   1001+       $6.00  / IP
+ *   1-100 IPs   $17.00 / IP
+ *   101-1000    $14.00 / IP
+ *   1001+       $10.00 / IP
  *
  * usage_type=metered + aggregate_usage=sum → nothing charged up front; each
  * cycle Stripe sums reported usage (IPs consumed) and invoices post-paid at the
@@ -24,16 +24,19 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const COMMIT = process.argv.includes("--commit");
 
 const PRODUCT_NAME = "AI Pentest (per IP)";
-const PRICE_LOOKUP = "ai_pentest_per_ip_metered_v1";
+const PRICE_LOOKUP = "ai_pentest_per_ip_metered_v2";
 const TIERS = [
-  { up_to: 100, unit_amount: 1000 }, // $10.00 / IP  (1-100)
-  { up_to: 1000, unit_amount: 800 }, // $8.00  / IP  (101-1000)
-  { up_to: "inf", unit_amount: 600 }, // $6.00 / IP  (1001+)
+  { up_to: 100, unit_amount: 1700 }, // $17.00 / IP  (1-100)
+  { up_to: 1000, unit_amount: 1400 }, // $14.00 / IP  (101-1000)
+  { up_to: "inf", unit_amount: 1000 }, // $10.00 / IP  (1001+)
 ];
 
 async function main() {
-  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY missing");
-  console.log(`\n=== setupStripePricing (${COMMIT ? "COMMIT — LIVE" : "DRY RUN"}) ===\n`);
+  if (!process.env.STRIPE_SECRET_KEY)
+    throw new Error("STRIPE_SECRET_KEY missing");
+  console.log(
+    `\n=== setupStripePricing (${COMMIT ? "COMMIT — LIVE" : "DRY RUN"}) ===\n`,
+  );
 
   // Idempotency: bail if the price already exists (lookup_key).
   const existing = await stripe.prices.list({
@@ -66,8 +69,12 @@ async function main() {
   }
 
   // Graduated metered price.
-  console.log(`${COMMIT ? "✔" : "•"} create graduated metered price (monthly, sum, post-paid):`);
-  console.log("    1-100 = $10.00/IP · 101-1000 = $8.00/IP · 1001+ = $6.00/IP");
+  console.log(
+    `${COMMIT ? "✔" : "•"} create graduated metered price (monthly, sum, post-paid):`,
+  );
+  console.log(
+    "    1-100 = $17.00/IP · 101-1000 = $14.00/IP · 1001+ = $10.00/IP",
+  );
   if (COMMIT) {
     const price = await stripe.prices.create({
       product: product.id,

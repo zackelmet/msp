@@ -17,13 +17,13 @@ import BuyCreditsPanel from "@/components/billing/BuyCreditsPanel";
 
 /**
  * Billing — post-paid, metered, per live IP tested. Mirrors the live Stripe
- * graduated metered price ($10 / $8 / $6). No upfront purchase; the consolidated
+ * graduated metered price ($17 / $14 / $10). No upfront purchase; the consolidated
  * buyer is invoiced monthly on actual consumption.
  */
 const BANDS = [
-  { label: "1 – 100 IPs", from: 0, to: 100, rate: 10 },
-  { label: "101 – 1,000 IPs", from: 100, to: 1000, rate: 8 },
-  { label: "1,001+ IPs", from: 1000, to: Infinity, rate: 6 },
+  { label: "1 – 100 IPs", from: 0, to: 100, rate: 17 },
+  { label: "101 – 1,000 IPs", from: 100, to: 1000, rate: 14 },
+  { label: "1,001+ IPs", from: 1000, to: Infinity, rate: 10 },
 ];
 
 function estimateBill(ips: number): number {
@@ -176,8 +176,8 @@ export default function BillingPage() {
               className="mt-0.5 h-4 w-4 shrink-0 text-red-400"
             />
             <p className="text-red-200">
-              A recent invoice payment failed. Please update your payment method to
-              avoid interruption.
+              A recent invoice payment failed. Please update your payment method
+              to avoid interruption.
             </p>
           </div>
         )}
@@ -193,8 +193,9 @@ export default function BillingPage() {
                   Add a payment method to activate billing
                 </h2>
                 <p className="mt-1 text-sm text-[#7a9bb5]">
-                  Put a card on file so your monthly usage auto-charges. No charge now
-                  — you&apos;re billed at month-end on actual consumption.
+                  Put a card on file so your monthly usage auto-charges. No
+                  charge now — you&apos;re billed at month-end on actual
+                  consumption.
                 </p>
                 <button
                   onClick={startBillingSetup}
@@ -222,7 +223,8 @@ export default function BillingPage() {
         {/* This cycle */}
         <div className="bg-[#0d1e30] border border-[#4590e2]/20 rounded-xl p-6">
           <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-[#7a9bb5] mb-3">
-            <FontAwesomeIcon icon={faReceipt} className="w-3.5 h-3.5" /> This cycle
+            <FontAwesomeIcon icon={faReceipt} className="w-3.5 h-3.5" /> This
+            cycle
           </div>
           {loading ? (
             <div className="h-10 w-40 bg-[#0a141f] rounded animate-pulse" />
@@ -245,13 +247,13 @@ export default function BillingPage() {
             </div>
           ) : (
             <p className="text-[#7a9bb5] text-sm">
-              Your usage rolls up to your distributor&apos;s consolidated invoice
-              — nothing to pay here directly.
+              Your usage rolls up to your distributor&apos;s consolidated
+              invoice — nothing to pay here directly.
             </p>
           )}
           <p className="text-[11px] text-[#7a9bb5] mt-4">
-            Invoiced at month-end on actual consumption. Re-tests count. Only the
-            consolidated buyer is billed.
+            Invoiced at month-end on actual consumption. Re-tests count. Only
+            the consolidated buyer is billed.
           </p>
         </div>
 
@@ -287,8 +289,9 @@ export default function BillingPage() {
             className="w-4 h-4 text-[#4590e2] mt-0.5 shrink-0"
           />
           <p>
-            Graduated example: 1,500 IPs in a month = 100×$10 + 900×$8 + 500×$6 ={" "}
-            <b className="text-white">$11,200</b> (~$7.47 / IP effective).
+            Graduated example: 1,500 IPs in a month = 100×$17 + 900×$14 +
+            500×$10 = <b className="text-white">$19,300</b> (~$12.87 / IP
+            effective).
           </p>
         </div>
       </div>

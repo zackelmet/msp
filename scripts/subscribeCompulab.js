@@ -24,7 +24,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const COMMIT = process.argv.slice(2).includes("--commit");
 
 const SUPPLIER_ORG_ID = "org_compulab";
-const PRICE_LOOKUP = "ai_pentest_per_ip_metered_v1";
+const PRICE_LOOKUP = "ai_pentest_per_ip_metered_v2";
 const NET_TERMS_DAYS = 30;
 // send_invoice subscriptions require an email on the customer to deliver the
 // invoice. This is the consolidated buyer's billing contact (Luis / Compulab).
@@ -34,7 +34,9 @@ function initAdmin() {
   if (admin.apps.length) return;
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
   if (!raw || !raw.trim().startsWith("{")) {
-    throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY missing/invalid in .env.local");
+    throw new Error(
+      "FIREBASE_SERVICE_ACCOUNT_KEY missing/invalid in .env.local",
+    );
   }
   const sa = JSON.parse(raw);
   if (sa.private_key) sa.private_key = sa.private_key.replace(/\\n/g, "\n");
@@ -65,22 +67,30 @@ async function resolvePrice() {
 }
 
 async function main() {
-  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY missing");
+  if (!process.env.STRIPE_SECRET_KEY)
+    throw new Error("STRIPE_SECRET_KEY missing");
   initAdmin();
   const db = admin.firestore();
 
-  console.log(`\n=== subscribeCompulab (${COMMIT ? "COMMIT — LIVE" : "DRY RUN"}) ===\n`);
+  console.log(
+    `\n=== subscribeCompulab (${COMMIT ? "COMMIT — LIVE" : "DRY RUN"}) ===\n`,
+  );
 
   const orgRef = db.collection("orgs").doc(SUPPLIER_ORG_ID);
   const orgSnap = await orgRef.get();
   if (!orgSnap.exists) {
-    throw new Error(`${SUPPLIER_ORG_ID} not found — run setupCompulab.js --commit first`);
+    throw new Error(
+      `${SUPPLIER_ORG_ID} not found — run setupCompulab.js --commit first`,
+    );
   }
   const org = orgSnap.data() || {};
   const billing = org.billing || {};
 
   if (billing.stripeSubscriptionItemId) {
-    log("skip (subscribed)", `${SUPPLIER_ORG_ID} already has item ${billing.stripeSubscriptionItemId}`);
+    log(
+      "skip (subscribed)",
+      `${SUPPLIER_ORG_ID} already has item ${billing.stripeSubscriptionItemId}`,
+    );
     console.log("\nNothing to do.\n");
     return;
   }
@@ -93,7 +103,10 @@ async function main() {
   if (customerId) {
     log("skip (customer exists)", customerId);
   } else {
-    log("create customer", `${org.name || "Compulab"} (send-invoice, net ${NET_TERMS_DAYS})`);
+    log(
+      "create customer",
+      `${org.name || "Compulab"} (send-invoice, net ${NET_TERMS_DAYS})`,
+    );
     if (COMMIT) {
       const customer = await stripe.customers.create({
         name: org.name || "Compulab",
@@ -113,7 +126,10 @@ async function main() {
   }
 
   // 2. Metered subscription (send-invoice / net terms) ---------------------
-  log("create subscription", `metered per-IP, collection_method=send_invoice, days_until_due=${NET_TERMS_DAYS}`);
+  log(
+    "create subscription",
+    `metered per-IP, collection_method=send_invoice, days_until_due=${NET_TERMS_DAYS}`,
+  );
   let subscriptionId = "sub_DRYRUN";
   let subscriptionItemId = "si_DRYRUN";
   if (COMMIT) {
@@ -138,7 +154,10 @@ async function main() {
     "billing.netTerms": NET_TERMS_DAYS,
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
-  log("update org", `${SUPPLIER_ORG_ID}.billing ← customer/subscription/item ids`);
+  log(
+    "update org",
+    `${SUPPLIER_ORG_ID}.billing ← customer/subscription/item ids`,
+  );
   if (COMMIT) {
     await orgRef.update(billingUpdate);
     console.log(

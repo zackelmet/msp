@@ -10,10 +10,33 @@ import {
 // ─── Inline SVG hexagon background grid ───────────────────────────────────────
 const HEX_SVG_URI = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='104' viewBox='0 0 120 104'%3E%3Cpolygon points='60,2 112,29 112,75 60,102 8,75 8,29' fill='none' stroke='%234590e2' stroke-width='0.8' opacity='0.22'/%3E%3C/svg%3E")`;
 
-function DecorativeHex({ size, opacity, className }: { size: number; opacity: number; className?: string }) {
+function DecorativeHex({
+  size,
+  opacity,
+  className,
+}: {
+  size: number;
+  opacity: number;
+  className?: string;
+}) {
   return (
-    <svg width={size} height={size * 0.866} viewBox="0 0 100 86.6" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={{ opacity }} aria-hidden>
-      <polygon points="50,0 100,25 100,75 50,86.6 0,75 0,25" stroke="#4590e2" strokeWidth="1.5" fill="#4590e2" fillOpacity="0.06" />
+    <svg
+      width={size}
+      height={size * 0.866}
+      viewBox="0 0 100 86.6"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={{ opacity }}
+      aria-hidden
+    >
+      <polygon
+        points="50,0 100,25 100,75 50,86.6 0,75 0,25"
+        stroke="#4590e2"
+        strokeWidth="1.5"
+        fill="#4590e2"
+        fillOpacity="0.06"
+      />
     </svg>
   );
 }
@@ -21,22 +44,57 @@ function DecorativeHex({ size, opacity, className }: { size: number; opacity: nu
 // ─── SVG icons for the 3 steps ────────────────────────────────────────────────
 function IconClipboard() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><line x1="9" y1="12" x2="15" y2="12" /><line x1="9" y1="16" x2="13" y2="16" />
+    <svg
+      width="26"
+      height="26"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <line x1="9" y1="12" x2="15" y2="12" />
+      <line x1="9" y1="16" x2="13" y2="16" />
     </svg>
   );
 }
 function IconShield() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><polyline points="9 12 11 14 15 10" />
+    <svg
+      width="26"
+      height="26"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <polyline points="9 12 11 14 15 10" />
     </svg>
   );
 }
 function IconReport() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><line x1="10" y1="9" x2="8" y2="9" />
+    <svg
+      width="26"
+      height="26"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <line x1="10" y1="9" x2="8" y2="9" />
     </svg>
   );
 }
@@ -52,7 +110,6 @@ function ReportMockup() {
 
       {/* Tablet frame */}
       <div className="rounded-2xl bg-[#0d1e30] border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.6)] overflow-hidden">
-
         {/* Tablet top bar */}
         <div className="flex items-center justify-between px-5 py-3 bg-[#0a1829] border-b border-white/[0.07]">
           <div className="flex gap-1.5">
@@ -60,22 +117,29 @@ function ReportMockup() {
             <span className="w-2.5 h-2.5 rounded-full bg-white/10" />
             <span className="w-2.5 h-2.5 rounded-full bg-white/10" />
           </div>
-          <span className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">pentest-report.pdf</span>
+          <span className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">
+            pentest-report.pdf
+          </span>
           <div className="w-14" />
         </div>
 
         {/* PDF content area */}
         <div className="bg-[#f0f4f8] px-8 py-7">
-
           {/* ── Report header ── */}
           <div className="flex items-start justify-between mb-6">
             {/* YOUR LOGO HERE placeholder */}
             <div className="flex items-center justify-center bg-white border-2 border-dashed border-[#4590e2]/40 rounded px-5 py-3 shadow-sm">
-              <span className="text-[#4590e2] text-xs font-bold uppercase tracking-[0.18em]">YOUR LOGO HERE</span>
+              <span className="text-[#4590e2] text-xs font-bold uppercase tracking-[0.18em]">
+                YOUR LOGO HERE
+              </span>
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Penetration Test Report</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">Prepared by MSP Pentesting</p>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">
+                Penetration Test Report
+              </p>
+              <p className="text-[11px] text-gray-500 mt-0.5">
+                Prepared by MSP Pentesting
+              </p>
               <p className="text-[10px] text-gray-400 mt-0.5">CONFIDENTIAL</p>
             </div>
           </div>
@@ -85,10 +149,16 @@ function ReportMockup() {
 
           {/* Title block */}
           <div className="mb-5">
-            <h3 className="text-[#0a141f] text-sm font-bold mb-1">Executive Summary</h3>
+            <h3 className="text-[#0a141f] text-sm font-bold mb-1">
+              Executive Summary
+            </h3>
             <div className="space-y-1.5">
               {[100, 88, 94, 72].map((w, i) => (
-                <div key={i} className="h-2 rounded-full bg-gray-200" style={{ width: `${w}%` }} />
+                <div
+                  key={i}
+                  className="h-2 rounded-full bg-gray-200"
+                  style={{ width: `${w}%` }}
+                />
               ))}
             </div>
           </div>
@@ -97,13 +167,20 @@ function ReportMockup() {
           <div className="grid grid-cols-4 gap-2 mb-5">
             {[
               { label: "Critical", count: "2", color: "#ef4444" },
-              { label: "High",     count: "5", color: "#f97316" },
-              { label: "Medium",   count: "8", color: "#eab308" },
-              { label: "Low",      count: "3", color: "#22c55e" },
+              { label: "High", count: "5", color: "#f97316" },
+              { label: "Medium", count: "8", color: "#eab308" },
+              { label: "Low", count: "3", color: "#22c55e" },
             ].map((f) => (
-              <div key={f.label} className="bg-white rounded-lg p-2.5 text-center shadow-sm border border-gray-100">
-                <div className="text-xl font-bold" style={{ color: f.color }}>{f.count}</div>
-                <div className="text-[9px] text-gray-500 uppercase tracking-wide font-semibold">{f.label}</div>
+              <div
+                key={f.label}
+                className="bg-white rounded-lg p-2.5 text-center shadow-sm border border-gray-100"
+              >
+                <div className="text-xl font-bold" style={{ color: f.color }}>
+                  {f.count}
+                </div>
+                <div className="text-[9px] text-gray-500 uppercase tracking-wide font-semibold">
+                  {f.label}
+                </div>
               </div>
             ))}
           </div>
@@ -111,26 +188,63 @@ function ReportMockup() {
           {/* Findings rows */}
           <div className="space-y-2">
             {[
-              { sev: "CRITICAL", label: "SQL Injection — /api/login", color: "#ef4444", bg: "#fef2f2" },
-              { sev: "HIGH",     label: "Exposed Admin Panel — /admin", color: "#f97316", bg: "#fff7ed" },
-              { sev: "MEDIUM",   label: "Missing HSTS Headers",         color: "#eab308", bg: "#fefce8" },
+              {
+                sev: "CRITICAL",
+                label: "SQL Injection — /api/login",
+                color: "#ef4444",
+                bg: "#fef2f2",
+              },
+              {
+                sev: "HIGH",
+                label: "Exposed Admin Panel — /admin",
+                color: "#f97316",
+                bg: "#fff7ed",
+              },
+              {
+                sev: "MEDIUM",
+                label: "Missing HSTS Headers",
+                color: "#eab308",
+                bg: "#fefce8",
+              },
             ].map((row) => (
-              <div key={row.label} className="flex items-center gap-2.5 bg-white rounded-lg px-3 py-2 border border-gray-100 shadow-sm">
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ color: row.color, backgroundColor: row.bg }}>
+              <div
+                key={row.label}
+                className="flex items-center gap-2.5 bg-white rounded-lg px-3 py-2 border border-gray-100 shadow-sm"
+              >
+                <span
+                  className="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                  style={{ color: row.color, backgroundColor: row.bg }}
+                >
                   {row.sev}
                 </span>
-                <span className="text-[10px] text-gray-600 font-mono flex-1 truncate">{row.label}</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={row.color} strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                <span className="text-[10px] text-gray-600 font-mono flex-1 truncate">
+                  {row.label}
+                </span>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={row.color}
+                  strokeWidth="2.5"
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
               </div>
             ))}
           </div>
 
           {/* Footer bar */}
           <div className="mt-5 pt-3 border-t border-gray-200 flex items-center justify-between">
-            <span className="text-[9px] text-gray-400">Generated via MSP Pentesting Platform</span>
+            <span className="text-[9px] text-gray-400">
+              Generated via MSP Pentesting Platform
+            </span>
             <div className="flex gap-1">
               {[1, 2, 3].map((n) => (
-                <span key={n} className="w-1.5 h-1.5 rounded-full bg-[#4590e2]/40" />
+                <span
+                  key={n}
+                  className="w-1.5 h-1.5 rounded-full bg-[#4590e2]/40"
+                />
               ))}
             </div>
           </div>
@@ -168,23 +282,25 @@ function HexIcon({ children }: { children: React.ReactNode }) {
           strokeOpacity="0.5"
         />
       </svg>
-      <span className="relative z-10 text-[#4590e2] text-2xl leading-none">{children}</span>
+      <span className="relative z-10 text-[#4590e2] text-2xl leading-none">
+        {children}
+      </span>
     </div>
   );
 }
 
 export default function Home() {
-
   return (
     <main className="min-h-screen bg-[#0a141f] text-white overflow-x-hidden">
-
       {/* ── HERO ─────────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-
         {/* Hex grid tile background */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ backgroundImage: HEX_SVG_URI, backgroundSize: "120px 104px" }}
+          style={{
+            backgroundImage: HEX_SVG_URI,
+            backgroundSize: "120px 104px",
+          }}
         />
 
         {/* Radial gradient fade over the hex grid */}
@@ -207,7 +323,6 @@ export default function Home() {
 
         {/* Content */}
         <div className="max-w-4xl mx-auto px-6 py-28 lg:py-44 text-center relative z-10 space-y-8">
-
           {/* Pill badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#4590e2]/10 border border-[#4590e2]/30 text-[#4590e2] text-sm font-semibold">
             <Image
@@ -228,7 +343,8 @@ export default function Home() {
             <span
               className="block mt-1"
               style={{
-                backgroundImage: "linear-gradient(135deg,#4590e2,#4590e261,#24397b)",
+                backgroundImage:
+                  "linear-gradient(135deg,#4590e2,#4590e261,#24397b)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -287,7 +403,6 @@ export default function Home() {
             </span>
             <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[#4590e2]/40" />
           </div>
-
         </div>
       </section>
 
@@ -300,11 +415,17 @@ export default function Home() {
                 <p className="text-[#4590e2] text-xs font-semibold uppercase tracking-[0.2em] mb-2">
                   AI Penetration Testing · Per IP
                 </p>
-                <h3 className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-chakra-petch)" }}>
+                <h3
+                  className="text-2xl font-bold text-white"
+                  style={{ fontFamily: "var(--font-chakra-petch)" }}
+                >
                   Simple pricing — pay per IP you test
                 </h3>
                 <p className="text-[#7a9bb5] text-sm mt-2 max-w-2xl">
-                  One AI pentest, priced per live IP. Buy prepaid credits — no subscription, they never expire. Volume discounts and consolidated billing for MSPs at scale. Human-led engagements on request.
+                  One AI pentest, priced per live IP. Buy prepaid credits — no
+                  subscription, they never expire. Volume discounts and
+                  consolidated billing for MSPs at scale. Human-led engagements
+                  on request.
                 </p>
               </div>
               <Link
@@ -319,7 +440,7 @@ export default function Home() {
               {[
                 {
                   tier: "Prepaid, per IP",
-                  price: "$20 / IP",
+                  price: "$35 / IP",
                   sub: "Buy IP credits — no subscription, never expire",
                 },
                 {
@@ -333,9 +454,16 @@ export default function Home() {
                   sub: "Lower metered rates + consolidated billing — talk to sales",
                 },
               ].map((item) => (
-                <div key={item.tier} className="bg-[#0a141f] border border-[#4590e2]/15 rounded-lg p-4">
-                  <p className="text-xs text-[#7a9bb5] uppercase tracking-wide">{item.tier}</p>
-                  <p className="text-2xl font-bold text-white mt-1">{item.price}</p>
+                <div
+                  key={item.tier}
+                  className="bg-[#0a141f] border border-[#4590e2]/15 rounded-lg p-4"
+                >
+                  <p className="text-xs text-[#7a9bb5] uppercase tracking-wide">
+                    {item.tier}
+                  </p>
+                  <p className="text-2xl font-bold text-white mt-1">
+                    {item.price}
+                  </p>
                   <p className="text-xs text-[#7a9bb5] mt-1">{item.sub}</p>
                 </div>
               ))}
@@ -364,7 +492,10 @@ export default function Home() {
             >
               How it works
             </h2>
-            <p className="text-gray-400 text-lg">Three steps from targets to report — AI-driven, with every finding validated by real proof-of-concept.</p>
+            <p className="text-gray-400 text-lg">
+              Three steps from targets to report — AI-driven, with every finding
+              validated by real proof-of-concept.
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-0">
@@ -396,18 +527,31 @@ export default function Home() {
                 {/* Card */}
                 <div className="relative z-10 mx-2 group">
                   {/* hex outline container */}
-                  <div className="border border-[#4590e2]/20 group-hover:border-[#4590e2]/50 bg-[#060e16]/80 backdrop-blur-sm p-8 transition-all duration-300" style={{ clipPath: "polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))" }}>
-                    <span className="absolute top-4 right-5 text-[#4590e2]/15 font-extrabold text-5xl leading-none select-none" style={{ fontFamily: "var(--font-chakra-petch)" }}>
+                  <div
+                    className="border border-[#4590e2]/20 group-hover:border-[#4590e2]/50 bg-[#060e16]/80 backdrop-blur-sm p-8 transition-all duration-300"
+                    style={{
+                      clipPath:
+                        "polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))",
+                    }}
+                  >
+                    <span
+                      className="absolute top-4 right-5 text-[#4590e2]/15 font-extrabold text-5xl leading-none select-none"
+                      style={{ fontFamily: "var(--font-chakra-petch)" }}
+                    >
                       {item.step}
                     </span>
-                    <HexIcon><FontAwesomeIcon icon={item.icon} /></HexIcon>
+                    <HexIcon>
+                      <FontAwesomeIcon icon={item.icon} />
+                    </HexIcon>
                     <h3
                       className="text-lg font-bold text-white mb-3 uppercase tracking-wide"
                       style={{ fontFamily: "var(--font-chakra-petch)" }}
                     >
                       {item.title}
                     </h3>
-                    <p className="text-gray-400 leading-relaxed text-sm">{item.desc}</p>
+                    <p className="text-gray-400 leading-relaxed text-sm">
+                      {item.desc}
+                    </p>
                     {/* bottom accent line */}
                     <div className="mt-6 h-px w-12 bg-[#4590e2]/50 group-hover:w-full transition-all duration-500" />
                   </div>
@@ -461,7 +605,9 @@ export default function Home() {
             to learn about our services, view pricing, and get a quote.
           </p>
           <p className="text-[#7a9bb5] text-sm">
-            AI penetration testing, billed per IP. Human-led engagements available on request, delivered by CEH- and OSCP-certified professionals.
+            AI penetration testing, billed per IP. Human-led engagements
+            available on request, delivered by CEH- and OSCP-certified
+            professionals.
           </p>
           <a
             href="https://msppentesting.com"
@@ -478,7 +624,6 @@ export default function Home() {
           </a>
         </div>
       </section>
-
     </main>
   );
 }

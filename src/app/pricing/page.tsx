@@ -30,8 +30,8 @@ const check = (
 );
 
 const SELF_SERVE_FEATURES = [
-  "AI penetration test, from $20 per live IP",
-  "Graduated pricing — $20 → $18 → $12 / IP as you scale",
+  "AI penetration test, from $35 per live IP",
+  "Graduated pricing — $35 → $30 → $20 / IP as you scale",
   "Buy IP credits in any amount — no subscription",
   "Credits never expire; one credit = one live IP tested",
   "Findings + downloadable reports in your dashboard",
@@ -39,7 +39,7 @@ const SELF_SERVE_FEATURES = [
 
 const DISTRIBUTOR_FEATURES = [
   "Everything in self-serve, plus:",
-  "Lower metered base — $10 → $8 → $6 / IP as you scale",
+  "Lower metered base — $17 → $14 → $10 / IP as you scale",
   "Net-30 consolidated billing — one invoice across all clients",
   "Multi-tenant org tree — resellers and end clients",
   "White-label reports and client portal",
@@ -74,8 +74,10 @@ export default function PricingPage() {
               Prepaid credits — buy what you need, no subscription.
             </p>
             <div className="mt-6 flex items-baseline">
-              <span className="mr-1.5 text-lg font-medium text-[#7a9bb5]">from</span>
-              <span className="text-5xl font-extrabold text-white">$20</span>
+              <span className="mr-1.5 text-lg font-medium text-[#7a9bb5]">
+                from
+              </span>
+              <span className="text-5xl font-extrabold text-white">$35</span>
               <span className="ml-2 text-[#7a9bb5]">/ live IP</span>
             </div>
             <ul className="mt-8 space-y-3 flex-grow">
@@ -99,7 +101,9 @@ export default function PricingPage() {
             <div className="absolute -top-3 left-8 rounded-full bg-[var(--brand)] px-3 py-1 text-xs font-semibold text-white">
               For MSPs &amp; distributors
             </div>
-            <h3 className="text-xl font-bold text-white">Distributor / Volume</h3>
+            <h3 className="text-xl font-bold text-white">
+              Distributor / Volume
+            </h3>
             <p className="mt-1 text-sm text-[#7a9bb5]">
               Volume pricing and net terms for resellers and MSPs at scale.
             </p>
@@ -164,7 +168,7 @@ export default function PricingPage() {
               },
               {
                 q: "How do the volume discounts work?",
-                a: "Self-serve is graduated: the first 100 IPs at $20, the next band at $18, and 1,000+ at $12 — bigger purchases get a lower effective rate. Distributors and MSPs at scale get substantially lower volume rates (down to $6/IP) on consolidated billing — contact sales.",
+                a: "Self-serve is graduated: the first 100 IPs at $35, the next band at $30, and 1,000+ at $20 — bigger purchases get a lower effective rate. Distributors and MSPs at scale get substantially lower volume rates (down to $10/IP) on consolidated billing — contact sales.",
               },
               {
                 q: "Do you offer human-led (manual) pentests?",
