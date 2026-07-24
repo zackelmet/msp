@@ -14,11 +14,17 @@ export async function GET(req: NextRequest) {
 
   const pentestId = req.nextUrl.searchParams.get("pentestId");
   if (!pentestId) {
-    return NextResponse.json({ error: "pentestId is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "pentestId is required" },
+      { status: 400 },
+    );
   }
 
   try {
-    const pentestDoc = await adminDb.collection("pentests").doc(pentestId).get();
+    const pentestDoc = await adminDb
+      .collection("pentests")
+      .doc(pentestId)
+      .get();
     if (!pentestDoc.exists) {
       return NextResponse.json({ error: "Pentest not found" }, { status: 404 });
     }
@@ -34,12 +40,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const storagePath: string = data.reportUrl;
+    const storagePath: string = data.reportUrl || data.reportStoragePath;
     if (!storagePath) {
-      return NextResponse.json({ error: "No report available" }, { status: 404 });
+      return NextResponse.json(
+        { error: "No report available" },
+        { status: 404 },
+      );
     }
 
-    const ext = storagePath.endsWith(".docx") ? "docx" : "pdf";
+    const fileName = data.reportFileName || `pentest-report-${pentestId}`;
+    const ext = fileName.endsWith(".docx") ? "docx" : "pdf";
 
     const cleanBucket = (process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "")
       .trim()
@@ -51,7 +61,7 @@ export async function GET(req: NextRequest) {
     const [url] = await file.getSignedUrl({
       action: "read",
       expires: Date.now() + 15 * 60 * 1000,
-      responseDisposition: `attachment; filename="pentest-report-${pentestId}.${ext}"`,
+      responseDisposition: `attachment; filename="${fileName}"`,
     });
 
     return NextResponse.json({ url });
