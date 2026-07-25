@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStore, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 const DISMISS_KEY = "distributor-upsell-dismissed";
-const ZACK_EMAIL = "zack@msppentesting.com";
 
 /**
  * Shown to self-enrolled resellers (public signups). They're parked as a reseller
@@ -14,7 +14,9 @@ const ZACK_EMAIL = "zack@msppentesting.com";
  */
 export default function DistributorUpsellBanner({ show }: { show: boolean }) {
   const [dismissed, setDismissed] = useState(
-    () => typeof window !== "undefined" && localStorage.getItem(DISMISS_KEY) === "1",
+    () =>
+      typeof window !== "undefined" &&
+      localStorage.getItem(DISMISS_KEY) === "1",
   );
 
   if (!show || dismissed) return null;
@@ -34,16 +36,18 @@ export default function DistributorUpsellBanner({ show }: { show: boolean }) {
         <FontAwesomeIcon icon={faStore} />
       </div>
       <div className="flex-1 text-sm">
-        <p className="text-white font-semibold">You&apos;re set up as a reseller.</p>
+        <p className="text-white font-semibold">
+          You&apos;re set up as a reseller.
+        </p>
         <p className="text-[#7a9bb5] mt-0.5">
           Want your own billing and a bigger commitment tier as a{" "}
-          <strong className="text-[#a9c6dd]">distributor</strong>? Email{" "}
-          <a
-            href={`mailto:${ZACK_EMAIL}?subject=Distributor%20access`}
+          <strong className="text-[#a9c6dd]">distributor</strong>?{" "}
+          <Link
+            href="/contact-sales"
             className="text-[#4a9de0] underline hover:text-[#6cb4ea]"
           >
-            {ZACK_EMAIL}
-          </a>{" "}
+            Contact sales
+          </Link>{" "}
           and we&apos;ll set you up.
         </p>
       </div>

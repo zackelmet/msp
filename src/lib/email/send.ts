@@ -130,17 +130,19 @@ export function salesLeadOpsEmail(opts: {
   name: string;
   email: string;
   company?: string;
+  topic?: string;
   ipEstimate?: string;
   message?: string;
 }): { subject: string; html: string } {
   return {
     subject: `📨 Sales lead: ${opts.company || opts.name || opts.email}`,
     html: brandWrap(`
-      <h2 style="margin:0 0 12px;font-size:18px">New distributor / volume inquiry</h2>
+      <h2 style="margin:0 0 12px;font-size:18px">New sales inquiry</h2>
       <table style="width:100%;border-collapse:collapse;font-size:14px">
         <tr><td style="padding:4px 0;color:#5a6b7b">Name</td><td style="padding:4px 0"><strong>${opts.name || "—"}</strong></td></tr>
         <tr><td style="padding:4px 0;color:#5a6b7b">Email</td><td style="padding:4px 0"><strong>${opts.email}</strong></td></tr>
         <tr><td style="padding:4px 0;color:#5a6b7b">Company</td><td style="padding:4px 0">${opts.company || "—"}</td></tr>
+        <tr><td style="padding:4px 0;color:#5a6b7b">Topic</td><td style="padding:4px 0">${opts.topic || "—"}</td></tr>
         <tr><td style="padding:4px 0;color:#5a6b7b">IP estimate</td><td style="padding:4px 0">${opts.ipEstimate || "—"}</td></tr>
       </table>
       ${opts.message ? `<p style="margin:14px 0 0;line-height:1.5;white-space:pre-wrap">${opts.message}</p>` : ""}

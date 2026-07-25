@@ -50,23 +50,15 @@ export default function ContactSalesPage() {
 
         <h1 className="mt-4 text-3xl font-bold text-white">Talk to sales</h1>
         <p className="mt-2 text-[#7a9bb5] text-sm">
-          For distributors, MSPs at scale, and volume pricing — tell us a bit
-          about your needs and we&apos;ll set you up with net terms and
-          consolidated billing.
+          Tell us a bit about your needs and we&apos;ll set you up with the
+          right plan and pricing.
         </p>
 
         {status === "sent" ? (
           <div className="mt-8 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-6 text-emerald-100">
             <p className="font-semibold">Thanks — we got it.</p>
             <p className="mt-1 text-sm text-emerald-200/80">
-              We&apos;ll be in touch shortly. For anything urgent, email{" "}
-              <a
-                className="underline"
-                href="mailto:zack@msppentesting.com"
-              >
-                zack@msppentesting.com
-              </a>
-              .
+              We&apos;ll be in touch shortly.
             </p>
           </div>
         ) : (
@@ -81,7 +73,12 @@ export default function ContactSalesPage() {
               aria-hidden="true"
             />
             <div className="grid sm:grid-cols-2 gap-4">
-              <input name="name" aria-label="Name" placeholder="Name" className={field} />
+              <input
+                name="name"
+                aria-label="Name"
+                placeholder="Name"
+                className={field}
+              />
               <input
                 name="company"
                 aria-label="Company"
@@ -97,6 +94,22 @@ export default function ContactSalesPage() {
               placeholder="Work email *"
               className={field}
             />
+            <select
+              name="topic"
+              aria-label="What are you interested in?"
+              className={field}
+              defaultValue=""
+              required
+            >
+              <option value="" disabled>
+                What are you interested in? *
+              </option>
+              <option value="distributor">Distributor / Volume Pricing</option>
+              <option value="manual-pentest">Manual Pentest</option>
+              <option value="partnership">Partnership</option>
+              <option value="support">Support / Technical Question</option>
+              <option value="other">Other</option>
+            </select>
             <input
               name="ipEstimate"
               aria-label="Approximate IPs per month"
@@ -106,8 +119,8 @@ export default function ContactSalesPage() {
             <textarea
               name="message"
               rows={4}
-              aria-label="What are you looking to do?"
-              placeholder="What are you looking to do?"
+              aria-label="Tell us more"
+              placeholder="Tell us more about your needs"
               className={field}
             />
             {status === "error" && (

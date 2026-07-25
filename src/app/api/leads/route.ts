@@ -20,14 +20,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const name = String(body?.name || "").trim().slice(0, 200);
-  const email = String(body?.email || "").trim().slice(0, 200);
-  const company = String(body?.company || "").trim().slice(0, 200);
-  const ipEstimate = String(body?.ipEstimate || "").trim().slice(0, 100);
-  const message = String(body?.message || "").trim().slice(0, 4000);
+  const name = String(body?.name || "")
+    .trim()
+    .slice(0, 200);
+  const email = String(body?.email || "")
+    .trim()
+    .slice(0, 200);
+  const company = String(body?.company || "")
+    .trim()
+    .slice(0, 200);
+  const topic = String(body?.topic || "")
+    .trim()
+    .slice(0, 100);
+  const ipEstimate = String(body?.ipEstimate || "")
+    .trim()
+    .slice(0, 100);
+  const message = String(body?.message || "")
+    .trim()
+    .slice(0, 4000);
 
   if (!EMAIL_RE.test(email)) {
-    return NextResponse.json({ error: "A valid email is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "A valid email is required" },
+      { status: 400 },
+    );
   }
   // Honeypot: bots fill hidden fields. Silently accept (200) without storing.
   if (body?.website) {
@@ -39,6 +55,7 @@ export async function POST(req: NextRequest) {
       name,
       email,
       company,
+      topic,
       ipEstimate,
       message,
       source: "pricing_contact_sales",
@@ -47,12 +64,22 @@ export async function POST(req: NextRequest) {
     });
   } catch (e: any) {
     console.error("lead persist failed:", e?.message ?? e);
-    return NextResponse.json({ error: "Could not submit — try again" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not submit — try again" },
+      { status: 500 },
+    );
   }
 
   const to = opsEmail() || "zack@msppentesting.com";
   if (to) {
-    const tmpl = salesLeadOpsEmail({ name, email, company, ipEstimate, message });
+    const tmpl = salesLeadOpsEmail({
+      name,
+      email,
+      company,
+      topic,
+      ipEstimate,
+      message,
+    });
     await sendEmail({ to, replyTo: email, ...tmpl }).catch((e) =>
       console.error("lead email failed:", e?.message ?? e),
     );
