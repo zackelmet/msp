@@ -40,15 +40,16 @@ export default function DistributorUpsellBanner({ show }: { show: boolean }) {
           You&apos;re set up as a reseller.
         </p>
         <p className="text-[#7a9bb5] mt-0.5">
-          Want your own billing and a bigger commitment tier as a{" "}
-          <strong className="text-[#a9c6dd]">distributor</strong>?{" "}
+          Want to become a{" "}
+          <strong className="text-[#a9c6dd]">distributor</strong>? Get your own
+          white-label portal and set your own rates.{" "}
           <Link
             href="/contact-sales"
             className="text-[#4a9de0] underline hover:text-[#6cb4ea]"
           >
             Contact sales
-          </Link>{" "}
-          and we&apos;ll set you up.
+          </Link>
+          .
         </p>
       </div>
       <button
