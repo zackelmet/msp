@@ -1,6 +1,5 @@
 "use client";
 
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import PlatformSection from "@/components/admin/sections/PlatformSection";
 import { useAuth } from "@/lib/context/AuthContext";
 
@@ -20,14 +19,12 @@ export default function ClientsPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="max-w-5xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-white mb-1">Platform</h1>
-        <p className="text-[#7a9bb5] text-sm mb-6">
-          Drill into your resellers and clients, and set their pentest quotas.
-        </p>
-        <PlatformSection apiBase="/api/orgs" getAuthHeaders={getAuthHeaders} />
-      </div>
-    </DashboardLayout>
+    <div className="max-w-5xl mx-auto px-4 py-6">
+      <h1 className="text-2xl font-bold text-white mb-1">Platform</h1>
+      <p className="text-[#7a9bb5] text-sm mb-6">
+        Drill into your resellers and clients, and set their pentest quotas.
+      </p>
+      <PlatformSection apiBase="/api/orgs" getAuthHeaders={getAuthHeaders} />
+    </div>
   );
 }

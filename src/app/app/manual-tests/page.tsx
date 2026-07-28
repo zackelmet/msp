@@ -13,7 +13,6 @@ import {
   faFilter,
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useManualTests } from "@/lib/hooks/useManualTests";
 import { useAuth } from "@/lib/context/AuthContext";
 import { auth } from "@/lib/firebase/firebaseClient";
@@ -126,11 +125,15 @@ export default function ManualTestsPage() {
   const formatTimestamp = (timestamp: any) => {
     if (!timestamp) return "-";
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return (
+      date.toLocaleDateString() +
+      " " +
+      date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    );
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -187,7 +190,9 @@ export default function ManualTestsPage() {
         {/* Tests List */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           {loading ? (
-            <div className="p-8 text-center text-gray-500">Loading tests...</div>
+            <div className="p-8 text-center text-gray-500">
+              Loading tests...
+            </div>
           ) : filteredTests.length === 0 ? (
             <div className="p-8 text-center">
               <FontAwesomeIcon
@@ -312,7 +317,9 @@ export default function ManualTestsPage() {
                     </label>
                     <select
                       value={testType}
-                      onChange={(e) => setTestType(e.target.value as ManualTestType)}
+                      onChange={(e) =>
+                        setTestType(e.target.value as ManualTestType)
+                      }
                       className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     >
                       {Object.entries(testTypeLabels).map(([key, label]) => (
@@ -390,6 +397,6 @@ export default function ManualTestsPage() {
           </div>
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 }

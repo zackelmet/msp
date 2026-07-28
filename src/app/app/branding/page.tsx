@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGlobe, faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 
@@ -64,7 +63,10 @@ export default function BrandingPage() {
     if (!orgId) return;
     setSaving(true);
     setNote(null);
-    const cleanSlug = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+    const cleanSlug = slug
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "");
     setSlug(cleanSlug);
     try {
       const h = await authHeader();
@@ -92,100 +94,105 @@ export default function BrandingPage() {
     "w-full rounded-lg bg-[#0a141f] border border-[#4590e2]/20 px-4 py-3 text-white placeholder-[#5a7590] focus:border-[#4590e2] focus:outline-none text-sm";
 
   return (
-    <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">White-label branding</h1>
-          <p className="text-[#7a9bb5] mt-1 text-sm">
-            Give your resellers a branded portal to log into — your logo and colors,
-            your own URL. Same platform underneath.
-          </p>
-        </div>
-
-        {note && (
-          <div className="rounded-lg border border-[#4590e2]/25 bg-[#4590e2]/10 px-4 py-2.5 text-sm text-[#a9c6dd]">
-            {note}
-          </div>
-        )}
-
-        {loading ? (
-          <div className="h-64 bg-[#0d1e30] rounded-xl animate-pulse" />
-        ) : (
-          <div className="bg-[#0d1e30] border border-[#4590e2]/20 rounded-xl p-6 space-y-5">
-            <div>
-              <label className="block text-xs uppercase tracking-wide text-[#7a9bb5] mb-2">
-                Portal subdomain
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  placeholder="yourcompany"
-                  className={`${field} max-w-[200px]`}
-                />
-                <span className="text-[#7a9bb5] text-sm">.msppentesting.com</span>
-              </div>
-              {slug && (
-                <p className="mt-2 flex items-center gap-2 text-xs text-emerald-300">
-                  <FontAwesomeIcon icon={faGlobe} className="w-3 h-3" />
-                  Your resellers log in at{" "}
-                  <span className="font-semibold">{slug.toLowerCase().replace(/[^a-z0-9-]/g, "")}.msppentesting.com</span>
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs uppercase tracking-wide text-[#7a9bb5] mb-2">
-                Logo URL
-              </label>
-              <input
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-                placeholder="https://…/logo.png"
-                className={field}
-              />
-              {logoUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={logoUrl} alt="Logo preview" className="mt-3 h-12 object-contain" />
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs uppercase tracking-wide text-[#7a9bb5] mb-2">
-                Primary color
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={primaryColor}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="h-10 w-14 rounded bg-transparent border border-[#4590e2]/20"
-                />
-                <input
-                  value={primaryColor}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  className={`${field} max-w-[140px]`}
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={save}
-              disabled={saving || !orgId}
-              className="flex items-center gap-2 rounded-lg bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a7bc8] disabled:opacity-60"
-            >
-              <FontAwesomeIcon icon={faCircleCheck} className="w-3.5 h-3.5" />
-              {saving ? "Saving…" : "Save branding"}
-            </button>
-          </div>
-        )}
-
-        <p className="text-xs text-[#5a7590]">
-          Your resellers &amp; their clients are created on our platform (one login
-          system); the portal just wears your brand. Invite them from the Platform
-          tab.
+    <div className="p-6 lg:p-8 max-w-2xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-white">White-label branding</h1>
+        <p className="text-[#7a9bb5] mt-1 text-sm">
+          Give your resellers a branded portal to log into — your logo and
+          colors, your own URL. Same platform underneath.
         </p>
       </div>
-    </DashboardLayout>
+
+      {note && (
+        <div className="rounded-lg border border-[#4590e2]/25 bg-[#4590e2]/10 px-4 py-2.5 text-sm text-[#a9c6dd]">
+          {note}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="h-64 bg-[#0d1e30] rounded-xl animate-pulse" />
+      ) : (
+        <div className="bg-[#0d1e30] border border-[#4590e2]/20 rounded-xl p-6 space-y-5">
+          <div>
+            <label className="block text-xs uppercase tracking-wide text-[#7a9bb5] mb-2">
+              Portal subdomain
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="yourcompany"
+                className={`${field} max-w-[200px]`}
+              />
+              <span className="text-[#7a9bb5] text-sm">.msppentesting.com</span>
+            </div>
+            {slug && (
+              <p className="mt-2 flex items-center gap-2 text-xs text-emerald-300">
+                <FontAwesomeIcon icon={faGlobe} className="w-3 h-3" />
+                Your resellers log in at{" "}
+                <span className="font-semibold">
+                  {slug.toLowerCase().replace(/[^a-z0-9-]/g, "")}
+                  .msppentesting.com
+                </span>
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs uppercase tracking-wide text-[#7a9bb5] mb-2">
+              Logo URL
+            </label>
+            <input
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+              placeholder="https://…/logo.png"
+              className={field}
+            />
+            {logoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt="Logo preview"
+                className="mt-3 h-12 object-contain"
+              />
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs uppercase tracking-wide text-[#7a9bb5] mb-2">
+              Primary color
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={primaryColor}
+                onChange={(e) => setPrimaryColor(e.target.value)}
+                className="h-10 w-14 rounded bg-transparent border border-[#4590e2]/20"
+              />
+              <input
+                value={primaryColor}
+                onChange={(e) => setPrimaryColor(e.target.value)}
+                className={`${field} max-w-[140px]`}
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={save}
+            disabled={saving || !orgId}
+            className="flex items-center gap-2 rounded-lg bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a7bc8] disabled:opacity-60"
+          >
+            <FontAwesomeIcon icon={faCircleCheck} className="w-3.5 h-3.5" />
+            {saving ? "Saving…" : "Save branding"}
+          </button>
+        </div>
+      )}
+
+      <p className="text-xs text-[#5a7590]">
+        Your resellers &amp; their clients are created on our platform (one
+        login system); the portal just wears your brand. Invite them from the
+        Platform tab.
+      </p>
+    </div>
   );
 }

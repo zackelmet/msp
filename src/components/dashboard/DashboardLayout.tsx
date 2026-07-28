@@ -36,12 +36,14 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-// Persist role/isAdmin across DashboardLayout remounts (each /app page mounts its
-// own layout), so the correct nav renders immediately on navigation instead of
-// flashing the default client nav until the async role fetch resolves.
+// Module-level role cache persists across DashboardLayout instances so the
+// correct nav renders immediately on navigation (no flash). On first hard
+// refresh the cache is cold, so we show a loading skeleton until the fetch
+// resolves — the route-group layout in app/app/layout.tsx keeps this mounted.
 let cachedIsAdmin = false;
 let cachedRole: string | null = null;
 let cachedSelfEnrolled = false;
+let initialFetchDone = false;
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -49,12 +51,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isAdmin, setIsAdmin] = useState(cachedIsAdmin);
   const [role, setRole] = useState<string | null>(cachedRole);
   const [selfEnrolled, setSelfEnrolled] = useState(cachedSelfEnrolled);
+  const [loadingNav, setLoadingNav] = useState(!initialFetchDone);
   // White-label: when on a distributor's subdomain (or ?tenant= override), show
   // their logo/name instead of MSP Pentesting.
   const { tenant } = useTenantBranding();
   const brandName = tenant?.name || "MSP Pentesting";
   const brandLogoUrl = tenant?.logoUrl || null;
-  const brandHome = tenant ? "/app/dashboard" : "https://dashboard.msppentesting.com";
+  const brandHome = tenant
+    ? "/app/dashboard"
+    : "https://dashboard.msppentesting.com";
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -86,6 +91,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         setSelfEnrolled(cachedSelfEnrolled);
       } catch {
         setIsAdmin(false);
+      } finally {
+        initialFetchDone = true;
+        setLoadingNav(false);
       }
     })();
   }, [currentUser]);
@@ -113,7 +121,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navItems = isReseller
     ? [
         { href: "/app/dashboard", label: "Overview", icon: faHome },
-        { href: "/app/ai-pentest-launch", label: "New Pentest", icon: faJetFighter },
+        {
+          href: "/app/ai-pentest-launch",
+          label: "New Pentest",
+          icon: faJetFighter,
+        },
         { href: "/app/pentests", label: "Reports", icon: faList },
         { href: "/app/buy-credits", label: "Buy IPs", icon: faBolt },
         { href: "/app/clients", label: "Clients", icon: faLayerGroup },
@@ -129,7 +141,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         ]
       : [
           { href: "/app/dashboard", label: "Overview", icon: faHome },
-          { href: "/app/ai-pentest-launch", label: "New Pentest", icon: faJetFighter },
+          {
+            href: "/app/ai-pentest-launch",
+            label: "New Pentest",
+            icon: faJetFighter,
+          },
           { href: "/app/pentests", label: "Reports", icon: faList },
         ];
 
@@ -137,7 +153,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const adminNavItems = [
     { href: "/admin", label: "Admin Console", icon: faUserShield },
   ];
-
 
   return (
     <div className="min-h-screen bg-[#0a141f] flex overflow-hidden">
@@ -186,27 +201,35 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </a>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation — show skeleton on first load while role resolves */}
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                data-tour={`nav-${item.href.split("/").pop()}`}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive
-                    ? "bg-[#4590e2]/20 text-[#4590e2] font-semibold border border-[#4590e2]/30"
-                    : "text-gray-300 hover:bg-white/5 hover:text-white"
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
-                {item.label}
-              </Link>
-            );
-          })}
+          {loadingNav ? (
+            <div className="space-y-2 animate-pulse">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-11 bg-white/5 rounded-lg" />
+              ))}
+            </div>
+          ) : (
+            navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  data-tour={`nav-${item.href.split("/").pop()}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-[#4590e2]/20 text-[#4590e2] font-semibold border border-[#4590e2]/30"
+                      : "text-gray-300 hover:bg-white/5 hover:text-white"
+                  }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <FontAwesomeIcon icon={item.icon} className="w-5 h-5" />
+                  {item.label}
+                </Link>
+              );
+            })
+          )}
 
           {/* Admin section */}
           {isAdmin && (
@@ -296,7 +319,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       setSidebarOpen(false);
                     }}
                   >
-                    <FontAwesomeIcon icon={faQuestionCircle} className="w-4 h-4" />
+                    <FontAwesomeIcon
+                      icon={faQuestionCircle}
+                      className="w-4 h-4"
+                    />
                     Trust + Safety
                   </Link>
                   <Link
@@ -351,7 +377,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <a href={brandHome} className="flex items-center gap-2">
             {brandLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={brandLogoUrl} alt={brandName} className="w-8 h-8 object-contain" />
+              <img
+                src={brandLogoUrl}
+                alt={brandName}
+                className="w-8 h-8 object-contain"
+              />
             ) : (
               <Image
                 src="/msp pentesting logo (1) (3) (1).png"

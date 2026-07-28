@@ -1,4 +1,5 @@
 import { SubscriptionModalProvider } from "@/lib/context/SubscriptionModalContext";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -12,5 +13,9 @@ export default function AppLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <SubscriptionModalProvider>{children}</SubscriptionModalProvider>;
+  return (
+    <SubscriptionModalProvider>
+      <DashboardLayout>{children}</DashboardLayout>
+    </SubscriptionModalProvider>
+  );
 }

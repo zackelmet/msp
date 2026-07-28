@@ -14,13 +14,15 @@ import {
   faChevronRight,
   faShieldAlt,
 } from "@fortawesome/free-solid-svg-icons";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useFindings } from "@/lib/hooks/useFindings";
 import { useAuth } from "@/lib/context/AuthContext";
 import { auth } from "@/lib/firebase/firebaseClient";
 import { Severity, FindingStatus } from "@/lib/types/pentest";
 
-const severityConfig: Record<Severity, { icon: any; color: string; bg: string }> = {
+const severityConfig: Record<
+  Severity,
+  { icon: any; color: string; bg: string }
+> = {
   critical: {
     icon: faExclamationCircle,
     color: "text-red-700",
@@ -154,7 +156,7 @@ export default function FindingsPage() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -176,19 +178,27 @@ export default function FindingsPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+            <div className="text-2xl font-bold text-gray-900">
+              {stats.total}
+            </div>
             <div className="text-sm text-gray-500">Total</div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <div className="text-2xl font-bold text-red-600">{stats.critical}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {stats.critical}
+            </div>
             <div className="text-sm text-gray-500">Critical</div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <div className="text-2xl font-bold text-orange-600">{stats.high}</div>
+            <div className="text-2xl font-bold text-orange-600">
+              {stats.high}
+            </div>
             <div className="text-sm text-gray-500">High</div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <div className="text-2xl font-bold text-yellow-600">{stats.medium}</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {stats.medium}
+            </div>
             <div className="text-sm text-gray-500">Medium</div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -196,7 +206,9 @@ export default function FindingsPage() {
             <div className="text-sm text-gray-500">Low</div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <div className="text-2xl font-bold text-purple-600">{stats.open}</div>
+            <div className="text-2xl font-bold text-purple-600">
+              {stats.open}
+            </div>
             <div className="text-sm text-gray-500">Open</div>
           </div>
         </div>
@@ -247,7 +259,9 @@ export default function FindingsPage() {
         {/* Findings List */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           {loading ? (
-            <div className="p-8 text-center text-gray-500">Loading findings...</div>
+            <div className="p-8 text-center text-gray-500">
+              Loading findings...
+            </div>
           ) : filteredFindings.length === 0 ? (
             <div className="p-8 text-center">
               <FontAwesomeIcon
@@ -473,6 +487,6 @@ export default function FindingsPage() {
           </div>
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 }
